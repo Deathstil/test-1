@@ -1119,6 +1119,11 @@
       <div class="messages-container" id="messagesContainer">
         <!-- Messages will be loaded here -->
       </div>
+      <!-- 🔥 ADD THIS TYPING INDICATOR -->
+<div id="typingIndicator" style="display: none; padding: 8px 16px; color: #666; font-size: 0.85rem; background: rgba(88, 101, 242, 0.1); border-radius: 8px; margin: 4px 16px;">
+  <i class="fas fa-circle-notch fa-spin" style="margin-right: 8px;"></i>
+  <span id="typingText">Someone is typing...</span>
+</div>
       
       <!-- Chat Input -->
       <div class="chat-input-container">
@@ -1186,9 +1191,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-    import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+    import { getDatabase, ref, get, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-
+    
     const firebaseConfig = {
       apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
       authDomain: "marketplace-e0bff.firebaseapp.com",
@@ -1203,6 +1208,7 @@
     const database = getDatabase(app);
     const auth = getAuth(app);
 
+    
     // Default avatar fallback
     const DEFAULT_AVATAR = '../../images/no profile pic.jpg';
 
@@ -1522,27 +1528,50 @@ function loadApprovedUsers() {
 
     // Create a message element with proper styling
     function createMessageElement(msg, isCurrentUser = false) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message ${isCurrentUser ? 'current-user' : ''}`;
-      
-      const avatarUrl = msg.avatar && isValidImage(msg.avatar) ? msg.avatar : DEFAULT_AVATAR;
-      
-      messageDiv.innerHTML = `
-        <div class="message-avatar">
-          <img src="${avatarUrl}" alt="${msg.userName}" onerror="this.src='${DEFAULT_AVATAR}'">
-        </div>
-        <div class="message-content">
-          <div class="message-header">
-            <span class="message-author">${msg.userName}</span>
-            <span class="message-time">${formatTime(msg.timestamp)}</span>
-          </div>
-          <div class="message-text">${escapeHtml(msg.text)}</div>
-        </div>
-      `;
-      
-      return messageDiv;
-    }
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${isCurrentUser ? 'current-user' : ''}`;
+  
+  const avatarUrl = msg.avatar && isValidImage(msg.avatar) ? msg.avatar : DEFAULT_AVATAR;
+  const timeAgo = getTimeAgo(msg.timestamp);
+  
+  messageDiv.innerHTML = `
+    <div class="message-avatar">
+      <img src="${avatarUrl}" alt="${msg.userName}" onerror="this.src='${DEFAULT_AVATAR}'">
+    </div>
+    <div class="message-content">
+      <div class="message-header">
+        <span class="message-author">${msg.userName}</span>
+        <span class="message-time" title="${formatTime(msg.timestamp)}">${timeAgo}</span>
+      </div>
+      <div class="message-text">${escapeHtml(msg.text)}</div>
+    </div>
+  `;
+  
+  return messageDiv;
+}
 
+
+function loadMessagesWithFallback(channel) {
+  // Try RTDB first
+  setupRealTimeChatListener(channel);
+  
+  // If no messages after 3 seconds, show local
+  setTimeout(() => {
+    if (document.getElementById('messagesContainer').children.length === 0) {
+      loadMessages(channel); // Load from localStorage
+    }
+  }, 3000);
+}
+
+// Add this helper function
+function getTimeAgo(timestamp) {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return formatTime(timestamp);
+}
     // Create an announcement element with special styling
     function createAnnouncementElement(announcement) {
       const announcementDiv = document.createElement('div');
@@ -1570,30 +1599,97 @@ function loadApprovedUsers() {
 
     // Add a new message to localStorage
     function addMessage(channel, text) {
-      if (!currentUserData || !text.trim()) return;
-      
-      const message = {
-        userId: currentUserData.uid,
-        userName: currentUserData.name || 'Anonymous',
-        avatar: currentUserData.profilePictureUrl || DEFAULT_AVATAR,
-        text: text.trim(),
-        timestamp: Date.now()
-      };
+  if (!currentUserData || !text.trim()) return;
+  
+  const message = {
+    userId: currentUserData.uid,
+    userName: currentUserData.name || 'Anonymous',
+    avatar: currentUserData.profilePictureUrl || DEFAULT_AVATAR,
+    text: text.trim(),
+    timestamp: Date.now()
+  };
 
-      // Get existing messages
-      const messages = JSON.parse(localStorage.getItem(`chat_${channel}`) || '[]');
+  // 🔥 NEW: Save to Firebase Realtime Database (for everyone to see)
+  const chatRef = ref(database, `community_chat/${channel}/${Date.now()}`);
+  set(chatRef, message)
+    .then(() => {
+      console.log('Message saved to RTDB for everyone!');
+    })
+    .catch(error => {
+      console.error('RTDB save failed, falling back to local:', error);
+      // Fallback to localStorage
+      saveMessageLocally(channel, message);
+    });
+}
+
+function setupRealTimeChatListener(channel = 'general') {
+  // Stop previous listener if exists
+  if (window.chatListener) {
+    window.chatListener();
+  }
+  
+  const chatRef = ref(database, `community_chat/${channel}`);
+  
+  // Listen for new messages
+  window.chatListener = onValue(chatRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const messages = [];
       
-      // Add new message
-      messages.push(message);
+      // Convert Firebase object to array
+      snapshot.forEach((childSnapshot) => {
+        messages.push({
+          ...childSnapshot.val(),
+          id: childSnapshot.key
+        });
+      });
       
-      // Save back to localStorage (limit to last 100 messages to prevent storage issues)
-      const limitedMessages = messages.slice(-100);
-      localStorage.setItem(`chat_${channel}`, JSON.stringify(limitedMessages));
+      // Sort by timestamp (newest last)
+      messages.sort((a, b) => a.timestamp - b.timestamp);
       
-      // Reload messages to show the new one
-      loadMessages(channel);
+      // Display messages
+      displayMessages(messages, channel);
+      
+      // Also save to localStorage as backup
+      localStorage.setItem(`chat_${channel}`, JSON.stringify(messages.slice(-100)));
     }
+  });
+  
+  // 🔥 OPTIONAL: Add typing indicators
+  setupTypingIndicator(channel);
+}
 
+function displayMessages(messages, channel) {
+  const messagesContainer = document.getElementById('messagesContainer');
+  messagesContainer.innerHTML = '';
+  
+  if (messages.length === 0) {
+    messagesContainer.innerHTML = `
+      <div class="welcome-message animate-fade-in-up">
+        <div class="welcome-icon"><i class="fas fa-comments"></i></div>
+        <h2 class="welcome-title">Welcome to #${channel}!</h2>
+        <p class="welcome-description">This is the start of the ${channel} channel. Be the first to send a message!</p>
+      </div>
+    `;
+  } else {
+    messages.forEach((msg) => {
+      const isCurrentUser = currentUserData && msg.userId === currentUserData.uid;
+      const msgEl = createMessageElement(msg, isCurrentUser);
+      messagesContainer.appendChild(msgEl);
+    });
+  }
+  
+  // Scroll to bottom
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Helper function for local fallback
+function saveMessageLocally(channel, message) {
+  const messages = JSON.parse(localStorage.getItem(`chat_${channel}`) || '[]');
+  messages.push(message);
+  const limitedMessages = messages.slice(-100);
+  localStorage.setItem(`chat_${channel}`, JSON.stringify(limitedMessages));
+  loadMessages(channel);
+}
     // Add a new announcement
     function addAnnouncement(title, content) {
       if (!currentUserData || !title.trim() || !content.trim()) return;
@@ -1632,38 +1728,48 @@ function loadApprovedUsers() {
 
     // Initialize chat functionality
     function initializeChat() {
-      const chatForm = document.getElementById('chatForm');
-      const chatInput = document.getElementById('chatInput');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  
+  if (chatForm && chatInput) {
+    chatForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      const activeChannel = document.querySelector('.channel-item.active')?.dataset.channel || 'general';
       
-      if (chatForm && chatInput) {
-        chatForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          const text = chatInput.value.trim();
-          if (!text) return;
-
-          const activeChannel = document.querySelector('.channel-item.active')?.dataset.channel || 'general';
-          
-          // Don't allow regular messages in announcements channel
-          if (activeChannel === 'announcements') {
-            alert('This channel is for announcements only. Please use the announcement button to post announcements.');
-            chatInput.value = '';
-            return;
-          }
-          
-          addMessage(activeChannel, text);
-          
-          // Reset input
-          chatInput.value = '';
-          chatInput.style.height = 'auto';
-        });
-
-        // Auto-resize textarea
-        chatInput.addEventListener('input', function() {
-          this.style.height = 'auto';
-          this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        });
+      // Don't allow regular messages in announcements channel
+      if (activeChannel === 'announcements') {
+        alert('This channel is for announcements only. Please use the announcement button to post announcements.');
+        chatInput.value = '';
+        return;
       }
-    }
+      
+      addMessage(activeChannel, text);
+      
+      // Reset input
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      chatInput.focus(); // 🔥 ADD THIS - keep focus on input
+    });
+
+    // Auto-resize textarea
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    
+    // Send message with Ctrl+Enter
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        chatForm.dispatchEvent(new Event('submit'));
+      }
+    });
+  }
+}
+
 
     // Initialize announcement functionality
     function initializeAnnouncements() {
@@ -1734,8 +1840,74 @@ function loadApprovedUsers() {
         updateAnnouncementButtonVisibility();
       }
     }
+    
+    // Add typing indicator function
+// Add typing indicator function
+function setupTypingIndicator(channel) {
+  const chatInput = document.getElementById('chatInput');
+  if (!chatInput || !currentUserData) return; // ⚠️ ADD THIS CHECK
+  
+  const userId = currentUserData.uid;
+  if (!userId) return;
+  
+  const typingRef = ref(database, `typing/${channel}/${userId}`);
+  
+  let typingTimeout;
+  
+  chatInput.addEventListener('input', () => {
+    // User is typing
+    set(typingRef, {
+      userId: userId,
+      userName: currentUserData?.name || 'Someone',
+      timestamp: Date.now()
+    });
+    
+    // Clear after 3 seconds of no typing
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+      set(typingRef, null); // Remove typing indicator
+    }, 3000);
+  });
+  
+  // Listen to others typing
+  const typingListenerRef = ref(database, `typing/${channel}`);
+  onValue(typingListenerRef, (snapshot) => {
+    const typers = [];
+    if (snapshot.exists()) {
+      snapshot.forEach((childSnapshot) => {
+        const typingData = childSnapshot.val();
+        if (typingData && typingData.userId !== userId) {
+          // Show typing for last 5 seconds
+          if (Date.now() - typingData.timestamp < 5000) {
+            typers.push(typingData.userName);
+          }
+        }
+      });
+    }
+    
+    // Update UI
+    const typingIndicator = document.getElementById('typingIndicator');
+    const typingText = document.getElementById('typingText');
+    
+    if (typingIndicator && typingText) {
+      if (typers.length > 0) {
+        const names = typers.slice(0, 2).join(', ');
+        const extra = typers.length > 2 ? ` and ${typers.length - 2} more` : '';
+        typingText.textContent = `${names}${extra} ${typers.length === 1 ? 'is' : 'are'} typing...`;
+        typingIndicator.style.display = 'block';
+      } else {
+        typingIndicator.style.display = 'none';
+      }
+    }
+  });
+  
+  // Clean up typing indicator when user leaves the channel
+  window.addEventListener('beforeunload', () => {
+    set(typingRef, null);
+  });
+}
 
-    // Channel switching
+// Channel switching
     function initializeChannels() {
       const channelItems = document.querySelectorAll('.channel-item');
       const headerName = document.querySelector('.chat-header-name');
@@ -1744,50 +1916,77 @@ function loadApprovedUsers() {
       const chatForm = document.getElementById('chatForm');
 
       channelItems.forEach(item => {
-        item.addEventListener('click', function() {
-          // Update active channel
-          channelItems.forEach(i => i.classList.remove('active'));
-          this.classList.add('active');
-          
-          const channel = this.dataset.channel;
-          
-          // Update UI
-          if (headerName) headerName.textContent = channel;
-          if (chatInput) chatInput.placeholder = `Message #${channel}`;
-          
-          // Update topic based on channel
-          const channelTopics = {
-            'general': 'General discussion for all people',
-            'announcements': '',
-            'help': 'Get help and support from the community'
-          };
-          
-          if (headerTopic) {
-            headerTopic.textContent = channelTopics[channel]  ;
-          }
-
-          // Show/hide chat input based on channel
-          if (channel === 'announcements') {
-            chatForm.style.display = 'none';
-          } else {
-            chatForm.style.display = 'flex';
-          }
-          
-          // Load messages for this channel
-          loadMessages(channel);
-          
-          // Close sidebar on mobile
-          if (window.innerWidth <= 768) {
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            if (sidebar && sidebarOverlay) {
-              sidebar.classList.remove('active');
-              sidebarOverlay.classList.remove('active');
-            }
-          }
-        });
-      });
+  item.addEventListener('click', function() {
+    // Update active channel
+    channelItems.forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+    
+    const channel = this.dataset.channel;
+    
+    // Update UI
+    if (headerName) headerName.textContent = channel;
+    if (chatInput) chatInput.placeholder = `Message #${channel}`;
+    
+    // Show/hide chat input based on channel
+    if (channel === 'announcements') {
+      chatForm.style.display = 'none';
+      loadMessages('announcements'); // Announcements stay local
+    } else {
+      chatForm.style.display = 'flex';
+      // 🔥 NEW: Listen to RTDB for this channel
+      setupRealTimeChatListener(channel);
     }
+    
+    // Close sidebar on mobile
+    if (window.innerWidth <= 768) {
+      const sidebar = document.getElementById('sidebar');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+      if (sidebar && sidebarOverlay) {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+      }
+    }
+  });
+});
+    }
+
+    // 📦 NEW FUNCTION: Clean up old chat messages from RTDB
+function cleanupOldChatMessages() {
+  try {
+    const channels = ['general', 'help'];
+    const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days ago
+    
+    channels.forEach(channel => {
+      const chatRef = ref(database, `community_chat/${channel}`);
+      get(chatRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const updates = {};
+          let hasOldMessages = false;
+          
+          snapshot.forEach((childSnapshot) => {
+            const message = childSnapshot.val();
+            if (message.timestamp < oneWeekAgo) {
+              updates[childSnapshot.key] = null; // Mark for deletion
+              hasOldMessages = true;
+            }
+          });
+          
+          // Delete old messages
+          if (hasOldMessages) {
+            update(ref(database), updates);
+            console.log(`🧹 Cleaned up old messages from #${channel}`);
+          }
+        }
+      });
+    });
+  } catch (error) {
+    console.warn('Chat cleanup failed:', error);
+  }
+}
+
+// Run cleanup once per day
+setTimeout(cleanupOldChatMessages, 60 * 1000); // Run after 1 minute
+setInterval(cleanupOldChatMessages, 24 * 60 * 60 * 1000); // Then every 24 hours
 
     // Authentication state listener
     onAuthStateChanged(auth, async (user) => {
@@ -1877,15 +2076,17 @@ function loadApprovedUsers() {
 
     // Initialize UI when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-      initializeUI();
-      setupEventListeners();
-      initializeChannels();
-      initializeChat();
-      initializeEmojiPicker();
-      
-      console.log('Community chat initialized with emoji picker');
-    });
-
+  initializeUI();
+  setupEventListeners();
+  initializeChannels();
+  initializeChat();
+  initializeEmojiPicker();
+  
+  // 🔥 NEW: Start listening to general chat
+  setupRealTimeChatListener('general');
+  
+  console.log('Community chat initialized with RTDB real-time sync');
+});
     function initializeUI() {
       const mobileMenuToggle = document.getElementById('mobileMenuToggle');
       if (window.innerWidth <= 768) {
@@ -1999,6 +2200,7 @@ function loadApprovedUsers() {
         }
       });
     }
+    
   </script>
 </body>
 </html>
