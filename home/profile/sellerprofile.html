@@ -1,0 +1,683 @@
+<!-- profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Profile</title>
+  <style>
+    /* profile.css - MOBILE OPTIMIZED */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #131921;
+      color: white;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER - MOBILE FRIENDLY */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background-color: #0b1623;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .logo h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      color: #3498db;
+      white-space: nowrap;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .nav-links a {
+      color: white;
+      margin-left: 15px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    /* MAIN CONTENT - MOBILE OPTIMIZED */
+    .profile-container {
+      flex: 1;
+      width: 100%;
+      margin: 20px auto;
+      padding: 0 15px;
+      animation: fadeIn 0.6s ease-in-out;
+      box-sizing: border-box;
+    }
+
+    .profile-container h2 {
+      text-align: center;
+      font-size: 1.6rem;
+      margin-bottom: 15px;
+      color: #3498db;
+      padding: 0 10px;
+    }
+
+    .profile-content {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .profile-card {
+      background-color: #1c1f2a;
+      border-radius: 12px;
+      padding: 15px;
+      width: 100%;
+      max-width: 100%;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      box-sizing: border-box;
+    }
+
+    .profile-field {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 10px;
+      margin: 6px 0;
+      background: #252a38;
+      border-radius: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .field-label {
+      font-weight: bold;
+      color: #3498db;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      min-width: 120px;
+    }
+
+    .field-value {
+      color: #ecf0f1;
+      font-size: 0.9rem;
+      text-align: right;
+      word-break: break-word;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .profile-picture-container {
+      text-align: center;
+      width: 100%;
+      max-width: 200px;
+    }
+
+    #profilePic {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #3498db;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* PRODUCTS SECTION - MOBILE FRIENDLY */
+    .seller-products {
+      width: 100%;
+      margin-top: 15px;
+      box-sizing: border-box;
+    }
+
+    .seller-products h3 {
+      color: #fff;
+      margin: 10px 0;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    .product-card {
+      background: #111319;
+      padding: 8px;
+      border-radius: 8px;
+      text-align: left;
+      color: #fff;
+      box-sizing: border-box;
+    }
+
+    .product-card img {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 6px;
+      display: block;
+    }
+
+    .product-title {
+      font-size: 0.85rem;
+      margin: 6px 0 3px 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .product-price {
+      font-weight: 800;
+      color: #34d399;
+      font-size: 0.85rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 12px;
+      background-color: #0b1623;
+      color: #aaa;
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    /* MOBILE RESPONSIVE BREAKPOINTS */
+    @media (max-width: 768px) {
+      header {
+        padding: 12px 15px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .logo {
+        justify-content: center;
+      }
+
+      .nav-links {
+        text-align: center;
+      }
+
+      .nav-links a {
+        margin: 0 8px;
+        font-size: 0.9rem;
+      }
+
+      .profile-container {
+        margin: 15px auto;
+        padding: 0 12px;
+      }
+
+      .profile-container h2 {
+        font-size: 1.4rem;
+        margin-bottom: 12px;
+      }
+
+      .profile-content {
+        gap: 15px;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .profile-card {
+        padding: 12px;
+        border-radius: 10px;
+      }
+
+      .profile-field {
+        padding: 8px;
+        margin: 4px 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .field-label {
+        min-width: auto;
+        font-size: 0.85rem;
+      }
+
+      .field-value {
+        text-align: left;
+        font-size: 0.85rem;
+        width: 100%;
+      }
+
+      #profilePic {
+        width: 100px;
+        height: 100px;
+      }
+
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 8px;
+      }
+
+      .product-card img {
+        height: 90px;
+      }
+    }
+
+    /* SMALL PHONES */
+    @media (max-width: 480px) {
+      .profile-container {
+        padding: 0 10px;
+        margin: 12px auto;
+      }
+
+      .profile-container h2 {
+        font-size: 1.3rem;
+      }
+
+      .profile-card {
+        padding: 10px;
+      }
+
+      .profile-field {
+        padding: 6px 8px;
+      }
+
+      .field-label,
+      .field-value {
+        font-size: 0.8rem;
+      }
+
+      #profilePic {
+        width: 90px;
+        height: 90px;
+      }
+
+      .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .product-card {
+        padding: 6px;
+      }
+
+      .product-card img {
+        height: 80px;
+      }
+
+      .product-title {
+        font-size: 0.8rem;
+      }
+
+      .product-price {
+        font-size: 0.8rem;
+      }
+
+      footer {
+        padding: 10px;
+        font-size: 0.8rem;
+      }
+    }
+
+    /* EXTRA SMALL PHONES */
+    @media (max-width: 360px) {
+      header {
+        padding: 10px 12px;
+      }
+
+      .logo h1 {
+        font-size: 1.2rem;
+      }
+
+      .brand-logo {
+        width: 28px;
+        height: 28px;
+      }
+
+      .nav-links a {
+        font-size: 0.85rem;
+        margin: 0 6px;
+      }
+
+      .profile-container h2 {
+        font-size: 1.2rem;
+      }
+
+      .products-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .product-card {
+        max-width: 200px;
+        margin: 0 auto;
+      }
+    }
+
+    /* UTILITY CLASSES FOR BETTER MOBILE EXPERIENCE */
+    .text-center {
+      text-align: center;
+    }
+
+    .w-100 {
+      width: 100%;
+    }
+
+    .mb-1 {
+      margin-bottom: 8px;
+    }
+
+    .mb-2 {
+      margin-bottom: 12px;
+    }
+
+    .px-1 {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    .px-1 {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+
+    body.dark-mode header,
+    body.dark-mode footer,
+    body.dark-mode .profile-card,
+    body.dark-mode .product-card {
+      background-color: #1e293b;
+    }
+
+    body.dark-mode .profile-field {
+      background-color: #334155;
+    }
+
+    body.dark-mode .field-value {
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">
+      <img src="../../images/logo ssi.png" alt="Logo" class="brand-logo" />
+      <h1>Guildite</h1>
+    </div>
+    <nav class="nav-links">
+      <a href="../market/market.html">Back to GuildHall</a>
+    </nav>
+  </header>
+
+  <main class="profile-container" id="main">
+    <h2>Seller's Profile</h2>
+
+    <div class="profile-content">
+      <div class="profile-picture-container">
+        <img id="profilePic" src="../../images/no profile pic.jpg" alt="Profile Picture">
+      </div>
+
+      <div class="profile-card" aria-live="polite">
+        <div class="profile-field">
+          <span class="field-label">Full Name:</span>
+          <span class="field-value" id="fullname">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Email:</span>
+          <span class="field-value" id="email">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Index Number:</span>
+          <span class="field-value" id="index">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Program of Study:</span>
+          <span class="field-value" id="program">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Phone Number:</span>
+          <span class="field-value" id="phone">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Room Number:</span>
+          <span class="field-value" id="room">Loading...</span>
+        </div>
+        <div style="margin-top:12px;text-align:center;color:#9aa5b1" id="profileStatus">Looking up seller...</div>
+      </div>
+    </div>
+
+    <section class="seller-products" id="sellerProductsSection" aria-live="polite" style="display:none;">
+      <h3>Products from this seller</h3>
+      <div id="sellerProducts" class="products-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Guildite. All rights reserved.</p>
+  </footer>
+
+  <!-- Firebase + page script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+      authDomain: "marketplace-e0bff.firebaseapp.com",
+      projectId: "marketplace-e0bff",
+      storageBucket: "marketplace-e0bff.appspot.com",
+      messagingSenderId: "892936444768",
+      appId: "1:892936444768:web:f595b3a3e5d697988e1c05",
+      databaseURL: "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const auth = getAuth(app);
+
+    // Theme Initialization
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+    }
+
+    // Helpers
+    const el = id => document.getElementById(id);
+    const sanitize = s => { const d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; };
+    function isValidImage(url) { const s = String(url || '').trim(); if (!s) return false; return /^(data:|https?:\/\/|\/|\.)/.test(s) || /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(s); }
+
+    // get uid from query string
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get('uid');
+
+    async function fetchSeller(uid) {
+      if (!uid) return null;
+      try {
+        const userRef = ref(database, `users/${uid}`);
+        const snap = await get(userRef);
+        if (!snap.exists()) return null;
+        return snap.val();
+      } catch (err) {
+        console.warn('fetchSeller error', err);
+        return null;
+      }
+    }
+
+    // FIXED: Get products from the same namespaced localStorage keys as seller dashboard
+    function fetchProductsForSeller(uid) {
+      if (!uid) return [];
+
+      try {
+        // Try the exact same namespaced key format used in seller dashboard
+        const namespacedKey = `products__seller__${uid}`;
+        const localProducts = localStorage.getItem(namespacedKey);
+
+        if (localProducts) {
+          const parsed = JSON.parse(localProducts);
+          console.log(`Found ${parsed.length} products for seller ${uid} in key: ${namespacedKey}`);
+          return Array.isArray(parsed) ? parsed : [];
+        }
+
+        // Fallback: search all localStorage keys for this seller's products
+        console.log(`No products found in ${namespacedKey}, searching all localStorage...`);
+        let allProducts = [];
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('products__')) {
+            try {
+              const products = JSON.parse(localStorage.getItem(key));
+              if (Array.isArray(products)) {
+                // Filter products that belong to this seller
+                const sellerProducts = products.filter(p => {
+                  const sellerId = p.sellerId || p.ownerId;
+                  return sellerId && String(sellerId) === String(uid);
+                });
+                allProducts = allProducts.concat(sellerProducts);
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+
+        return allProducts;
+      } catch (e) {
+        console.warn('Error fetching seller products from localStorage:', e);
+        return [];
+      }
+    }
+
+    function renderSellerProducts(items) {
+      const section = el('sellerProductsSection');
+      const container = el('sellerProducts');
+      container.innerHTML = '';
+
+      if (!items || !items.length) {
+        section.style.display = 'none';
+        el('profileStatus').textContent += ' No products found.';
+        return;
+      }
+
+      section.style.display = 'block';
+      items.forEach(p => {
+        const img = p.img || p.image || (Array.isArray(p.images) && p.images[0]) || '../../images/default-product.jpg';
+        const title = p.name || p.title || 'Untitled Product';
+        const price = Number(p.price || p.amount || 0).toFixed(2);
+        const condition = p.condition ? ` (${p.condition})` : '';
+
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+        <img src="${sanitize(img)}" onerror="this.onerror=null;this.src='../../images/default-product.jpg'" alt="${sanitize(title)}">
+        <div class="product-title" title="${sanitize(title)}">${sanitize(title)}</div>
+        <div class="product-price">GHC ${price}${condition}</div>
+        ${p.status ? `<div style="font-size:0.8rem;color:#888;margin-top:4px">${p.status}</div>` : ''}
+      `;
+        container.appendChild(card);
+      });
+
+      el('profileStatus').textContent += ` Found ${items.length} products.`;
+    }
+
+    async function init() {
+      if (!uid) {
+        el('profileStatus').textContent = 'No seller specified.';
+        el('fullname').textContent = '-';
+        el('email').textContent = '-';
+        return;
+      }
+
+      el('profileStatus').textContent = 'Loading seller info...';
+
+      // Fetch seller profile from Firebase (this should work since auth is separate)
+      const seller = await fetchSeller(uid);
+      if (!seller) {
+        el('profileStatus').textContent = 'Seller not found.';
+        el('fullname').textContent = 'Unknown';
+        el('email').textContent = '-';
+        el('index').textContent = '-';
+        el('program').textContent = '-';
+        el('phone').textContent = '-';
+        el('room').textContent = '-';
+        el('profilePic').src = '../../images/no profile pic.jpg';
+        return;
+      }
+
+      // Populate seller info fields
+      el('fullname').textContent = seller.name || seller.fullname || seller.displayName || 'Unnamed';
+      el('email').textContent = seller.email || seller.userEmail || 'Not provided';
+      el('index').textContent = seller.indexNumber || seller.index || seller.studentIndex || 'Not provided';
+      el('program').textContent = seller.program || seller.course || seller.programOfStudy || 'Not provided';
+      el('phone').textContent = seller.phone || seller.phoneNumber || seller.tel || 'Not provided';
+      el('room').textContent = seller.roomnumber || seller.room || seller.roomNumber || seller.residence || 'Not provided';
+
+      if (seller.profilePictureUrl && isValidImage(seller.profilePictureUrl)) {
+        el('profilePic').src = seller.profilePictureUrl;
+      } else {
+        el('profilePic').src = '../../images/no profile pic.jpg';
+      }
+
+      el('profileStatus').textContent = 'Seller loaded. Loading products...';
+
+      // Load products from localStorage (same as seller dashboard)
+      const sellerProducts = fetchProductsForSeller(uid);
+      renderSellerProducts(sellerProducts);
+    }
+
+    // Debug helper to see all localStorage keys
+    function debugLocalStorage() {
+      console.log('=== LocalStorage Keys ===');
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.includes('products')) {
+          console.log(`Key: ${key}`);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      debugLocalStorage(); // Remove this in production
+      init();
+    });
+  </script>
+</body>
+
+</html>

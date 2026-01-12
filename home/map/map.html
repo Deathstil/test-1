@@ -1,0 +1,2361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Order Tracking - Guildite</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #93c5fd;
+            --dark-bg: #0f172a;
+            --dark-secondary: #1e293b;
+            --light-bg: #f8fafc;
+            --light-text: #f8fafc;
+            --dark-text: #0f172a;
+            --gray-text: #64748b;
+            --card-bg: #ffffff;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        body.dark-mode {
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+        }
+
+        .map-container {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            grid-template-rows: 70px 1fr;
+            height: 100vh;
+            gap: 0;
+        }
+
+        /* ===== Header ===== */
+        header {
+            grid-column: 1 / -1;
+            background-color: var(--dark-bg);
+            padding: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .logo img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .logo:hover img {
+            transform: rotate(-5deg);
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-text h1 {
+            font-size: 1.2rem;
+            line-height: 1.2;
+        }
+
+        .logo-text p {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .icon-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid white;
+            transition: var(--transition);
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: var(--dark-bg);
+            min-width: 180px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 101;
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .dropdown-content {
+            background-color: var(--dark-bg);
+            border: 1px solid var(--dark-secondary);
+        }
+
+        .dropdown-content a {
+            color: var(--light-text);
+            padding: 10px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .dropdown-content a:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .dropdown-content a i {
+            width: 18px;
+            text-align: center;
+        }
+
+        .dropdown-content .divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 6px 0;
+        }
+
+        .show {
+            display: block;
+        }
+
+        /* ===== Sidebar ===== */
+        .map-sidebar {
+            background-color: var(--card-bg);
+            border-right: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        body.dark-mode .map-sidebar {
+            background-color: var(--dark-secondary);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--dark-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        body.dark-mode .sidebar-header h2 {
+            color: var(--light-text);
+        }
+
+        .sidebar-header p {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background-color: var(--card-bg);
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .search-box input {
+            background-color: var(--dark-bg);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--light-text);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-text);
+            font-size: 1rem;
+        }
+
+        .filter-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: var(--border-radius-sm);
+            padding: 4px;
+            gap: 4px;
+        }
+
+        body.dark-mode .filter-tabs {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .filter-tab {
+            flex: 1;
+            padding: 8px 12px;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            background: transparent;
+            color: var(--gray-text);
+        }
+
+        .filter-tab.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+        }
+
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Order Card */
+        .order-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius-sm);
+            padding: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+
+        body.dark-mode .order-card {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow);
+            border-color: var(--primary-color);
+        }
+
+        .order-card.active {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        body.dark-mode .order-card.active {
+            background: rgba(37, 99, 235, 0.15);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: var(--dark-text);
+            font-size: 0.95rem;
+        }
+
+        body.dark-mode .order-id {
+            color: var(--light-text);
+        }
+
+        .order-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .badge-delivering { background: rgba(37, 99, 235, 0.1); color: var(--primary-color); }
+        .badge-pickup { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .badge-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+        .badge-delivered { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+
+        .order-customer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .customer-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(0, 0, 0, 0.05);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body.dark-mode .customer-avatar {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .customer-info h4 {
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .customer-info p {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+
+        .order-items {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .item-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .item-thumb {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .item-text {
+            flex: 1;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .order-footer {
+            border-top-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .order-time {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--gray-text);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        body.dark-mode .action-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #b0b0c0;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* ===== Map Area ===== */
+        .map-area {
+            position: relative;
+            background: #e9ecef;
+        }
+
+        body.dark-mode .map-area {
+            background: #1a1a2e;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Map Controls */
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .map-control-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--border-radius-sm);
+            background: var(--card-bg);
+            border: none;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--dark-text);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        body.dark-mode .map-control-btn {
+            background: var(--dark-secondary);
+            color: var(--light-text);
+        }
+
+        .map-control-btn:hover {
+            transform: scale(1.05);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Tracking Info */
+        .tracking-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            max-width: 280px;
+            box-shadow: var(--card-shadow);
+            z-index: 1000;
+        }
+
+        body.dark-mode .tracking-info {
+            background: rgba(30, 30, 40, 0.95);
+        }
+
+        .tracking-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .tracking-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .live-pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--success-color);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .tracking-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Order Panel */
+        .order-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            z-index: 1000;
+            display: none;
+        }
+
+        body.dark-mode .order-panel {
+            background: rgba(30, 30, 40, 0.95);
+        }
+
+        .order-panel.active {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100%); }
+            to { transform: translate(-50%, 0); }
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .panel-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .close-panel {
+            background: rgba(0, 0, 0, 0.05);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gray-text);
+            transition: var(--transition);
+        }
+
+        body.dark-mode .close-panel {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .close-panel:hover {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .panel-content {
+            display: grid;
+            gap: 16px;
+        }
+
+        .panel-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .panel-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .panel-label {
+            font-size: 0.75rem;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .panel-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .panel-value {
+            color: var(--light-text);
+        }
+
+        .progress-tracker {
+            margin: 12px 0;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 0 12px;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        body.dark-mode .progress-steps::before {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 50px;
+        }
+
+        .step-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 6px;
+            font-size: 0.7rem;
+            color: var(--gray-text);
+        }
+
+        body.dark-mode .step-icon {
+            background: var(--dark-bg);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .step-icon.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .step-icon.completed {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            color: var(--gray-text);
+            white-space: nowrap;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: var(--border-radius-sm);
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--light-text);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--gray-text);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.5;
+            margin-bottom: 8px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+            max-width: 300px;
+            line-height: 1.5;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--dark-bg);
+            color: white;
+            padding: 12px 16px;
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: var(--transition);
+            max-width: 300px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: var(--success-color);
+        }
+
+        .toast.error {
+            background: var(--error-color);
+        }
+
+        .toast.warning {
+            background: var(--warning-color);
+        }
+
+        .toast.info {
+            background: var(--primary-color);
+        }
+
+        .toast-icon {
+            font-size: 1.1rem;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+            font-size: 0.9rem;
+        }
+
+        .toast-message {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .close-toast {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+
+        .close-toast:hover {
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .map-container {
+                grid-template-columns: 350px 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .map-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 70px 300px 1fr;
+            }
+
+            .map-sidebar {
+                grid-row: 2;
+                border-right: none;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            }
+
+            body.dark-mode .map-sidebar {
+                border-bottom-color: rgba(255, 255, 255, 0.08);
+            }
+
+            .map-area {
+                grid-row: 3;
+            }
+
+            .tracking-info {
+                top: auto;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100% - 40px);
+                max-width: none;
+            }
+
+            .map-controls {
+                flex-direction: row;
+                bottom: 20px;
+                top: auto;
+                left: 50%;
+                transform: translateX(-50%);
+                right: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panel-row {
+                grid-template-columns: 1fr;
+            }
+
+            .panel-actions {
+                flex-direction: column;
+            }
+
+            .filter-tabs {
+                flex-wrap: wrap;
+            }
+
+            .filter-tab {
+                flex: 1 0 calc(50% - 8px);
+                margin: 2px;
+            }
+
+            header {
+                padding: 12px 16px;
+            }
+
+            .logo span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="map-container">
+        <!-- Header -->
+        <header>
+            <a href="../../market/market.html" class="logo" aria-label="Guildite Home">
+                <img src="../../../images/logo ssi.png" alt="Guildite Logo" class="brand-logo" width="40" height="40" loading="eager">
+                <div class="logo-text">
+                    <h1>Guildite</h1>
+                    <p>Live Order Tracking</p>
+                </div>
+            </a>
+            <div class="header-actions">
+                <button class="icon-btn" id="darkModeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a href="../shopping/cart/cart.html" class="icon-btn cart-btn" id="cartBtn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-badge" id="cartBadge">0</span>
+                </a>
+                <div class="profile-dropdown">
+                    <img src="../../../images/no profile pic.jpg" 
+                         alt="User profile" class="user-avatar" width="40" height="40" loading="lazy">
+                    <div class="dropdown-content" aria-label="User menu">
+                        <a href="../profile/profile.html"><i class="fas fa-user"></i> Profile</a>
+                        <a href="../shopping/orders/orders.html"><i class="fas fa-box"></i>orders</a>
+                        <a href="../delivery/delivery.html"><i class="fas fa-shipping-fast"></i>Carriers</a>
+                        <a href="../seller/testsell.html"><i class="fas fa-plus-circle"></i> Seller Workshop</a>
+                        <a href="../community/community.html"><i class="fas fa-users"></i>Guild Hall</a>
+                        <div class="divider"></div>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Leave Guildite</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="map-sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-map-pin"></i> Active Orders</h2>
+                <p>Track your orders in real-time</p>
+            </div>
+
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="orderSearch" placeholder="Search orders...">
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="delivering">Delivering</button>
+                <button class="filter-tab" data-filter="pickup">Pickup</button>
+                <button class="filter-tab" data-filter="pending">Pending</button>
+            </div>
+
+            <div class="orders-list" id="ordersList">
+                <!-- Orders will be populated by JavaScript -->
+            </div>
+        </aside>
+
+        <!-- Map Area -->
+        <main class="map-area">
+            <div id="map"></div>
+            
+            <!-- Live Tracking Info -->
+            <div class="tracking-info">
+                <div class="tracking-header">
+                    <h3>Live Tracking</h3>
+                    <div class="live-indicator">
+                        <div class="live-pulse"></div>
+                        <span>LIVE</span>
+                    </div>
+                </div>
+                <div class="tracking-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="activeOrders">0</div>
+                        <div class="stat-label">Active Orders</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="deliveryTime">--</div>
+                        <div class="stat-label">Avg ETA</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="deliveryRadius">5km</div>
+                        <div class="stat-label">Coverage</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="onlineCouriers">0</div>
+                        <div class="stat-label">Couriers</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <button class="map-control-btn" id="locateMe">
+                    <i class="fas fa-location-arrow"></i>
+                </button>
+                <button class="map-control-btn" id="zoomIn">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="map-control-btn" id="zoomOut">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button class="map-control-btn" id="refreshMap">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="map-control-btn" id="layersToggle">
+                    <i class="fas fa-layer-group"></i>
+                </button>
+            </div>
+
+            <!-- Order Details Panel -->
+            <div class="order-panel" id="orderPanel">
+                <div class="panel-header">
+                    <h3>Order Details</h3>
+                    <button class="close-panel" id="closePanel">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="panel-content" id="panelContent">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places,geometry&callback=initMap" async defer></script>
+
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+            authDomain: "marketplace-e0bff.firebaseapp.com",
+            projectId: "marketplace-e0bff",
+            storageBucket: "marketplace-e0bff.appspot.com",
+            messagingSenderId: "892936444768",
+            appId: "1:892936444768:web:f595b3a3e5d697988e1c05",
+            databaseURL: "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+
+        // Global variables
+        let map = null;
+        let userLocation = null;
+        let userRole = null;
+        let currentUID = null;
+        let activeMarkers = [];
+        let activeOrders = [];
+        let selectedOrder = null;
+        let directionsRenderer = null;
+        let directionsService = null;
+        let geocoder = null;
+        let watchId = null;
+        const sellerCache = new Map(); // Cache for seller profiles
+        const defaultCenter = { lat: 6.6734, lng: -1.5677 }; // KNUST, Ghana
+
+        // DOM Elements
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const searchBtn = document.getElementById('searchBtn');
+        const cartBtn = document.getElementById('cartBtn');
+        const cartBadge = document.getElementById('cartBadge');
+        const userAvatar = document.querySelector('.user-avatar');
+        const dropdownContent = document.querySelector('.dropdown-content');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        // Map elements
+        const locateMeBtn = document.getElementById('locateMe');
+        const zoomInBtn = document.getElementById('zoomIn');
+        const zoomOutBtn = document.getElementById('zoomOut');
+        const refreshMapBtn = document.getElementById('refreshMap');
+        const layersToggleBtn = document.getElementById('layersToggle');
+        const orderSearch = document.getElementById('orderSearch');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const ordersList = document.getElementById('ordersList');
+        const orderPanel = document.getElementById('orderPanel');
+        const closePanelBtn = document.getElementById('closePanel');
+        const panelContent = document.getElementById('panelContent');
+        const toastContainer = document.getElementById('toastContainer');
+
+        // Utility functions
+        function getUid() {
+            return sessionStorage.getItem('uid') || currentUID || 'anon';
+        }
+
+        function detectPageRole() {
+            const path = window.location.pathname.toLowerCase();
+            if (path.includes('seller')) return 'seller';
+            if (path.includes('delivery') || path.includes('courier')) return 'delivery';
+            return 'buyer';
+        }
+
+        function nsKey(base, { role=null, uid=null } = {}) {
+            const finalRole = role || detectPageRole() || 'buyer';
+            const finalUid = uid || getUid() || 'anon';
+            return `${base}__${finalRole}__${String(finalUid)}`;
+        }
+
+        function readJsonKey(key, fallback = []) {
+            try {
+                return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+            } catch(e) {
+                return fallback;
+            }
+        }
+
+        function writeJsonKey(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data || []));
+            } catch(e) {}
+        }
+
+        const ORDERS_KEY = () => nsKey('orders');
+        const CART_KEY = () => nsKey('cart');
+
+        // Profile Dropdown
+        if (userAvatar && dropdownContent) {
+            userAvatar.addEventListener('click', e => {
+                e.stopPropagation();
+                dropdownContent.classList.toggle('show');
+            });
+        }
+
+        document.addEventListener('click', e => {
+            if (dropdownContent?.classList.contains('show') && !e.target.closest('.profile-dropdown')) {
+                dropdownContent.classList.remove('show');
+            }
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && dropdownContent?.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        });
+
+        // Logout
+        logoutBtn?.addEventListener("click", async e => {
+            e.preventDefault();
+            await signOut(auth);
+            sessionStorage.removeItem('uid');
+            window.location.href = "../../../index.html";
+        });
+
+        // Dark Mode
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && prefersDark)) {
+            document.body.classList.add('dark-mode');
+            if (darkModeToggle) darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+        
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                darkModeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            });
+        }
+
+        // Update cart count
+        function updateCartCount() {
+            const cart = readJsonKey(CART_KEY(), []);
+            const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            if (cartBadge) {
+                cartBadge.textContent = totalItems;
+                cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+            }
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas ${icons[type] || 'fa-info-circle'}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="close-toast">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Remove toast
+            const removeToast = () => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            };
+            
+            // Close button
+            toast.querySelector('.close-toast').addEventListener('click', removeToast);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(removeToast, 5000);
+        }
+
+        // Load user profile
+        async function loadUserProfile() {
+            try {
+                const uid = getUid();
+                if (!uid) return;
+                
+                const userRef = ref(database, `users/${uid}`);
+                const snapshot = await get(userRef);
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    
+                    // Update user avatar in header
+                    if (userAvatar) {
+                        userAvatar.src = userData.profilePictureUrl || "../../../images/no profile pic.jpg";
+                        userAvatar.alt = (userData.name || userData.displayName || "User") + "'s profile picture";
+                    }
+                    
+                    // Store user data for use in order cards
+                    window.currentUserData = userData;
+                }
+            } catch (error) {
+                console.warn('Error loading user profile:', error);
+                if (userAvatar) {
+                    userAvatar.src = "../../../images/no profile pic.jpg";
+                }
+            }
+        }
+
+        // Get seller profile from Firebase
+        async function getSellerProfile(uid) {
+            if (!uid) return null;
+            
+            // Check cache first
+            if (sellerCache.has(uid)) {
+                return sellerCache.get(uid);
+            }
+            
+            try {
+                const userRef = ref(database, `users/${uid}`);
+                const snapshot = await get(userRef);
+                if (!snapshot.exists()) {
+                    sellerCache.set(uid, null);
+                    return null;
+                }
+                
+                const sellerData = snapshot.val();
+                sellerCache.set(uid, sellerData);
+                return sellerData;
+            } catch (error) {
+                console.warn('Error loading seller profile:', error);
+                sellerCache.set(uid, null);
+                return null;
+            }
+        }
+
+        // Extract seller ID from order
+        function extractSellerIdFromOrder(order) {
+            if (!order) return null;
+            
+            // Try different possible locations for seller ID
+            if (order.sellerId) return order.sellerId;
+            if (order.sellerUid) return order.sellerUid;
+            if (order.intendedSellerId) return order.intendedSellerId;
+            if (order.seller && typeof order.seller === 'string') return order.seller;
+            
+            // Check items array
+            if (Array.isArray(order.items) && order.items.length > 0) {
+                const firstItem = order.items[0];
+                if (firstItem.sellerId) return firstItem.sellerId;
+                if (firstItem.sellerUid) return firstItem.sellerUid;
+                if (firstItem.seller && typeof firstItem.seller === 'string') return firstItem.seller;
+            }
+            
+            return null;
+        }
+
+        // Get seller name from order
+        async function getSellerName(order) {
+            const sellerId = extractSellerIdFromOrder(order);
+            if (sellerId) {
+                const sellerData = await getSellerProfile(sellerId);
+                if (sellerData) {
+                    return sellerData.name || 
+                           sellerData.displayName || 
+                           sellerData.fullname || 
+                           (sellerData.email ? sellerData.email.split('@')[0] : 'Seller');
+                }
+            }
+            
+            // Fallback to order data
+            return order.sellerName || order.seller || 'Seller';
+        }
+
+        // Get seller avatar from order
+        async function getSellerAvatar(order) {
+            const sellerId = extractSellerIdFromOrder(order);
+            if (sellerId) {
+                const sellerData = await getSellerProfile(sellerId);
+                if (sellerData && sellerData.profilePictureUrl) {
+                    return sellerData.profilePictureUrl;
+                }
+            }
+            
+            // Fallback to seller name from order data
+            if (order.sellerName) {
+                const sellerName = encodeURIComponent(order.sellerName);
+                return `https://ui-avatars.com/api/?name=${sellerName}&background=2563eb&color=fff`;
+            }
+            
+            return '../../../images/no profile pic.jpg';
+        }
+
+        // Prefetch seller profiles for orders
+        async function prefetchSellerProfiles(orders) {
+            try {
+                const sellerIds = new Set();
+                
+                orders.forEach(order => {
+                    const sellerId = extractSellerIdFromOrder(order);
+                    if (sellerId) {
+                        sellerIds.add(sellerId);
+                    }
+                });
+                
+                // Fetch all seller profiles
+                const promises = Array.from(sellerIds).map(id => getSellerProfile(id));
+                await Promise.all(promises);
+            } catch (error) {
+                console.warn('Error prefetching seller profiles:', error);
+            }
+        }
+
+        // Initialize Map
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: defaultCenter,
+                zoom: 15,
+                mapTypeId: 'roadmap',
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    },
+                    {
+                        featureType: "transit",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ],
+                disableDefaultUI: true,
+                zoomControl: false,
+                mapTypeControl: false,
+                scaleControl: true,
+                streetViewControl: false,
+                rotateControl: false,
+                fullscreenControl: false
+            });
+
+            geocoder = new google.maps.Geocoder();
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: '#2563eb',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 4
+                }
+            });
+
+            // Get user location
+            getUserLocation();
+        }
+
+        // Get user location
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        
+                        // Update courier location in Firebase if delivery person
+                        if (userRole === 'delivery') {
+                            updateCourierLocation(userLocation);
+                        }
+                        
+                        // Center map on user location on first load
+                        map.setCenter(userLocation);
+                        
+                        // Add/update user marker
+                        updateUserMarker();
+                    },
+                    (error) => {
+                        console.error('Error getting location:', error);
+                        showToast('Unable to get your location', 'error');
+                        map.setCenter(defaultCenter);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 30000,
+                        timeout: 27000
+                    }
+                );
+            } else {
+                showToast('Geolocation is not supported by your browser', 'error');
+                map.setCenter(defaultCenter);
+            }
+        }
+
+        // Update courier location
+        function updateCourierLocation(location) {
+            if (!currentUID || userRole !== 'delivery') return;
+            
+            const locationRef = ref(database, `courier_locations/${currentUID}`);
+            update(locationRef, {
+                lat: location.lat,
+                lng: location.lng,
+                updatedAt: Date.now(),
+                online: true
+            }).catch(error => {
+                console.error('Error updating courier location:', error);
+            });
+        }
+
+        // Update user marker
+        function updateUserMarker() {
+            if (!userLocation) return;
+            
+            // Remove existing user marker
+            const existingMarker = activeMarkers.find(m => m.type === 'user');
+            if (existingMarker) {
+                existingMarker.setMap(null);
+                activeMarkers = activeMarkers.filter(m => m !== existingMarker);
+            }
+            
+            // Create new user marker
+            const userIcon = {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: userRole === 'delivery' ? '#ef4444' : '#2563eb',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2
+            };
+            
+            const marker = new google.maps.Marker({
+                position: userLocation,
+                map: map,
+                icon: userIcon,
+                title: userRole === 'delivery' ? 'Delivery Courier' : 'Your Location',
+                zIndex: 1000
+            });
+            
+            marker.type = 'user';
+            activeMarkers.push(marker);
+            
+            // Add info window
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="padding: 8px;">
+                    <strong>${userRole === 'delivery' ? 'Delivery Courier' : 'Your Location'}</strong><br>
+                    ${new Date().toLocaleTimeString()}
+                </div>`
+            });
+            
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+        }
+
+        // Load active orders
+        async function loadActiveOrders() {
+            try {
+                const uid = getUid();
+                if (!uid) return;
+                
+                // Get orders from localStorage
+                let orders = [];
+                if (userRole === 'buyer') {
+                    // Check both buyer local and global orders
+                    const buyerOrders = readJsonKey(ORDERS_KEY(), []);
+                    const globalOrders = readJsonKey('orders_global', []);
+                    const buyerGlobalOrders = globalOrders.filter(order => 
+                        order.buyer?.uid === uid || order.buyerId === uid
+                    );
+                    orders = [...buyerOrders, ...buyerGlobalOrders];
+                } else if (userRole === 'seller') {
+                    const ordersKey = `orders__seller__${uid}`;
+                    orders = readJsonKey(ordersKey, []);
+                } else if (userRole === 'delivery') {
+                    const ordersKey = `orders__delivery__${uid}`;
+                    orders = readJsonKey(ordersKey, []);
+                }
+                
+                // Filter active orders
+                activeOrders = orders.filter(order => 
+                    order && order.status && 
+                    !['delivered', 'cancelled', 'rejected', 'completed'].includes(order.status.toLowerCase())
+                );
+                
+                // Remove duplicates
+                activeOrders = activeOrders.filter((order, index, self) =>
+                    index === self.findIndex((o) => 
+                        (o.id && order.id && o.id === order.id) || 
+                        (o.orderId && order.orderId && o.orderId === order.orderId)
+                    )
+                );
+                
+                // Prefetch seller profiles for buyer orders
+                if (userRole === 'buyer' && activeOrders.length > 0) {
+                    await prefetchSellerProfiles(activeOrders);
+                }
+                
+                updateStats();
+                renderOrdersList();
+                updateMapMarkers();
+                
+                // Check if we should auto-select an order from session storage
+                checkForOrderTracking();
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showToast('Failed to load orders', 'error');
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('activeOrders').textContent = activeOrders.length;
+            
+            // Calculate average ETA for delivery orders
+            const deliveryOrders = activeOrders.filter(order => order.deliveryType === 'delivery');
+            if (deliveryOrders.length > 0) {
+                const totalETA = deliveryOrders.reduce((sum, order) => sum + (order.eta || 30), 0);
+                const avgETA = Math.round(totalETA / deliveryOrders.length);
+                document.getElementById('deliveryTime').textContent = `${avgETA} min`;
+            } else {
+                document.getElementById('deliveryTime').textContent = '--';
+            }
+        }
+
+        // Render orders list
+        function renderOrdersList() {
+            ordersList.innerHTML = '';
+            
+            if (activeOrders.length === 0) {
+                ordersList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <h3>No Active Orders</h3>
+                        <p>When you have active orders, they'll appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Filter orders
+            const activeFilter = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
+            let filteredOrders = activeOrders;
+            
+            if (activeFilter !== 'all') {
+                filteredOrders = activeOrders.filter(order => {
+                    const status = order.status?.toLowerCase();
+                    if (activeFilter === 'delivering') {
+                        return status === 'delivering' || status === 'at door' || status === 'assigned';
+                    } else if (activeFilter === 'pickup') {
+                        return order.deliveryType === 'pickup';
+                    } else if (activeFilter === 'pending') {
+                        return status === 'pending' || status === 'accepted';
+                    }
+                    return true;
+                });
+            }
+            
+            // Sort by status priority
+            filteredOrders.sort((a, b) => {
+                const priority = { 
+                    'delivering': 1, 
+                    'at door': 1, 
+                    'assigned': 2,
+                    'pickup': 3, 
+                    'pending': 4, 
+                    'accepted': 4 
+                };
+                const aPriority = priority[a.status?.toLowerCase()] || 5;
+                const bPriority = priority[b.status?.toLowerCase()] || 5;
+                return aPriority - bPriority;
+            });
+            
+            // Create order cards
+            filteredOrders.forEach(order => {
+                createOrderCardAsync(order).then(card => {
+                    if (card) ordersList.appendChild(card);
+                });
+            });
+        }
+
+        // Create order card asynchronously (to load seller profiles)
+        async function createOrderCardAsync(order) {
+            const card = document.createElement('div');
+            card.className = 'order-card';
+            if (selectedOrder && selectedOrder.id === order.id) {
+                card.classList.add('active');
+            }
+            
+            const badgeClass = getBadgeClass(order);
+            
+            // Get customer/seller information based on user role
+            let customerName = '';
+            let customerAvatar = '';
+            
+            if (userRole === 'buyer') {
+                // For buyers, show seller info
+                customerName = await getSellerName(order);
+                customerAvatar = await getSellerAvatar(order);
+            } else if (userRole === 'seller') {
+                // For sellers, show buyer info
+                customerName = order.customerName || order.buyerName || 'Customer';
+                if (order.buyerAvatar || order.customerAvatar) {
+                    customerAvatar = order.buyerAvatar || order.customerAvatar;
+                } else {
+                    const buyerName = encodeURIComponent(customerName);
+                    customerAvatar = `https://ui-avatars.com/api/?name=${buyerName}&background=10b981&color=fff`;
+                }
+            } else if (userRole === 'delivery') {
+                // For delivery, show customer info
+                customerName = order.customerName || 'Customer';
+                if (order.customerAvatar) {
+                    customerAvatar = order.customerAvatar;
+                } else {
+                    const custName = encodeURIComponent(customerName);
+                    customerAvatar = `https://ui-avatars.com/api/?name=${custName}&background=ef4444&color=fff`;
+                }
+            }
+            
+            const itemsText = getItemsSummary(order);
+            
+            card.innerHTML = `
+                <div class="order-header">
+                    <div class="order-id">#${order.id || order.orderId || 'N/A'}</div>
+                    <div class="order-badge ${badgeClass}">${getStatusText(order.status)}</div>
+                </div>
+                <div class="order-customer">
+                    <img src="${customerAvatar}" alt="${customerName}" class="customer-avatar" 
+                         onerror="this.onerror=null; this.src='../../../images/no profile pic.jpg'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+                    <div class="customer-info">
+                        <h4>${escapeHtml(customerName)}</h4>
+                        <p>${order.deliveryType === 'delivery' ? 'Delivery' : 'Pickup'} • ${getTimeAgo(order.createdAt || order.date)}</p>
+                    </div>
+                </div>
+                <div class="order-items">
+                    <img src="${getItemImage(order)}" alt="Item" class="item-thumb" onerror="this.src='../../../images/default-product.jpg'">
+                    <div class="item-text">${escapeHtml(itemsText)}</div>
+                </div>
+                <div class="order-footer">
+                    <div class="order-time">
+                        <i class="far fa-clock"></i>
+                        ${order.deliveryType === 'delivery' ? `${order.eta || 30} min ETA` : 'Ready for pickup'}
+                    </div>
+                    <div class="order-actions">
+                        <button class="action-btn view-order" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn track-order" title="Track Order">
+                            <i class="fas fa-location-arrow"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listeners
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.action-btn')) {
+                    selectOrder(order);
+                    showOrderDetails(order);
+                }
+            });
+            
+            const viewBtn = card.querySelector('.view-order');
+            const trackBtn = card.querySelector('.track-order');
+            
+            viewBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectOrder(order);
+                showOrderDetails(order);
+            });
+            
+            trackBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectOrder(order);
+                showRouteToOrder(order);
+            });
+            
+            return card;
+        }
+
+        // Helper functions
+        function getBadgeClass(order) {
+            const status = order.status?.toLowerCase() || 'pending';
+            if (status === 'delivering' || status === 'at door' || status === 'assigned') return 'badge-delivering';
+            if (order.deliveryType === 'pickup') return 'badge-pickup';
+            if (status === 'pending' || status === 'accepted') return 'badge-pending';
+            if (status === 'delivered' || status === 'completed') return 'badge-delivered';
+            return 'badge-pending';
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Pending',
+                'accepted': 'Accepted',
+                'processing': 'Processing',
+                'assigned': 'Assigned',
+                'delivering': 'Delivering',
+                'at door': 'At Door',
+                'delivered': 'Delivered',
+                'pickup': 'Pickup',
+                'completed': 'Completed'
+            };
+            return statusMap[status?.toLowerCase()] || status || 'Pending';
+        }
+
+        function getItemsSummary(order) {
+            if (Array.isArray(order.items) && order.items.length > 0) {
+                if (order.items.length === 1) {
+                    return order.items[0].name || order.items[0].title || 'Item';
+                } else {
+                    return `${order.items.length} items`;
+                }
+            }
+            return order.product || 'Item';
+        }
+
+        function getItemImage(order) {
+            if (Array.isArray(order.items) && order.items.length > 0) {
+                const item = order.items[0];
+                return item.image || item.img || item.imageUrl || item.photo || '../../../images/default-product.jpg';
+            }
+            return order.productImage || order.image || order.img || '../../../images/default-product.jpg';
+        }
+
+        function getTimeAgo(timestamp) {
+            if (!timestamp) return 'Just now';
+            const now = Date.now();
+            const time = new Date(timestamp).getTime();
+            const diff = now - time;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (days > 0) return `${days}d ago`;
+            if (hours > 0) return `${hours}h ago`;
+            if (minutes > 0) return `${minutes}m ago`;
+            return 'Just now';
+        }
+
+        // HTML escaping utility
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Update map markers
+        function updateMapMarkers() {
+            // Clear existing markers (except user marker)
+            activeMarkers.forEach(marker => {
+                if (marker.type !== 'user') {
+                    marker.setMap(null);
+                }
+            });
+            activeMarkers = activeMarkers.filter(m => m.type === 'user');
+            
+            // Add markers for each order
+            activeOrders.forEach(order => {
+                addOrderMarker(order);
+            });
+        }
+
+        // Add order marker
+        function addOrderMarker(order) {
+            // Generate random location near KNUST for demo
+            const lat = 6.6734 + (Math.random() - 0.5) * 0.02;
+            const lng = -1.5677 + (Math.random() - 0.5) * 0.02;
+            const position = { lat, lng };
+            
+            let title = '';
+            let color = '#2563eb'; // Default blue
+            
+            if (order.deliveryType === 'delivery') {
+                if (userRole === 'seller') {
+                    title = 'Delivery to Buyer';
+                    color = '#10b981'; // Green
+                } else if (userRole === 'delivery') {
+                    title = 'Delivery Order';
+                    color = '#ef4444'; // Red
+                } else {
+                    title = 'Pickup from Seller';
+                    color = '#2563eb'; // Blue
+                }
+            } else {
+                title = 'Pickup Order';
+                color = '#8b5cf6'; // Purple
+            }
+            
+            addLocationMarker(position, title, color, order);
+        }
+
+        function addLocationMarker(position, title, color, order) {
+            const icon = {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 12,
+                fillColor: color,
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2
+            };
+            
+            const marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                icon: icon,
+                title: title,
+                animation: google.maps.Animation.DROP
+            });
+            
+            marker.type = 'order';
+            marker.orderId = order.id;
+            activeMarkers.push(marker);
+            
+            // Create customer name for info window
+            let customerName = '';
+            if (userRole === 'buyer') {
+                customerName = order.sellerName || order.seller || 'Seller';
+            } else if (userRole === 'seller') {
+                customerName = order.customerName || order.buyerName || 'Customer';
+            } else {
+                customerName = order.customerName || 'Customer';
+            }
+            
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 12px; max-width: 250px;">
+                        <strong style="color: ${color};">${title}</strong><br>
+                        <strong>Order #${order.id || order.orderId}</strong><br>
+                        ${escapeHtml(customerName)}<br>
+                        Status: ${getStatusText(order.status)}<br>
+                        <button onclick="window.selectOrderById('${order.id || order.orderId}')" 
+                                style="margin-top: 8px; padding: 6px 12px; background: ${color}; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                            View Details
+                        </button>
+                    </div>
+                `
+            });
+            
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+                selectOrder(order);
+            });
+        }
+
+        // Select order
+        function selectOrder(order) {
+            selectedOrder = order;
+            
+            // Update active class in sidebar
+            document.querySelectorAll('.order-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            const selectedCard = Array.from(document.querySelectorAll('.order-card')).find(card => {
+                const orderId = card.querySelector('.order-id').textContent.replace('#', '');
+                return orderId === (order.id || order.orderId);
+            });
+            
+            if (selectedCard) {
+                selectedCard.classList.add('active');
+                selectedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // Show order details
+        async function showOrderDetails(order) {
+            const progressSteps = getProgressSteps(order);
+            const progressHtml = progressSteps.map((step, index) => `
+                <div class="progress-step">
+                    <div class="step-icon ${step.status}">
+                        ${step.status === 'completed' ? '<i class="fas fa-check"></i>' : 
+                          step.status === 'active' ? '<i class="fas fa-circle"></i>' : 
+                          '<i class="far fa-circle"></i>'}
+                    </div>
+                    <div class="step-label">${step.label}</div>
+                </div>
+            `).join('');
+            
+            // Get customer/seller name for display
+            let displayName = '';
+            if (userRole === 'buyer') {
+                displayName = await getSellerName(order);
+            } else if (userRole === 'seller') {
+                displayName = order.customerName || order.buyerName || 'Customer';
+            } else {
+                displayName = order.customerName || 'Customer';
+            }
+            
+            panelContent.innerHTML = `
+                <div class="panel-row">
+                    <div class="panel-item">
+                        <div class="panel-label">Order ID</div>
+                        <div class="panel-value">#${order.id || order.orderId || 'N/A'}</div>
+                    </div>
+                    <div class="panel-item">
+                        <div class="panel-label">Status</div>
+                        <div class="panel-value"><span class="order-badge ${getBadgeClass(order)}">${getStatusText(order.status)}</span></div>
+                    </div>
+                </div>
+                <div class="panel-row">
+                    <div class="panel-item">
+                        <div class="panel-label">${userRole === 'buyer' ? 'Seller' : 'Customer'}</div>
+                        <div class="panel-value">${escapeHtml(displayName)}</div>
+                    </div>
+                    <div class="panel-item">
+                        <div class="panel-label">Type</div>
+                        <div class="panel-value">${order.deliveryType === 'delivery' ? 'Delivery' : 'Pickup'}</div>
+                    </div>
+                </div>
+                <div class="panel-item">
+                    <div class="panel-label">Items</div>
+                    <div class="panel-value">${escapeHtml(getItemsSummary(order))}</div>
+                </div>
+                <div class="panel-item">
+                    <div class="panel-label">Delivery Code</div>
+                    <div class="panel-value" style="font-family: monospace; letter-spacing: 2px;">${order.deliveryCode || 'N/A'}</div>
+                </div>
+                <div class="progress-tracker">
+                    <div class="progress-steps">
+                        ${progressHtml}
+                    </div>
+                </div>
+                <div class="panel-actions">
+                    <button class="btn btn-secondary" id="closeDetailsBtn">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                    ${userRole === 'delivery' && order.status?.toLowerCase() === 'at door' ? `
+                        <button class="btn btn-primary" id="confirmDeliveryBtn">
+                            <i class="fas fa-check-circle"></i> Confirm Delivery
+                        </button>
+                    ` : `
+                        <button class="btn btn-primary" id="trackRouteBtn">
+                            <i class="fas fa-route"></i> Show Route
+                        </button>
+                    `}
+                </div>
+            `;
+            
+            orderPanel.classList.add('active');
+            
+            // Add event listeners
+            document.getElementById('closeDetailsBtn')?.addEventListener('click', () => {
+                orderPanel.classList.remove('active');
+            });
+            
+            document.getElementById('trackRouteBtn')?.addEventListener('click', () => {
+                showRouteToOrder(order);
+            });
+            
+            document.getElementById('confirmDeliveryBtn')?.addEventListener('click', () => {
+                confirmDelivery(order);
+            });
+        }
+
+        function getProgressSteps(order) {
+            if (order.deliveryType === 'delivery') {
+                const steps = ['Order Placed', 'Accepted', 'Processing', 'Delivering', 'At Door', 'Delivered'];
+                const currentStep = mapStatusToStep(order.status);
+                
+                return steps.map((label, index) => ({
+                    label,
+                    status: index < currentStep ? 'completed' : index === currentStep ? 'active' : 'pending'
+                }));
+            } else {
+                const steps = ['Order Placed', 'Accepted', 'Processing', 'Ready for Pickup', 'Picked Up'];
+                const currentStep = mapStatusToStep(order.status);
+                
+                return steps.map((label, index) => ({
+                    label,
+                    status: index < currentStep ? 'completed' : index === currentStep ? 'active' : 'pending'
+                }));
+            }
+        }
+
+        function mapStatusToStep(status) {
+            const statusMap = {
+                'pending': 1,
+                'accepted': 2,
+                'processing': 3,
+                'assigned': 3,
+                'delivering': 4,
+                'at door': 5,
+                'delivered': 6,
+                'ready for pickup': 4,
+                'picked up': 5,
+                'completed': 5
+            };
+            return statusMap[status?.toLowerCase()] || 1;
+        }
+
+        // Show route to order
+        function showRouteToOrder(order) {
+            if (!userLocation) {
+                showToast('Please enable location services', 'warning');
+                return;
+            }
+            
+            // Generate destination near KNUST for demo
+            const destination = {
+                lat: 6.6734 + (Math.random() - 0.5) * 0.01,
+                lng: -1.5677 + (Math.random() - 0.5) * 0.01
+            };
+            
+            const request = {
+                origin: userLocation,
+                destination: destination,
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+            
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    map.setZoom(14);
+                    map.panToBounds(result.routes[0].bounds);
+                    
+                    const route = result.routes[0];
+                    const leg = route.legs[0];
+                    
+                    showToast(`Route found: ${leg.duration.text} • ${leg.distance.text}`, 'success');
+                } else {
+                    showToast('Could not calculate route', 'error');
+                }
+            });
+        }
+
+        // Confirm delivery
+        function confirmDelivery(order) {
+            if (userRole !== 'delivery') return;
+            
+            const code = prompt('Enter delivery confirmation code:');
+            if (!code) return;
+            
+            if (code === (order.deliveryCode || '123456')) {
+                showToast('Delivery confirmed successfully!', 'success');
+                orderPanel.classList.remove('active');
+                
+                // Update order status
+                updateOrderStatus(order.id, 'delivered');
+            } else {
+                showToast('Invalid confirmation code', 'error');
+            }
+        }
+
+        function updateOrderStatus(orderId, status) {
+            // Update in localStorage
+            showToast(`Order ${orderId} marked as ${status}`, 'success');
+            loadActiveOrders(); // Reload orders
+        }
+
+        // Check for order tracking from orders page
+        function checkForOrderTracking() {
+            const orderId = sessionStorage.getItem('trackingOrderId');
+            if (orderId && activeOrders.length > 0) {
+                const order = activeOrders.find(o => 
+                    o.id === orderId || o.orderId === orderId
+                );
+                if (order) {
+                    selectOrder(order);
+                    showOrderDetails(order);
+                    // Center map on order
+                    if (map && activeMarkers.length > 0) {
+                        const orderMarker = activeMarkers.find(m => 
+                            m.orderId === orderId || m.orderId === order.id
+                        );
+                        if (orderMarker) {
+                            map.setCenter(orderMarker.getPosition());
+                            map.setZoom(16);
+                        }
+                    }
+                }
+                sessionStorage.removeItem('trackingOrderId');
+            }
+        }
+
+        // Event Listeners for map controls
+        locateMeBtn.addEventListener('click', () => {
+            if (userLocation) {
+                map.setCenter(userLocation);
+                map.setZoom(16);
+                showToast('Centered on your location', 'info');
+            } else {
+                showToast('Location not available', 'error');
+            }
+        });
+
+        zoomInBtn.addEventListener('click', () => {
+            map.setZoom(map.getZoom() + 1);
+        });
+
+        zoomOutBtn.addEventListener('click', () => {
+            map.setZoom(map.getZoom() - 1);
+        });
+
+        refreshMapBtn.addEventListener('click', () => {
+            loadActiveOrders();
+            showToast('Map refreshed', 'success');
+        });
+
+        layersToggleBtn.addEventListener('click', () => {
+            const currentMapType = map.getMapTypeId();
+            map.setMapTypeId(currentMapType === 'roadmap' ? 'hybrid' : 'roadmap');
+            layersToggleBtn.innerHTML = currentMapType === 'roadmap' 
+                ? '<i class="fas fa-map"></i>' 
+                : '<i class="fas fa-satellite"></i>';
+        });
+
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                filterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                renderOrdersList();
+            });
+        });
+
+        orderSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const orderCards = document.querySelectorAll('.order-card');
+            
+            orderCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+
+        closePanelBtn.addEventListener('click', () => {
+            orderPanel.classList.remove('active');
+        });
+
+        // Expose function for map markers
+        window.selectOrderById = (orderId) => {
+            const order = activeOrders.find(o => o.id === orderId || o.orderId === orderId);
+            if (order) {
+                selectOrder(order);
+                showOrderDetails(order);
+            }
+        };
+
+        // Initialize the app
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "../../../index.html";
+                return;
+            }
+            
+            currentUID = user.uid;
+            userRole = detectPageRole();
+            sessionStorage.setItem('uid', currentUID);
+            
+            // Load user profile (shows logged-in user's picture in header)
+            await loadUserProfile();
+            
+            updateCartCount();
+            
+            // Load orders
+            await loadActiveOrders();
+            
+            // Show welcome message
+            const roleName = userRole === 'buyer' ? 'Buyer' : 
+                            userRole === 'seller' ? 'Seller' : 
+                            'Delivery Partner';
+            showToast(`Welcome to Live Tracking! (${roleName})`, 'success');
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        });
+
+        // Listen for order updates from localStorage
+        window.addEventListener('storage', async (e) => {
+            if (e.key?.includes('orders') || e.key === 'orders_global') {
+                await loadActiveOrders();
+            }
+        });
+
+        // Poll for updates every 10 seconds
+        setInterval(() => {
+            loadActiveOrders();
+        }, 10000);
+    </script>
+</body>
+</html>

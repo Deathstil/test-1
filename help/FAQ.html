@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Marketplace FAQ</title>
+        <style>
+            .faq-section {
+  max-width: 800px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.08);
+}
+
+.faq-title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #333;
+}
+
+.faq-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.faq-item {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.faq-question {
+  width: 100%;
+  padding: 1rem;
+  text-align: left;
+  font-size: 1.1rem;
+  font-weight: bold;
+  background: #eee;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.faq-question:hover {
+  background: #ddd;
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+  background: #fafafa;
+  padding: 0 1rem;
+}
+
+.faq-answer p {
+  margin: 1rem 0;
+  color: #555;
+}
+        </style>
+    </head>
+<section class="faq-section">
+    <h2 class="faq-title">Frequently Asked Questions</h2>
+    <div class="faq-container">
+      <div class="faq-item">
+        <button class="faq-question">What is Marketplace?</button>
+        <div class="faq-answer">
+          <p>Marketplace is a platform for university students to buy, sell, or exchange items and services within the campus for now.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question">Who can use Marketplace?</button>
+        <div class="faq-answer">
+          <p>Only verified students of the university can access and use the platform for now.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question">Is it free to use?</button>
+        <div class="faq-answer">
+          <p>Yes, it is completely freeish for students. No commissions or listing fees.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question">How do I contact a seller?</button>
+        <div class="faq-answer">
+          <p>You can contact a seller through their profile or listed contact method on their product page.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  

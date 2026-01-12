@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Guildite for buying and selling items">
+  <meta name="theme-color" content="#131921">
+  <title>Welcome to Guildite</title>
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style">
+  <link rel="preload" href="images/logo ssi.png" as="image" type="image/png">
+  <link rel="preload" href="images/no profile pic.jpg" as="image" type="image/jpeg">
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+    --primary: #3498db;
+    --primary-dark: #2980b9;
+    --primary-light: #ebf5fb;
+    --dark-bg: #131921;
+    --dark-header: #0b1623;
+    --dark-section: #0e141c;
+    --light-bg: #f8f9fa;
+    --light-header: #ffffff;
+    --light-section: #e9ecef;
+    --text-dark: #ecf0f1;
+    --text-light: #212529;
+    --text-muted: #95a5a6;
+    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --border-radius-sm: 0.25rem;
+    --border-radius: 0.5rem;
+    --border-radius-lg: 0.75rem;
+  }
+
+  /* Base Styles */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body, html {
+    height: 100%;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--dark-bg);
+    color: var(--text-dark);
+    transition: var(--transition);
+    line-height: 1.5;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body.light-mode { background-color: var(--light-bg); color: var(--text-light); }
+
+  /* Skip Link for Accessibility */
+  .skip-link {
+    position: fixed;
+    top: -40px;
+    left: 0;
+    background: var(--primary);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    z-index: 1000;
+    transition: top 0.3s ease;
+    border-radius: 0 0 var(--border-radius) 0;
+  }
+  .skip-link:focus { top: 0; outline: none; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5); }
+
+  .welcome-container { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* Header Styles - MOBILE FIRST APPROACH */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: var(--dark-header);
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: var(--transition);
+    /* Safe area insets for notched phones */
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+  body.light-mode header { background-color: var(--light-header); box-shadow: var(--shadow-sm); }
+
+  .header-controls { 
+    display:flex; 
+    align-items:center; 
+    gap: 0.5rem; /* Smaller gap on mobile */
+  }
+
+  /* Logo - Smaller on mobile */
+  .logo {
+    display:flex; 
+    align-items:center; 
+    gap: 0.5rem; 
+    font-size: 1.25rem; /* Smaller font on mobile */
+    font-weight:700; 
+    color:var(--primary); 
+    text-decoration:none;
+    transition: transform 0.2s ease;
+  }
+  .brand-logo { 
+    width: 2rem; /* Smaller logo on mobile */
+    height: 2rem; 
+    object-fit:contain; 
+    transition: transform 0.3s ease; 
+  }
+
+  /* Profile Dropdown - Smaller on mobile */
+  .profile-dropdown { position: relative; display: inline-block; }
+  .user-avatar {
+    width: 2.25rem; /* Smaller avatar on mobile */
+    height: 2.25rem;
+    border-radius:50%; 
+    object-fit:cover; 
+    cursor:pointer; 
+    transition: all 0.3s ease;
+    border: 2px solid var(--primary); 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .dropdown-content {
+    display:none; 
+    position:absolute; 
+    right:0; 
+    background-color:var(--dark-header); 
+    min-width: 180px; /* Smaller dropdown on mobile */
+    box-shadow:var(--shadow-lg); 
+    border-radius:var(--border-radius); 
+    z-index:100; 
+    overflow:hidden;
+    transform: translateY(10px); 
+    opacity:0; 
+    transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
+  }
+  body.light-mode .dropdown-content { background-color:var(--light-header); box-shadow:0 5px 15px rgba(0,0,0,0.1); }
+
+  .profile-dropdown:hover .dropdown-content,
+  .profile-dropdown:focus-within .dropdown-content { display:block; transform:translateY(0); opacity:1; }
+
+  .dropdown-content a {
+    color:var(--text-dark); 
+    padding: 0.625rem 0.875rem; /* Smaller padding on mobile */
+    text-decoration:none; 
+    display:flex; 
+    align-items:center; 
+    gap: 0.5rem; /* Smaller gap on mobile */
+    transition: all 0.2s ease; 
+    border-left: 2px solid transparent; /* Thinner border on mobile */
+    font-size: 0.875rem; /* Smaller font on mobile */
+  }
+  body.light-mode .dropdown-content a { color:var(--text-light); }
+  .dropdown-content a:hover { background-color: rgba(52,152,219,0.08); border-left: 2px solid var(--primary); }
+  .dropdown-content a i { width: 1rem; text-align:center; color:var(--primary); font-size: 0.875rem; }
+
+  /* Button Styles - Smaller on mobile */
+  .btn { 
+    padding: 0.5rem 1rem; /* Smaller padding on mobile */
+    border-radius:var(--border-radius); 
+    font-weight:600; 
+    text-decoration:none;
+    transition:var(--transition); 
+    border:none; 
+    cursor:pointer; 
+    display:inline-flex; 
+    align-items:center; 
+    gap: 0.375rem; /* Smaller gap on mobile */
+    font-size: 0.875rem; /* Smaller font on mobile */
+  }
+  .btn-primary { background-color:var(--primary); color:white; }
+
+  .btn-icon {
+    position:relative;
+    padding: 0.375rem; /* Smaller padding on mobile */
+    border-radius:50%; 
+    background:transparent; 
+    color:inherit; 
+    width: 36px; /* Smaller buttons on mobile */
+    height: 36px;
+    display:inline-flex;
+    align-items:center; 
+    justify-content:center; 
+    cursor:pointer; 
+    border:none;
+  }
+
+  /* Badge Rules - Smaller on mobile */
+  .header-controls .cart-btn::after,
+  .header-controls .wishlist-btn::after {
+    content: attr(data-count);
+    display:inline-block;
+    min-width: 16px; /* Smaller badges on mobile */
+    height: 16px; 
+    line-height: 16px; 
+    font-size: 0.65rem; /* Smaller font on mobile */
+    text-align:center; 
+    border-radius:999px;
+    position:absolute; 
+    top: 4px; /* Adjusted position for smaller buttons */
+    right: 4px; 
+    padding:0 4px; /* Smaller padding on mobile */
+    background:var(--primary); 
+    color:#fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15); 
+    transform: translateZ(0); 
+    transition: transform 0.18s ease, opacity 0.18s ease;
+    opacity:0.95; 
+    pointer-events:none;
+  }
+
+  /* Hide when empty or zero */
+  .header-controls .cart-btn[data-count="0"]::after,
+  .header-controls .cart-btn[data-count=""]::after,
+  .header-controls .wishlist-btn[data-count="0"]::after,
+  .header-controls .wishlist-btn[data-count=""]::after {
+    display: none;
+  }
+
+  /* Ensure theme-toggle never shows a badge */
+  .header-controls .theme-toggle::after { display: none !important; content: ""; }
+
+  /* Theme toggle icon - Smaller on mobile */
+  .theme-toggle svg {
+    width: 18px; /* Smaller icon on mobile */
+    height: 18px;
+  }
+
+  /* Hero Section - Optimized for mobile */
+  .hero {
+    flex:1; 
+    display:flex; 
+    flex-direction:column; 
+    justify-content:center; 
+    align-items:center; 
+    text-align:center;
+    padding: 2.5rem 1rem; /* Reduced padding on mobile */
+    animation: fadeIn 1s ease-in-out;
+    /* Safe area insets */
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  .hero h1 { 
+    font-size: clamp(1.75rem, 4vw, 2.5rem); /* Smaller on mobile */
+    margin-bottom: 1rem; /* Reduced margin */
+    font-weight:700; 
+    line-height:1.2; 
+  }
+  .hero .highlight { color:var(--primary); }
+  .hero p { 
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem); /* Smaller on mobile */
+    margin-bottom: 1.5rem; /* Reduced margin */
+    max-width: 36rem; /* Slightly narrower on mobile */
+    line-height:1.6; 
+    opacity:0.9; 
+  }
+  .cta-btn { 
+    padding: 0.75rem 1.5rem; /* Smaller on mobile */
+    font-size: 1rem; /* Smaller on mobile */
+    border-radius: 1.5rem; /* Slightly less rounded */
+    font-weight:600; 
+  }
+
+  /* Categories Section - Optimized for mobile */
+  .categories { 
+    padding: 2.5rem 1rem; /* Reduced padding on mobile */
+    background-color:var(--dark-section); 
+    text-align:center; 
+    animation:fadeIn 1.5s ease; 
+    transition:var(--transition);
+    /* Safe area insets */
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  body.light-mode .categories { background-color:var(--light-section); }
+  .section-title { 
+    font-size: clamp(1.25rem, 4vw, 1.75rem); /* Smaller on mobile */
+    margin-bottom: 1.5rem; /* Reduced margin */
+    color:var(--primary); 
+  }
+  .category-grid { 
+    display:grid; 
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Smaller cards on mobile */
+    gap: 1rem; /* Reduced gap on mobile */
+    max-width: 48rem; /* Slightly narrower */
+    margin:0 auto; 
+  }
+  .category-card { 
+    position:relative; 
+    border-radius:var(--border-radius); /* Smaller radius on mobile */
+    overflow:hidden; 
+    aspect-ratio:1/1; 
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+  }
+  .category-image { width:100%; height:100%; object-fit:cover; opacity:0.85; transition: opacity 0.3s ease; }
+  .category-label { 
+    position:absolute; 
+    bottom:0; 
+    left:0; 
+    right:0; 
+    background:rgba(0,0,0,0.7); 
+    color:white; 
+    padding: 0.5rem; /* Smaller padding on mobile */
+    font-weight:600; 
+    font-size: 0.875rem; /* Smaller font on mobile */
+  }
+
+  /* Footer - Smaller on mobile */
+  footer { 
+    text-align:center; 
+    padding: 1rem; /* Reduced padding on mobile */
+    background-color:var(--dark-header); 
+    color:rgba(255,255,255,0.7); 
+    font-size: 0.8rem; /* Smaller font on mobile */
+    transition:var(--transition); 
+  }
+  body.light-mode footer { background-color:var(--light-header); color:rgba(0,0,0,0.6); }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity:0; transform:translateY(1rem); } to { opacity:1; transform:translateY(0); } }
+
+  /* Utility Classes */
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border-width:0; }
+
+  /* ===== RESPONSIVE BREAKPOINTS ===== */
+
+  /* Small phones (up to 380px) - Ultra compact */
+  @media (max-width: 380px) {
+    header {
+      padding: 0.5rem 0.75rem;
+      padding-left: max(0.5rem, env(safe-area-inset-left));
+      padding-right: max(0.5rem, env(safe-area-inset-right));
+      padding-top: max(0.5rem, env(safe-area-inset-top));
+    }
+    
+    .logo {
+      font-size: 1.1rem;
+      gap: 0.375rem;
+    }
+    
+    .brand-logo {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
+    
+    .header-controls {
+      gap: 0.375rem;
+    }
+    
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      padding: 0.25rem;
+    }
+    
+    .user-avatar {
+      width: 2rem;
+      height: 2rem;
+    }
+    
+    .theme-toggle svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .header-controls .cart-btn::after,
+    .header-controls .wishlist-btn::after {
+      min-width: 14px;
+      height: 14px;
+      line-height: 14px;
+      font-size: 0.6rem;
+      top: 3px;
+      right: 3px;
+    }
+    
+    .category-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    
+    .category-label {
+      font-size: 0.8rem;
+      padding: 0.375rem;
+    }
+  }
+
+  /* Medium phones (381px - 480px) */
+  @media (min-width: 381px) and (max-width: 480px) {
+    .category-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+  }
+
+  /* Tablets and larger phones (481px - 768px) */
+  @media (min-width: 481px) and (max-width: 768px) {
+    header {
+      padding: 1rem 1.5rem;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+    }
+    
+    .brand-logo {
+      width: 2.25rem;
+      height: 2.25rem;
+    }
+    
+    .header-controls {
+      gap: 0.75rem;
+    }
+    
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .user-avatar {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+    
+    .category-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Desktop (769px and up) */
+  @media (min-width: 769px) {
+    header {
+      padding: 1rem 2rem;
+    }
+    
+    .logo {
+      font-size: 1.75rem;
+      gap: 0.75rem;
+    }
+    
+    .brand-logo {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+    
+    .header-controls {
+      gap: 1.25rem;
+    }
+    
+    .btn-icon {
+      width: 44px;
+      height: 44px;
+      padding: 0.5rem;
+    }
+    
+    .user-avatar {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+    
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .header-controls .cart-btn::after,
+    .header-controls .wishlist-btn::after {
+      min-width: 18px;
+      height: 18px;
+      line-height: 18px;
+      font-size: 0.72rem;
+      top: 6px;
+      right: 6px;
+    }
+    
+    .hero {
+      padding: 4rem 1.5rem;
+    }
+    
+    .categories {
+      padding: 4rem 1.5rem;
+    }
+    
+    .category-grid {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1.5rem;
+      max-width: 56rem;
+    }
+    
+    .category-label {
+      padding: 0.75rem;
+      font-size: 1rem;
+    }
+  }
+
+  /* Large desktop (1200px and up) */
+  @media (min-width: 1200px) {
+    .category-grid {
+      grid-template-columns: repeat(5, 1fr);
+      max-width: 64rem;
+    }
+  }
+
+  /* Remove hover effects on touch devices to prevent sticky states */
+  @media (hover: none) {
+    .btn-primary:hover,
+    .logo:hover,
+    .logo:hover .brand-logo,
+    .user-avatar:hover,
+    .btn-icon:hover {
+      transform: none;
+    }
+    
+    .category-card:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+</style>
+
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <div class="welcome-container">
+    <header>
+      <a href="market/market.html" class="logo" aria-label="Guildite Home">
+        <img src="../images/logo ssi.png" alt="Guildite Logo" class="brand-logo" width="40" height="40" loading="eager">
+        <span>Guildite</span>
+      </a>
+      
+      <div class="header-controls">
+        <button class="btn btn-icon theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
+          <span class="sr-only">Toggle dark mode</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+          </svg>
+        </button>
+
+        <!-- Wishlist & Cart icons (badges updated by JS) -->
+        <a href="shopping/wishlist/wishlist.html" class="btn btn-icon wishlist-btn" role="button" aria-label="Wishlist" title="Wishlist" data-count="0">
+          <span class="sr-only">Wishlist</span>
+          <i class="fas fa-heart" aria-hidden="true"></i>
+        </a>
+
+        <a href="shopping/cart/cart.html" class="btn btn-icon cart-btn" role="button" aria-label="Cart" title="Cart" data-count="0">
+          <span class="sr-only">Cart</span>
+          <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+        </a>
+        
+        <div class="profile-dropdown">
+          <img src="../images/no profile pic.jpg" alt="User profile" class="user-avatar" width="40" height="40" loading="lazy">
+          <div class="dropdown-content" aria-label="User menu">
+            <a href="profile/profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="shopping/orders/orders.html"><i class="fas fa-box"></i> Orders</a>
+            <a href="delivery/delivery.html"><i class="fas fa-shipping-fast"></i>Carriers</a>
+            <a href="map/map.html"><i class="fas fa-map-marker-alt"></i>Map</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero">
+        <h1>Welcome to <span class="highlight">Guildite</span></h1>
+        <p>Buy, sell, and explore the Guildite in one smooth experience.</p>
+        <a href="market/market.html" class="btn btn-primary cta-btn">Enter Guildite</a>
+      </section>
+      
+      <section class="categories" aria-labelledby="categories-heading">
+        <h2 id="categories-heading" class="section-title">Explore Categories</h2>
+        <div class="category-grid">
+          <a href="market/market.html?category=books" class="category-card" aria-label="Books category">
+            <img src="../images/books.jpg" alt="Stack of textbooks" class="category-image" width="300" height="300" loading="lazy">
+            <div class="category-label">Books</div>
+          </a>
+
+          <a href="market/market.html?category=electronics" class="category-card" aria-label="Electronics category">
+            <img src="../images/electronics.jpg" alt="Laptop and smartphone" class="category-image" width="300" height="300" loading="lazy">
+            <div class="category-label">Electronics</div>
+          </a>
+
+          <a href="market/market.html?category=clothing" class="category-card" aria-label="Clothing category">
+            <img src="../images/clothes.jpg" alt="Clothing items" class="category-image" width="300" height="300" loading="lazy">
+            <div class="category-label">Clothing</div>
+          </a>
+
+          <a href="market/market.html?category=food" class="category-card" aria-label="Food category">
+            <img src="../images/foods.jpg" alt="Assorted food items" class="category-image" width="300" height="300" loading="lazy">
+            <div class="category-label">Food</div>
+          </a>
+
+          <a href="market/market.html?category=others" class="category-card" aria-label="Other items category">
+            <img src="../images/box.jpg" alt="Miscellaneous items" class="category-image" width="300" height="300" loading="lazy">
+            <div class="category-label">Others</div>
+          </a>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Guildite. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script type="module">
+/* ---------------- Theme Management (safe guards) ---------------- */
+const themeToggle = document.querySelector('.theme-toggle');
+const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const currentTheme = localStorage.getItem('theme') || (prefersDarkMode ? 'dark' : 'light');
+
+if (currentTheme === 'light') document.body.classList.add('light-mode');
+
+function updateThemeIcon(isLight) {
+  if (!themeToggle) return;
+  const icon = themeToggle.querySelector('svg');
+  if (!icon) return;
+  icon.innerHTML = isLight
+    ? `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`
+    : `<circle cx="12" cy="12" r="5"></circle>
+       <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>`;
+}
+
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+    const isLight = document.body.classList.contains('light-mode');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    updateThemeIcon(isLight);
+  });
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+  if (!localStorage.getItem('theme')) {
+    document.body.classList.toggle('light-mode', !e.matches);
+    updateThemeIcon(!e.matches);
+  }
+});
+
+updateThemeIcon(currentTheme === 'light');
+
+/* ---------------- Firebase imports & init ---------------- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signOut 
+} from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+import { 
+  getDatabase, 
+  ref, 
+  get 
+} from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  setDoc,
+  onSnapshot  // Only for real-time listeners when absolutely needed
+} from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+  authDomain: "marketplace-e0bff.firebaseapp.com",
+  projectId: "marketplace-e0bff",
+  storageBucket: "marketplace-e0bff.appspot.com",
+  messagingSenderId: "892936444768",
+  appId: "1:892936444768:web:f595b3a3e5d697988e1c05",
+  databaseURL: "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const database = getDatabase(app);
+const firestore = getFirestore(app);
+
+/* ---------------- LISTENER MANAGER (Architecture Rule Compliant) ---------------- */
+class FirebaseListenerManager {
+  constructor() {
+    this.activeListeners = new Map();
+    this.cleanupScheduled = false;
+    this.setupGlobalCleanupHooks();
+  }
+
+  // ✅ Store listener with unique key
+  addListener(key, unsubscribeFn, description = '') {
+    // Prevent duplicate listeners
+    if (this.activeListeners.has(key)) {
+      console.warn(`⚠️  Duplicate listener prevented: ${key}`);
+      this.removeListener(key);
+    }
+    
+    this.activeListeners.set(key, { unsubscribe: unsubscribeFn, description });
+    console.log(`📞 Listener added: ${key} (${description}) - Total: ${this.activeListeners.size}`);
+    
+    return () => this.removeListener(key);
+  }
+
+  // ✅ Remove specific listener
+  removeListener(key) {
+    if (this.activeListeners.has(key)) {
+      const listener = this.activeListeners.get(key);
+      try {
+        listener.unsubscribe();
+        console.log(`🗑️  Listener removed: ${key}`);
+      } catch (error) {
+        console.error(`Error removing listener ${key}:`, error);
+      }
+      this.activeListeners.delete(key);
+    }
+  }
+
+  // ✅ Clean up all listeners
+  cleanupAll() {
+    if (this.activeListeners.size === 0) {
+      return;
+    }
+    
+    console.log(`🧹 Cleaning up ${this.activeListeners.size} Firebase listener(s)...`);
+    
+    for (const [key, listener] of this.activeListeners.entries()) {
+      try {
+        listener.unsubscribe();
+        console.log(`✓ Cleaned: ${key}`);
+      } catch (error) {
+        console.error(`Error cleaning ${key}:`, error);
+      }
+    }
+    
+    this.activeListeners.clear();
+    this.verifyCleanup();
+  }
+
+  // ✅ Setup cleanup triggers
+  setupGlobalCleanupHooks() {
+    // Page unload
+    window.addEventListener('beforeunload', () => this.cleanupAll());
+    window.addEventListener('pagehide', () => this.cleanupAll());
+    
+    // Auth logout
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.cleanupAll();
+      }
+    });
+    
+    // Page navigation (for SPA-like behavior)
+    this.setupNavigationTracking();
+  }
+
+  // ✅ Track navigation
+  setupNavigationTracking() {
+    if (window.history.pushState) {
+      const originalPushState = history.pushState;
+      history.pushState = function() {
+        originalPushState.apply(this, arguments);
+        window.dispatchEvent(new Event('pushstate'));
+      };
+      
+      window.addEventListener('popstate', () => {
+        window.dispatchEvent(new Event('popstate'));
+      });
+      
+      window.addEventListener('pushstate', () => this.cleanupAll());
+      window.addEventListener('popstate', () => this.cleanupAll());
+    }
+  }
+
+  // ✅ Verification method
+  verifyCleanup() {
+    const remaining = this.activeListeners.size;
+    if (remaining > 0) {
+      console.warn(`⚠️  ${remaining} listener(s) still active:`, 
+        Array.from(this.activeListeners.keys()));
+      return false;
+    }
+    console.log("✅ All Firebase listeners cleaned up");
+    return true;
+  }
+
+  // ✅ Get current listener count for debugging
+  getListenerCount() {
+    return this.activeListeners.size;
+  }
+}
+
+// Initialize global listener manager
+const listenerManager = new FirebaseListenerManager();
+
+/* ---------------- ERROR HANDLER (Graceful error management) ---------------- */
+class FirebaseErrorHandler {
+  static handleError(error, context = '') {
+    console.error(`Firebase error in ${context}:`, error.code, error.message);
+    
+    // Quota/Resource errors
+    if (error.code === 'resource-exhausted' || 
+        error.code === 'quota-exceeded' ||
+        error.message?.includes('quota') ||
+        error.message?.includes('exceeded')) {
+      console.warn('Firebase quota exceeded. Using fallback/local data.');
+      this.showUserMessage('Service is experiencing high load. Some features may be limited.');
+      return 'quota-exceeded';
+    }
+    
+    // Network errors
+    if (error.code === 'unavailable' || 
+        error.code === 'network-request-failed' ||
+        error.code === 'cancelled') {
+      console.warn('Network error. Please check connection.');
+      this.showUserMessage('Network connection issue. Please check your internet.');
+      return 'network-error';
+    }
+    
+    // Permission errors
+    if (error.code === 'permission-denied') {
+      console.warn('Permission denied. User may need to sign in again.');
+      return 'permission-denied';
+    }
+    
+    // Firestore specific errors
+    if (error.code === 'failed-precondition') {
+      console.warn('Firestore operation failed precondition.');
+      return 'failed-precondition';
+    }
+    
+    return 'unknown-error';
+  }
+  
+  static showUserMessage(message, type = 'warning') {
+    // Create a non-intrusive notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: ${type === 'warning' ? '#ff9800' : '#f44336'};
+      color: white;
+      border-radius: 8px;
+      z-index: 10000;
+      max-width: 300px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, 5000);
+  }
+}
+
+/* ---------------- Small safe helpers ---------------- */
+function safeText(s){ return String(s || ''); }
+
+function nsKey(base, { role='buyer', uid='anon' } = {}) {
+  return `${base}__${role}__${String(uid)}`;
+}
+
+function detectPageRole() {
+  try {
+    const r = document?.body?.dataset?.role;
+    if (r) return r.toLowerCase();
+  } catch(e){}
+  const p = window.location.pathname.toLowerCase();
+  if (p.includes('testsell') || p.includes('/seller') || p.includes('seller')) return 'seller';
+  if (p.includes('delivery') || p.includes('courier')) return 'courier';
+  return 'buyer';
+}
+
+/* ---------------- DATA SYNC FUNCTIONS (One-time reads) ---------------- */
+
+// ✅ ONE-TIME READ: Sync Firestore user data to localStorage
+async function syncFirestoreBoxes(uid) {
+  if (!uid) return null;
+  
+  const role = detectPageRole() || 'buyer';
+  const boxes = ['cart', 'wishlist', 'orders', 'products', 'sales', 'deliveries'];
+  const userDocRef = doc(firestore, "users", uid);
+  
+  try {
+    // ✅ ONE-TIME READ (getDoc) - No real-time listener
+    const docSnap = await getDoc(userDocRef);
+    let firestoreData = {};
+
+    if (docSnap.exists()) {
+      firestoreData = docSnap.data();
+    } else {
+      // Create default document with one-time write
+      boxes.forEach(box => firestoreData[box] = []);
+      firestoreData.profile = { 
+        uid, 
+        role,
+        createdAt: new Date().toISOString() 
+      };
+      await setDoc(userDocRef, firestoreData);
+    }
+
+    // Mirror Firestore → localStorage
+    boxes.forEach(box => {
+      const key = nsKey(box, { role, uid });
+      localStorage.setItem(key, JSON.stringify(firestoreData[box] || []));
+    });
+
+    const profileKey = nsKey('profile', { role, uid });
+    localStorage.setItem(profileKey, JSON.stringify(firestoreData.profile || { uid, role }));
+    
+    console.log("✅ One-time sync: Firestore → localStorage");
+    return firestoreData;
+    
+  } catch (error) {
+    const errorType = FirebaseErrorHandler.handleError(error, 'syncFirestoreBoxes');
+    
+    // Fallback to existing localStorage data
+    const role = detectPageRole() || 'buyer';
+    boxes.forEach((box) => {
+      const key = nsKey(box, { role, uid });
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, JSON.stringify([]));
+      }
+    });
+    const profileKey = nsKey('profile', { role, uid });
+    if (!localStorage.getItem(profileKey)) {
+      localStorage.setItem(profileKey, JSON.stringify({ 
+        uid, 
+        role, 
+        createdAt: new Date().toISOString() 
+      }));
+    }
+    
+    return null;
+  }
+}
+
+// ✅ ONE-TIME READ: Load user data from Realtime Database
+async function loadUserData(uid) {
+  try {
+    const userRef = ref(database, `users/${uid}`);
+    const snapshot = await get(userRef); // ✅ One-time read
+    
+    if (!snapshot.exists()) {
+      return null;
+    }
+    
+    return snapshot.val() || {};
+  } catch (error) {
+    FirebaseErrorHandler.handleError(error, 'loadUserData');
+    return null;
+  }
+}
+
+async function makeUserBoxes(uid) {
+  if (!uid) return;
+  
+  // ✅ One-time sync (no listener)
+  await syncFirestoreBoxes(uid);
+  
+  // Setup page keys with cached data
+  const role = detectPageRole() || 'buyer';
+  window.PAGE_KEYS = {
+    CART_KEY: nsKey('cart', { role, uid }),
+    WISHLIST_KEY: nsKey('wishlist', { role, uid }),
+    PRODUCTS_KEY: nsKey('products', { role, uid })
+  };
+}
+
+function setupPageKeys(uid){
+  if(!uid) return;
+  const role = detectPageRole() || 'buyer';
+  window.PAGE_KEYS = {
+    CART_KEY: nsKey('cart', { role, uid }),
+    WISHLIST_KEY: nsKey('wishlist', { role, uid }),
+    PRODUCTS_KEY: nsKey('products', { role, uid })
+  };
+}
+
+function readBox(key){
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e){ return []; }
+}
+function writeBox(key, data){
+  try { localStorage.setItem(key, JSON.stringify(data||[])); } catch(e) {}
+}
+
+function updateHeaderBadges() {
+  const uid = sessionStorage.getItem('uid');
+  
+  if(!uid) {
+    const cartBtnFallback = document.querySelector('.cart-btn');
+    const wishBtnFallback = document.querySelector('.wishlist-btn');
+    if (cartBtnFallback) cartBtnFallback.setAttribute('data-count', '0');
+    if (wishBtnFallback) wishBtnFallback.setAttribute('data-count', '0');
+    return;
+  }
+
+  const role = detectPageRole() || 'buyer';
+  const cartKey = nsKey('cart', { role, uid });
+  const wishKey = nsKey('wishlist', { role, uid });
+
+  const cartItems = readBox(cartKey) || [];
+  const cartCount = cartItems.reduce((s, item) => s + (Number(item.quantity) || 1), 0);
+
+  const wishItems = readBox(wishKey) || [];
+  const wishCount = wishItems.length;
+
+  const cartBtn = document.querySelector('.cart-btn');
+  const wishBtn = document.querySelector('.wishlist-btn');
+
+  if (cartBtn) cartBtn.setAttribute('data-count', String(cartCount));
+  if (wishBtn) wishBtn.setAttribute('data-count', String(wishCount));
+}
+
+/* ---------------- REAL-TIME LISTENER EXAMPLE (Only if absolutely needed) ---------------- */
+// ⚠️ Only enable real-time listeners for data that MUST update instantly
+// Example: Active chat messages or live auctions on current page
+
+async function setupRealTimeUserStatus(uid) {
+  // ✅ JUSTIFICATION: Only if this page needs real-time user status updates
+  // For a home page, this is usually NOT needed - using one-time reads instead
+  
+  const role = detectPageRole();
+  const listenerKey = `userStatus_${role}_${uid}`;
+  
+  // Check if we already have a listener for this
+  if (listenerManager.activeListeners.has(listenerKey)) {
+    return; // Prevent duplicate listeners
+  }
+  
+  try {
+    const userDocRef = doc(firestore, "users", uid);
+    
+    // ⚠️ REAL-TIME LISTENER (only for critical real-time data)
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data();
+          // Update UI with real-time data if needed
+          console.log("Real-time user update:", data);
+          
+          // Example: Update online status or last active time
+          if (data.lastActive) {
+            // Update UI element if it exists
+            const lastActiveEl = document.querySelector('.last-active');
+            if (lastActiveEl) {
+              lastActiveEl.textContent = `Last active: ${new Date(data.lastActive).toLocaleTimeString()}`;
+            }
+          }
+        }
+      },
+      (error) => {
+        FirebaseErrorHandler.handleError(error, 'userStatusListener');
+        listenerManager.removeListener(listenerKey); // Clean up on error
+      }
+    );
+    
+    // ✅ Store unsubscribe function in manager
+    listenerManager.addListener(listenerKey, unsubscribe, 'User status updates');
+    
+  } catch (error) {
+    FirebaseErrorHandler.handleError(error, 'setupRealTimeUserStatus');
+  }
+}
+
+/* ---------------- DOM references ---------------- */
+const hero = document.querySelector('.hero');
+const defaultHeroContent = hero ? hero.innerHTML : '';
+const logoutBtn = document.getElementById('logoutBtn');
+const profileDropdown = document.querySelector('.profile-dropdown');
+const userAvatar = document.querySelector('.user-avatar');
+
+/* ---------------- AUTH STATE HANDLER (Architecture Compliant) ---------------- */
+let authUnsubscribe = null;
+
+// ✅ ONE-TIME AUTH LISTENER (properly managed)
+function setupAuthListener() {
+  if (authUnsubscribe) {
+    console.warn('Auth listener already setup');
+    return;
+  }
+  
+  // Store unsubscribe function
+  authUnsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      // Clean up all Firebase listeners before redirect
+      listenerManager.cleanupAll();
+      window.location.href = '../index.html';
+      return;
+    }
+
+    try {
+      // Store uid
+      sessionStorage.setItem('uid', user.uid);
+
+      // ✅ One-time setup (no real-time listeners by default)
+      await makeUserBoxes(user.uid);
+      setupPageKeys(user.uid);
+      updateHeaderBadges();
+
+      // ✅ One-time read user data
+      const userData = await loadUserData(user.uid);
+      
+      if (!userData) {
+        listenerManager.cleanupAll();
+        window.location.href = '../formpage/form.html';
+        return;
+      }
+
+      // Security checks
+      if (userData.declined) { 
+        listenerManager.cleanupAll();
+        window.location.href = '../adminlogic/declined/declined.html'; 
+        return; 
+      }
+      if (userData.banned) { 
+        listenerManager.cleanupAll();
+        window.location.href = '../adminlogic/banned/banned.html'; 
+        return; 
+      }
+
+      // Update admin link visibility
+      updateAdminLinkVisibility(userData);
+
+      // Update UI
+      updateUIWithUserData(user, userData);
+
+      // ✅ Setup logout handler (once)
+      setupLogoutHandler();
+
+      // ✅ Setup avatar dropdown (once)
+      setupAvatarDropdown();
+
+      // Final badges update
+      updateHeaderBadges();
+
+      // ⚠️ OPTIONAL: Only add real-time listener if explicitly needed for this page
+      // For home page, we usually don't need real-time updates
+      // setupRealTimeUserStatus(user.uid); // Uncomment only if needed
+
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      FirebaseErrorHandler.handleError(error, 'authStateChanged');
+      
+      if (hero) {
+        hero.innerHTML = `${defaultHeroContent}
+        <div class="error-message" style="color:#ff6b6b;margin-top:1rem">
+          Couldn't load your profile. <button onclick="window.location.reload()" style="background:none;border:none;color:var(--primary);text-decoration:underline;cursor:pointer">Try again</button>
+        </div>`;
+      }
+    }
+  });
+  
+  // Add auth listener to manager for cleanup
+  listenerManager.addListener('authListener', () => {
+    if (authUnsubscribe) {
+      authUnsubscribe();
+      authUnsubscribe = null;
+    }
+  }, 'Auth state changes');
+}
+
+/* ---------------- UI UPDATE FUNCTIONS ---------------- */
+function updateUIWithUserData(user, userData) {
+  // Friendly name fallback
+  const niceName = userData.name || (user.email ? user.email.split('@')[0] : 'friend');
+
+  // Update hero safely
+  if (hero) {
+    hero.innerHTML = `
+      <h1>Welcome back, <span class="highlight">${safeText(niceName)}</span></h1>
+      <p>You are logged in as <strong>${safeText(userData.role || 'user')}</strong>.</p>
+      ${userData.roomnumber ? `<p>Room: ${safeText(userData.roomnumber)}</p>` : ''}
+      ${userData.program ? `<p>Program: ${safeText(userData.program)}</p>` : ''}
+      <a href="market/market.html" class="btn btn-primary cta-btn">Enter Guildite</a>
+    `;
+  }
+
+  // Update avatar if available
+  if (userData.profilePictureUrl && userAvatar) {
+    userAvatar.src = userData.profilePictureUrl;
+    userAvatar.alt = `${safeText(userData.name || niceName)}'s profile picture`;
+  }
+}
+
+function updateAdminLinkVisibility(userData) {
+  const adminLink = document.getElementById('adminLink');
+  if (!adminLink) return;
+
+  const userRole = userData?.role?.toLowerCase() || 'user';
+  const adminRoles = ['moderator', 'admin', 'superadmin'];
+
+  if (adminRoles.includes(userRole)) {
+    adminLink.style.display = 'flex';
+  } else {
+    adminLink.style.display = 'none';
+  }
+}
+
+function setupLogoutHandler() {
+  if (!logoutBtn || logoutBtn._bound) return;
+  
+  logoutBtn._bound = true;
+  logoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    
+    // Clean up all Firebase listeners before logout
+    listenerManager.cleanupAll();
+    
+    signOut(auth).then(() => {
+      sessionStorage.removeItem('uid');
+      window.location.href = '../index.html';
+    }).catch((err) => {
+      console.error('Logout error:', err);
+      FirebaseErrorHandler.handleError(err, 'logout');
+    });
+  });
+}
+
+function setupAvatarDropdown() {
+  if (!userAvatar || !profileDropdown || userAvatar._bound) return;
+  
+  userAvatar._bound = true;
+  userAvatar.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const dropdown = profileDropdown.querySelector('.dropdown-content');
+    if (!dropdown) return;
+    
+    const isVisible = dropdown.style.display === 'block';
+    if (isVisible) {
+      dropdown.style.opacity = '0';
+      dropdown.style.transform = 'translateY(10px)';
+      setTimeout(() => dropdown.style.display = 'none', 300);
+    } else {
+      dropdown.style.display = 'block';
+      setTimeout(() => { 
+        dropdown.style.opacity = '1'; 
+        dropdown.style.transform = 'translateY(0)'; 
+      }, 10);
+    }
+  });
+}
+
+/* ---------------- PAGE INITIALIZATION ---------------- */
+function initializePage() {
+  console.log('Initializing home page with Firebase architecture rules...');
+  
+  // Setup auth listener
+  setupAuthListener();
+  
+  // Setup outside click handler for dropdown
+  document.addEventListener('click', (e) => {
+    if (!profileDropdown) return;
+    if (!profileDropdown.contains(e.target)) {
+      const dropdown = profileDropdown.querySelector('.dropdown-content');
+      if (!dropdown) return;
+      dropdown.style.opacity = '0';
+      dropdown.style.transform = 'translateY(10px)';
+      setTimeout(() => dropdown.style.display = 'none', 300);
+    }
+  });
+  
+  // Sync badges across tabs
+  window.addEventListener('storage', (e) => {
+    if (!e.key) return;
+    if (e.key.includes('__cart__') || e.key.includes('__wishlist__') || e.key.includes('__orders__')) {
+      updateHeaderBadges();
+    }
+  });
+  
+  // Accessibility
+  document.addEventListener('keyup', (e) => { 
+    if (e.key === 'Tab') document.documentElement.classList.add('keyboard-focus'); 
+  });
+  document.addEventListener('mousedown', () => document.documentElement.classList.remove('keyboard-focus'));
+  
+  // Animation for CTA button
+  document.addEventListener('DOMContentLoaded', () => {
+    const ctaBtn = document.querySelector('.cta-btn');
+    if (ctaBtn) setTimeout(() => ctaBtn.style.animation = 'pulse 2s infinite', 1500);
+  });
+  
+  // Debug listener count on page load
+  console.log(`Initial listener count: ${listenerManager.getListenerCount()}`);
+  
+  // Verify cleanup on page hide
+  window.addEventListener('pagehide', () => {
+    const remaining = listenerManager.activeListeners.size;
+    if (remaining > 0) {
+      console.warn(`Page hidden with ${remaining} active listener(s)`);
+    }
+  });
+}
+
+// Start initialization
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+  initializePage();
+}
+
+// ✅ VERIFICATION: Ensure no listeners remain after unload
+window.addEventListener('beforeunload', () => {
+  console.log('Page unloading - verifying listener cleanup...');
+  const remaining = listenerManager.activeListeners.size;
+  
+  if (remaining > 0) {
+    console.error(`🚨 CRITICAL: ${remaining} Firebase listener(s) still active on unload!`);
+    console.error('Active listeners:', Array.from(listenerManager.activeListeners.keys()));
+    
+    // Force cleanup
+    listenerManager.cleanupAll();
+  } else {
+    console.log('✅ Verified: No Firebase listeners active on unload');
+  }
+});
+
+// ✅ DEBUG MODE: Set window.DEBUG_FIREBASE = true to enable monitoring
+if (window.DEBUG_FIREBASE) {
+  console.log('🔥 Firebase Debug Mode Enabled');
+  
+  // Monitor listener count every 30 seconds
+  setInterval(() => {
+    const count = listenerManager.getListenerCount();
+    console.log(`📊 Active Firebase listeners: ${count}`);
+    
+    if (count > 1) { // Home page should have 0-1 listeners max
+      console.warn('⚠️  More than 1 listener detected on home page');
+      listenerManager.verifyCleanup();
+    }
+  }, 30000);
+}
+
+</script>
+
+
+</body>
+</html>

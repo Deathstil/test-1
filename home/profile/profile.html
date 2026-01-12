@@ -1,0 +1,438 @@
+<!-- profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <style>
+    /* profile.css */
+    /* Global Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #131921;
+      color: white;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 30px;
+      background-color: #0b1623;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: #3498db;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
+
+    .nav-links a {
+      color: white;
+      margin-left: 25px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      color: #3498db;
+    }
+
+    /* Profile Container */
+    .profile-container {
+      flex: 1;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .profile-container h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 40px;
+      color: #3498db;
+    }
+
+    .profile-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    /* Profile Card */
+    .profile-card {
+      background-color: #1c1f2a;
+      border-radius: 15px;
+      padding: 30px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-field {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      margin: 10px 0;
+      background-color: #252a38;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    .profile-field:hover {
+      transform: translateX(10px);
+    }
+
+    .field-label {
+      font-weight: bold;
+      color: #3498db;
+      font-size: 1.1rem;
+    }
+
+    .field-value {
+      color: #ecf0f1;
+      font-size: 1rem;
+      max-width: 60%;
+      text-align: right;
+    }
+
+    /* Profile Picture */
+    .profile-picture-container {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    #profilePic {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #3498db;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    #profilePic:hover {
+      transform: scale(1.05);
+    }
+
+    .upload-hover {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .profile-picture-container:hover .upload-hover {
+      opacity: 1;
+    }
+
+    /* Logout Button */
+    .logout-btn {
+      background-color: #e74c3c;
+      padding: 12px 40px;
+      font-size: 1.1rem;
+      margin-top: 30px;
+      border-radius: 20px;
+
+    }
+
+    .logout-btn:hover {
+      background-color: #c0392b;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #0b1623;
+      color: #aaa;
+      margin-top: auto;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .profile-field {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .field-value {
+        text-align: left;
+        max-width: 100%;
+      }
+
+      .profile-container h2 {
+        font-size: 2rem;
+      }
+
+      #profilePic {
+        width: 120px;
+        height: 120px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+
+      .nav-links {
+        margin-top: 10px;
+      }
+
+      .profile-card {
+        padding: 20px;
+      }
+
+      .field-label {
+        font-size: 1rem;
+      }
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+
+    body.dark-mode header,
+    body.dark-mode footer,
+    body.dark-mode .profile-card {
+      background-color: #1e293b;
+    }
+
+    body.dark-mode .profile-field {
+      background-color: #334155;
+    }
+
+    body.dark-mode .field-value {
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">
+      <img src="../../images/logo ssi.png" alt="Logo" class="brand-logo" />
+      <h1>Guildite</h1>
+    </div>
+    <nav class="nav-links">
+      <a href="../market/market.html">Home</a>
+    </nav>
+  </header>
+
+  <main class="profile-container">
+    <h2>Your Profile</h2>
+
+    <div class="profile-content">
+      <!-- Profile Picture Section -->
+      <div class="profile-picture-container">
+        <label for="profilePicUpload">
+          <img id="profilePic" src="../../images/no profile pic.jpg" alt="Profile Picture">
+          <span class="upload-hover">Click to upload</span>
+        </label>
+        <input type="file" id="profilePicUpload" accept="image/*" style="display:none;">
+      </div>
+
+      <!-- Profile Info -->
+      <div class="profile-card">
+        <div class="profile-field">
+          <span class="field-label">Full Name:</span>
+          <span class="field-value" id="fullname">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Email:</span>
+          <span class="field-value" id="email">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Index Number:</span>
+          <span class="field-value" id="index">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Program of Study:</span>
+          <span class="field-value" id="program">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Phone Number:</span>
+          <span class="field-value" id="phone">Loading...</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-label">Room Number:</span>
+          <span class="field-value" id="room">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logout Button -->
+    <button id="logoutBtn" class="cta-btn logout-btn">Logout</button>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Guildite. All rights reserved.</p>
+  </footer>
+
+  <script type="module">
+    // Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+
+    // Cloudinary configuration
+    const cloudinaryPreset = 'frizux';
+    const cloudinaryFolder = 'marketplace_uploads';
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+      authDomain: "marketplace-e0bff.firebaseapp.com",
+      projectId: "marketplace-e0bff",
+      storageBucket: "marketplace-e0bff.appspot.com",
+      messagingSenderId: "892936444768",
+      appId: "1:892936444768:web:f595b3a3e5d697988e1c05",
+      databaseURL: "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    // Theme Initialization
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+    }
+
+    // Elements
+    const profilePic = document.getElementById("profilePic");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const profilePicUpload = document.getElementById("profilePicUpload");
+
+    // Get and display user data
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("You need to be logged in to view your profile.");
+        return window.location.href = "/index.html";
+      }
+
+      try {
+        const snapshot = await get(ref(database, `users/${user.uid}`));
+        if (!snapshot.exists()) {
+          alert("No user data found.");
+          return;
+        }
+
+        const data = snapshot.val();
+        document.getElementById("fullname").textContent = data.name || "N/A";
+        document.getElementById("email").textContent = user.email || "N/A";
+        document.getElementById("index").textContent = data.index || "N/A";
+        document.getElementById("program").textContent = data.program || "N/A";
+        document.getElementById("phone").textContent = data.phone || "N/A";
+        document.getElementById("room").textContent = data.roomnumber || "N/A";
+        profilePic.src = data.profilePictureUrl || "../../images/no profile pic.jpg";
+
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        alert("An error occurred while loading your profile.");
+      }
+    });
+
+    // Handle profile picture upload
+    profilePicUpload.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return alert("Please select an image.");
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', cloudinaryPreset);
+      formData.append('folder', cloudinaryFolder);
+
+      try {
+        // Upload new image
+        const response = await fetch('https://api.cloudinary.com/v1_1/dsj9imkpp/image/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+        const profilePicUrl = data.secure_url;
+
+        // Update Firebase DB
+        const uid = auth.currentUser.uid;
+        await update(ref(database, `users/${uid}`), { profilePictureUrl: profilePicUrl });
+
+        // Update image on page
+        profilePic.src = profilePicUrl;
+        alert("Profile picture updated successfully!");
+
+      } catch (error) {
+        console.error("Upload error:", error);
+        alert("Failed to upload image.");
+      }
+    });
+
+    // Logout functionality
+    logoutBtn?.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        alert("You have been logged out.");
+        window.location.href = "../home.html";
+      } catch (error) {
+        console.error("Logout error:", error);
+        alert("An error occurred while logging out.");
+      }
+    });
+  </script>
+
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Wishlist - Guildite</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #93c5fd;
+      --dark-bg: #0f172a;
+      --dark-secondary: #1e293b;
+      --light-bg: #f8fafc;
+      --light-text: #f8fafc;
+      --dark-text: #0f172a;
+      --gray-text: #64748b;
+      --card-bg: #ffffff;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --error-color: #ef4444;
+      --success-color: #10b981;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--light-bg);
+      color: var(--dark-text);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 14px;
+    }
+
+    body.dark-mode {
+      background-color: var(--dark-bg);
+      color: var(--light-text);
+    }
+
+    /* Header styles - Mobile optimized */
+    .site-header {
+      background-color: var(--dark-bg);
+      padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 5px;
+    }
+
+    .brand-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .user-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--light-text);
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      padding: 6px;
+      border-radius: 50%;
+      min-width: 36px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .cart-btn {
+      position: relative;
+    }
+
+    .cart-btn::after {
+      content: attr(data-count);
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background-color: var(--primary-color);
+      color: white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      font-size: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .profile-dropdown {
+      position: relative;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: var(--transition);
+    }
+
+    .user-avatar:hover {
+      border-color: var(--primary-color);
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: var(--dark-bg);
+      min-width: 160px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .dropdown-content a {
+      color: var(--light-text);
+      padding: 10px 12px;
+      text-decoration: none;
+      display: block;
+      font-size: 0.85rem;
+      transition: var(--transition);
+    }
+
+    .dropdown-content a:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .dropdown-content a i {
+      margin-right: 6px;
+      width: 16px;
+      text-align: center;
+    }
+
+    .profile-dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    /* Main content */
+    .main-content {
+      flex: 1;
+    }
+
+    /* Wishlist Content Styles - Mobile optimized */
+    .wishlist-container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+
+    .wishlist-header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .wishlist-header h1 {
+      font-size: 1.4rem;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sort-options {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .sort-options label {
+      font-weight: 500;
+      white-space: nowrap;
+      font-size: 0.9rem;
+    }
+
+    .sort-options select {
+      padding: 8px 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      background-color: white;
+      cursor: pointer;
+      flex-grow: 1;
+      font-size: 0.9rem;
+    }
+
+    body.dark-mode .sort-options select {
+      background-color: var(--dark-bg);
+      color: var(--light-text);
+      border-color: var(--dark-secondary);
+    }
+
+    .wishlist-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    /* Product Card Styles - Mobile optimized */
+    .product-card {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(12,20,35,0.06);
+      transition: transform .15s ease, box-shadow .15s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    body.dark-mode .product-card {
+      background-color: var(--dark-secondary);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(12,20,35,0.08);
+    }
+
+    .product-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.65rem;
+      font-weight: bold;
+      z-index: 1;
+    }
+
+    .product-image-container {
+      position: relative;
+      height: 140px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform .35s ease;
+    }
+
+    .product-card:hover .product-image { transform: scale(1.03); }
+
+    .card-content { 
+      padding: 10px; 
+      display:flex; 
+      flex-direction:column; 
+      gap:6px; 
+      flex-grow: 1;
+    }
+    
+    .price-pill {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      z-index: 2;
+      font-size: 0.85rem;
+    }
+
+    .product-title { 
+      font-weight:700; 
+      font-size:0.9rem; 
+      margin:0; 
+      line-height:1.2; 
+      min-height:2.2em; 
+      overflow:hidden; 
+      display:-webkit-box; 
+      -webkit-line-clamp:2; 
+      -webkit-box-orient:vertical; 
+    }
+
+    .product-price { 
+      color: var(--primary-color); 
+      font-weight:800; 
+      font-size: 0.85rem;
+    }
+
+    .meta-row { 
+      color: var(--gray-text); 
+      font-size:0.78rem; 
+    }
+    
+    .product-seller { 
+      display:flex; 
+      align-items:center; 
+      gap:6px; 
+      margin-top:4px; 
+    }
+
+    .seller-avatar { 
+      width:28px; 
+      height:28px; 
+      border-radius:50%; 
+      object-fit:cover; 
+      border:1px solid rgba(0,0,0,0.06); 
+    }
+
+    .seller-name { 
+      font-size:0.8rem; 
+      color:var(--gray-text); 
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      gap: 6px;
+    }
+
+    .add-to-cart {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      flex-grow: 1;
+      min-height: 36px;
+    }
+
+    .add-to-cart:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .add-to-cart:disabled {
+      background-color: var(--gray-text);
+      cursor: not-allowed;
+    }
+
+    .quick-view {
+      background-color: transparent;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      flex-grow: 1;
+    }
+
+    .quick-view:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .wishlist-icon {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 4;
+      background: rgba(255,255,255,0.96);
+      padding: 6px;
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      color: var(--error-color);
+      font-size: 1rem;
+      box-shadow: 0 4px 12px rgba(12,20,35,0.06);
+      transition: transform .12s ease, background .12s ease;
+      min-width: 32px;
+      min-height: 32px;
+    }
+    
+    body.dark-mode .wishlist-icon { 
+      background: rgba(0,0,0,0.45); 
+    }
+
+    .wishlist-icon:hover {
+      transform: scale(1.15);
+    }
+
+    .wishlist-icon.removing {
+      animation: pulse 0.5s ease-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    .empty-wishlist {
+      text-align: center;
+      padding: 40px 20px;
+      grid-column: 1 / -1;
+    }
+
+    .empty-wishlist i {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+
+    .empty-wishlist h2 {
+      margin-bottom: 12px;
+      font-size: 1.3rem;
+    }
+
+    .empty-wishlist p {
+      color: var(--gray-text);
+      margin-bottom: 20px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 0.9rem;
+    }
+
+    .browse-btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .browse-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      max-width: calc(100vw - 32px);
+      font-size: 0.9rem;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast i {
+      font-size: 1.1rem;
+    }
+
+    .toast.error {
+      background-color: var(--error-color);
+    }
+
+    .toast.success {
+      background-color: var(--success-color);
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Footer styles */
+    .site-footer {
+      background-color: var(--dark-bg);
+      color: var(--light-text);
+      padding: 30px 0 15px;
+      margin-top: auto;
+    }
+
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .footer-logo {
+      width: 26px;
+      height: 26px;
+    }
+
+    .footer-brand span {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .footer-description {
+      color: var(--gray-text);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-bottom: 15px;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      margin-top: 25px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: var(--gray-text);
+      font-size: 0.75rem;
+    }
+
+    /* Responsive adjustments */
+    @media (min-width: 480px) {
+      .wishlist-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+      
+      .product-image-container {
+        height: 130px;
+      }
+    }
+
+    @media (min-width: 640px) {
+      .wishlist-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      
+      .product-image-container {
+        height: 140px;
+      }
+      
+      .wishlist-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+      
+      .sort-options {
+        width: auto;
+        flex-grow: 0;
+      }
+      
+      .footer-content {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 768px) {
+      .wishlist-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+      }
+      
+      .product-image-container {
+        height: 150px;
+      }
+      
+      .site-header {
+        padding: 12px 20px;
+      }
+      
+      .brand-name {
+        font-size: 1.5rem;
+      }
+      
+      .wishlist-container {
+        padding: 0 20px;
+        margin: 30px auto;
+      }
+      
+      .wishlist-header h1 {
+        font-size: 1.6rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .wishlist-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      }
+      
+      .product-image-container {
+        height: 160px;
+      }
+    }
+  </style>
+</head>
+<body class="light-mode">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-content">
+      <div class="brand">
+        <a href="../../market/market.html">
+          <img src="../../../images/logo ssi.png" alt="Guildite Logo" class="brand-icon">
+          <span class="brand-name">Guildite</span>
+        </a>
+      </div>
+      <div class="user-controls">
+        <a href="../../market/market.html" class="icon-btn" aria-label="Back to home">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <button id="darkModeToggle" class="icon-btn" aria-label="Toggle dark mode">
+          <i class="fas fa-moon"></i>
+        </button>
+        <a href="../cart/cart.html" class="icon-btn cart-btn" aria-label="View shopping cart" data-count="0">
+          <i class="fas fa-shopping-cart"></i>
+        </a>
+      </div>
+      <div class="profile-dropdown">
+        <img src="../../../images/no profile pic.jpg" alt="User profile" class="user-avatar">
+        <div class="dropdown-content" aria-label="User menu">
+          <a href="../../profile/profile.html"><i class="fas fa-user"></i> Profile</a>
+          <a href="../orders/orders.html"><i class="fas fa-box"></i> Orders</a>
+          <a href="../../delivery/delivery.html"><i class="fas fa-shipping-fast"></i>Carriers</a>
+          <a href="../../seller/testsell.html"><i class="fas fa-plus-circle"></i> Seller Workshop</a>
+          <a href="../../community/community.html"><i class="fas fa-users"></i>Guild Hall</a>
+          <a href="../../map/map.html"><i class="fas fa-map-marker-alt"></i>Map</a>
+
+          <a href="../../home.html"><i class="fas fa-sign-out-alt"></i>Leave Guildite</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Wishlist Content -->
+    <div class="wishlist-container">
+      <div class="wishlist-header">
+        <h1><i class="fas fa-heart" style="color: #ef4444;"></i> My Wishlist</h1>
+        <div class="sort-options">
+          <label for="sort">Sort by:</label>
+          <select id="sort" class="sort-select">
+            <option value="recent">Recently Added</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="name">Alphabetical</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="wishlist-grid" id="wishlistGrid">
+        <!-- Empty state (hidden by default) -->
+        <div class="empty-wishlist" id="emptyWishlist">
+          <i class="far fa-heart"></i>
+          <h2>Your Wishlist is Empty</h2>
+          <p>You haven't added any items to your wishlist yet. Start browsing to find items you love!</p>
+          <a href="../../market/market.html" class="browse-btn">
+            <i class="fas fa-search"></i> Browse Items
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="../../../images/logo ssi.png" alt="Guildite Logo" class="footer-logo">
+        <span>Guildite</span>
+      </div>
+      <div>
+        <p class="footer-description">
+          The people's Guildite that connects buyers and sellers across neighbourhoods.
+        </p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 Guildite. Powered by People.</p>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast" role="alert" aria-live="assertive">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Item added to cart!</span>
+  </div>
+
+  <!-- YOUR ORIGINAL JAVASCRIPT CODE GOES HERE - UNCHANGED -->
+  <script type="module">
+// Wishlist — Market-style product cards + Quick View (uid-scoped cart & wishlist)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+
+// ---------- Firebase config/init ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+  authDomain: "marketplace-e0bff.firebaseapp.com",
+  projectId: "marketplace-e0bff",
+  storageBucket: "marketplace-e0bff.appspot.com",
+  messagingSenderId: "892936444768",
+  appId: "1:892936444768:web:f595b3a3e5d697988e1c05",
+  databaseURL: "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app"
+};
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+
+// ---------- DOM refs ----------
+const darkModeToggle = document.getElementById('darkModeToggle');
+const wishlistGrid = document.getElementById('wishlistGrid');
+const emptyWishlist = document.getElementById('emptyWishlist');
+const toast = document.getElementById('toast');
+const toastMessage = document.getElementById('toastMessage');
+const sortSelect = document.getElementById('sort');
+const cartBtnSelector = '.cart-btn';
+
+// ---------- utilities ----------
+const DEFAULT_PRODUCT_IMAGE = '../../../images/default-product.jpg';
+const DEFAULT_AVATAR = '../../../images/no profile pic.jpg';
+
+function escapeHtml(s){ return String(s||'').replace(/[&<>"'`=\/]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[ch]); }
+function isValidImage(url){ const s = String(url||'').trim(); if(!s) return false; return /^(data:|https?:\/\/|\/|\.)/.test(s) || /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(s); }
+function nowISO(){ return new Date().toISOString(); }
+function timeAgo(iso){
+  if(!iso) return '';
+  const d = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(d/60000);
+  if(m<1) return 'just now';
+  if(m<60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if(h<24) return `${h}h ago`;
+  const days = Math.floor(h/24);
+  if(days<30) return `${days}d ago`;
+  const months = Math.floor(days/30);
+  if(months<12) return `${months}mo ago`;
+  return `${Math.floor(months/12)}y ago`;
+}
+function formatWithTimezone(iso){
+  try {
+    return new Date(iso).toLocaleString('en-US', {
+      timeZone: 'Africa/Accra',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  } catch(e){
+    return iso || '';
+  }
+}
+
+// toast
+function showToast(message, type = 'success'){
+  if(!toast || !toastMessage){ console[type==='error'?'error':'log'](message); return; }
+  toastMessage.textContent = message;
+  toast.className = 'toast show ' + type;
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> toast.classList.remove('show'), 3000);
+}
+// ✅ ADD: Sync wishlist from Firestore
+async function syncWishlistWithFirestore() {
+  const uid = getUid();
+  if (!uid || uid === 'anon') return readJsonKey(getWishlistKey(), []);
+  
+  try {
+    const userDocRef = doc(firestore, "users", uid);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const firestoreWishlist = userData.wishlist || [];
+      
+      // Update localStorage cache
+      writeJsonKey(getWishlistKey(), firestoreWishlist);
+      console.log('✅ Wishlist synced from Firestore:', firestoreWishlist.length, 'items');
+      return firestoreWishlist;
+    }
+  } catch (error) {
+    console.error('Error syncing wishlist with Firestore:', error);
+  }
+  return readJsonKey(getWishlistKey(), []);
+}
+
+// ✅ ADD: Sync cart from Firestore
+async function syncCartWithFirestore() {
+  const uid = getUid();
+  if (!uid || uid === 'anon') return readJsonKey(getCartKey(), []);
+  
+  try {
+    const userDocRef = doc(firestore, "users", uid);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const firestoreCart = userData.cart || [];
+      
+      // Update localStorage cache
+      writeJsonKey(getCartKey(), firestoreCart);
+      return firestoreCart;
+    }
+  } catch (error) {
+    console.error('Error syncing cart with Firestore:', error);
+  }
+  return readJsonKey(getCartKey(), []);
+}
+
+// ✅ ADD: Update Firestore when wishlist changes
+async function updateFirestoreWishlist(wishlistData) {
+  const uid = getUid();
+  if (!uid || uid === 'anon') return;
+  
+  try {
+    const userDocRef = doc(firestore, "users", uid);
+    await updateDoc(userDocRef, { wishlist: wishlistData });
+    console.log('✅ Wishlist updated in Firestore');
+  } catch (error) {
+    console.error('Error updating Firestore wishlist:', error);
+  }
+}
+
+// ✅ ADD: Update Firestore when cart changes
+async function updateFirestoreCart(cartData) {
+  const uid = getUid();
+  if (!uid || uid === 'anon') return;
+  
+  try {
+    const userDocRef = doc(firestore, "users", uid);
+    await updateDoc(userDocRef, { cart: cartData });
+    console.log('✅ Cart updated in Firestore');
+  } catch (error) {
+    console.error('Error updating Firestore cart:', error);
+  }
+}
+
+// seller cache
+const sellerCache = new Map();
+async function getSellerInfo(uid){
+  if(!uid) return null;
+  if(sellerCache.has(uid)) return sellerCache.get(uid);
+  try {
+    const userRef = ref(database, `users/${uid}`);
+    const snap = await get(userRef);
+    const v = snap.exists() ? snap.val() : null;
+    sellerCache.set(uid, v);
+    return v;
+  } catch(err){
+    console.warn('getSellerInfo error', err);
+    sellerCache.set(uid, null);
+    return null;
+  }
+}
+
+/* ---------- namespaced keys (UID-scoped) ---------- */
+function getUid() {
+  return sessionStorage.getItem('uid') || 'anon';
+}
+function detectPageRole(){
+  try { const r = document?.body?.dataset?.role; if(r) return r; } catch(e){}
+  const p = window.location.pathname.toLowerCase();
+  if(p.includes('seller') || p.includes('testsell')) return 'seller';
+  if(p.includes('delivery') || p.includes('courier')) return 'courier';
+  return 'buyer';
+}
+function nsKey(base, { role = null, uid = null } = {}) {
+  const finalRole = role || detectPageRole() || 'buyer';
+  const finalUid = uid || getUid() || 'anon';
+  return `${base}__${finalRole}__${finalUid}`;
+}
+function getCartKey(){ return nsKey('cart'); }
+function getWishlistKey(){ return nsKey('wishlist'); }
+
+/* safe JSON read/write */
+function readJsonKey(k, fallback = []) {
+  try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); }
+  catch(e) { return fallback; }
+}
+
+function writeJsonKey(k, data) {
+  try { 
+    // 1. Write to localStorage cache
+    localStorage.setItem(k, JSON.stringify(data || [])); 
+    
+    // 2. Also update Firestore (source of truth)
+    const uid = getUid();
+    if (uid && uid !== 'anon') {
+      if (k === getWishlistKey()) {
+        updateFirestoreWishlist(data || []);
+      } else if (k === getCartKey()) {
+        updateFirestoreCart(data || []);
+      }
+    }
+  }
+  catch(e){
+    console.warn('writeJsonKey failed:', e);
+  }
+}
+
+/* helper: how many of this product are currently in the user's cart */
+function getCartQuantity(productId){
+  try {
+    const cart = readJsonKey(getCartKey(), []);
+    const it = cart.find(i=>String(i.id) === String(productId));
+    return it ? (it.quantity || 0) : 0;
+  } catch(e){ return 0; }
+}
+
+/* ---------- quick-view modal (lazy create) ---------- */
+function ensureQuickViewModal(){
+  if(document.getElementById('wl-qv-overlay')) return;
+  const modalWrap = document.createElement('div');
+  modalWrap.innerHTML = `
+    <div id="wl-qv-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1200">
+      <div id="wl-qv-panel" role="dialog" aria-modal="true" style="width:min(900px,96%);max-height:90vh;overflow:auto;background:var(--card-bg,#fff);border-radius:10px;padding:14px;display:flex;gap:12px;">
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;min-width:220px">
+          <img id="wl-qv-img" src="${DEFAULT_PRODUCT_IMAGE}" style="max-width:100%;max-height:70vh;border-radius:8px;object-fit:contain">
+        </div>
+        <div style="width:380px;display:flex;flex-direction:column;gap:10px;color:var(--text,#000)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <h3 id="wl-qv-title" style="margin:0;font-size:1.05rem"></h3>
+              <div id="wl-qv-byline" style="color:var(--text-gray,#6b7280);font-size:0.9rem;margin-top:6px"></div>
+              <div id="wl-qv-cond" style="color:var(--text-gray,#6b7280);font-size:0.9rem;margin-top:6px"></div>
+            </div>
+            <button id="wl-qv-close" aria-label="Close" style="border:none;background:transparent;font-size:1.2rem;cursor:pointer">✕</button>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px">
+            <img id="wl-qv-seller-avatar" src="${DEFAULT_AVATAR}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid #eee">
+            <div>
+              <div id="wl-qv-seller-name" style="font-weight:600"></div>
+              <a id="wl-qv-seller-link" href="#" target="_blank" rel="noopener" style="font-size:0.85rem;color:var(--primary-color,#4f46e5);display:inline-block;margin-top:4px">View seller profile</a>
+            </div>
+          </div>
+
+          <div id="wl-qv-desc" style="color:var(--text-gray,#6b7280);font-size:0.95rem;overflow:auto;max-height:30vh;padding-right:6px"></div>
+
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+            <div id="wl-qv-price" style="font-size:1.15rem;font-weight:800"></div>
+            <div id="wl-qv-meta" style="color:var(--text-gray,#6b7280);font-size:0.95rem"></div>
+            <div style="display:flex;gap:8px">
+              <button id="wl-qv-add" class="action-btn primary-btn" style="padding:8px 12px;border-radius:8px;cursor:pointer">Add to cart</button>
+              <button id="wl-qv-remove" class="action-btn secondary-btn" style="padding:8px 12px;border-radius:8px;cursor:pointer">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modalWrap);
+
+  const overlay = document.getElementById('wl-qv-overlay');
+  const panel = document.getElementById('wl-qv-panel');
+  // close handlers
+  document.getElementById('wl-qv-close').addEventListener('click', ()=> overlay.style.display = 'none');
+  overlay.addEventListener('click', (e)=> { if(!panel.contains(e.target)) overlay.style.display = 'none'; });
+  document.addEventListener('keydown', (e)=> { if(e.key === 'Escape') overlay.style.display = 'none'; });
+}
+
+/* ---------- quick-view open/logic (robust) ---------- */
+async function openQuickViewFromCard(card){
+  ensureQuickViewModal();
+  const overlay = document.getElementById('wl-qv-overlay');
+  const img = document.getElementById('wl-qv-img');
+  const titleEl = document.getElementById('wl-qv-title');
+  const bylineEl = document.getElementById('wl-qv-byline');
+  const priceEl = document.getElementById('wl-qv-price');
+  const descEl = document.getElementById('wl-qv-desc');
+  const sellerNameEl = document.getElementById('wl-qv-seller-name');
+  const sellerAvatarEl = document.getElementById('wl-qv-seller-avatar');
+  const sellerLinkEl = document.getElementById('wl-qv-seller-link');
+  const metaEl = document.getElementById('wl-qv-meta');
+  const addBtnOrig = document.getElementById('wl-qv-add');
+  const removeBtnOrig = document.getElementById('wl-qv-remove');
+
+  // read dataset
+  const id = card.dataset.id;
+  const title = card.dataset.title || card.querySelector('.product-title')?.textContent || '';
+  const price = Number(card.dataset.price || 0);
+  const image = card.dataset.image || card.querySelector('.product-image')?.src || DEFAULT_PRODUCT_IMAGE;
+  const seller = card.dataset.seller || card.querySelector('.seller-name')?.textContent || 'Seller';
+  const sellerId = card.dataset.sellerId || '';
+  const condition = card.dataset.condition || '';
+  const description = card.dataset.description || card.querySelector('.meta-row')?.textContent || '';
+  const stock = Number(card.dataset.stock || card.dataset.quantity || 0);
+  const oldPrice = card.dataset.oldPrice ? Number(card.dataset.oldPrice) : null;
+  const location = card.dataset.location || '';
+  const createdAt = card.dataset.createdAt || nowISO();
+
+  // set content
+  img.src = image || DEFAULT_PRODUCT_IMAGE;
+  titleEl.textContent = title;
+  priceEl.textContent = `GHC ${price.toFixed(2)}${oldPrice ? `  ·  GHC ${oldPrice.toFixed(2)}` : ''}`;
+  descEl.textContent = description || 'No description provided.';
+  sellerNameEl.textContent = seller;
+  sellerAvatarEl.src = card.dataset.sellerAvatar || DEFAULT_AVATAR;
+  if(sellerId){
+    sellerLinkEl.href = `../../profile/sellerprofile.html?uid=${encodeURIComponent(sellerId)}`;
+    sellerLinkEl.style.display = 'inline-block';
+  } else {
+    sellerLinkEl.style.display = 'none';
+  }
+
+  // byline: seller + relative time + formatted timestamp
+  if(bylineEl){
+    bylineEl.innerHTML = `by <strong>${escapeHtml(seller)}</strong> • ${escapeHtml(timeAgo(createdAt))} (${escapeHtml(formatWithTimezone(createdAt))})`;
+  }
+
+  // meta: condition / stock / cart count
+  const cartQty = getCartQuantity(id);
+  if(metaEl){
+    metaEl.innerHTML = `
+      Condition: ${escapeHtml(condition || 'N/A')}<br>
+      In Stock: ${escapeHtml(String(stock))}<br>
+      You currently have ${escapeHtml(String(cartQty))} in your cart
+    `;
+  }
+
+  // stock handling
+  const isOutOfStock = stock <= 0;
+  // Replace the Add & Remove buttons (clear previous listeners by cloning)
+  const newAdd = addBtnOrig.cloneNode(true);
+  addBtnOrig.parentNode.replaceChild(newAdd, addBtnOrig);
+  const newRemove = removeBtnOrig.cloneNode(true);
+  removeBtnOrig.parentNode.replaceChild(newRemove, removeBtnOrig);
+
+  newAdd.disabled = isOutOfStock;
+  newAdd.textContent = isOutOfStock ? 'Out of Stock' : 'Add to cart';
+
+  // Add-to-cart click handler
+  newAdd.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(isOutOfStock){
+      showToast(`"${title}" is out of stock`, 'error');
+      return;
+    }
+
+    // authoritative product store if present
+    let localProducts = [];
+    try { localProducts = JSON.parse(localStorage.getItem('products')||'[]'); } catch(e){ localProducts = []; }
+    const prod = localProducts.find(p => String(p.id) === String(id));
+    const availableStock = prod ? Number(prod.quantity || 0) : stock;
+
+    // current amount in cart (uid-scoped)
+    let cart = readJsonKey(getCartKey(), []);
+    const existing = cart.find(i => String(i.id) === String(id));
+    const currentQtyInCart = existing ? (existing.quantity || 0) : 0;
+
+    if(currentQtyInCart >= availableStock){
+      showToast(`Only ${availableStock} available in stock.`, 'error');
+      return;
+    }
+
+    if(existing) existing.quantity = (existing.quantity || 0) + 1;
+    else cart.push({ id, title, price, image, seller, sellerId, quantity: 1 });
+    writeJsonKey( getCartKey(), cart );
+    updateCartCount();
+    showToast(`"${title}" added to cart`, 'success');
+
+    // optimistic decrement in products store and update card UI
+    if(prod){
+      prod.quantity = Math.max(0, (Number(prod.quantity||0) - 1));
+      const all = JSON.parse(localStorage.getItem('products')||'[]') || [];
+      const idx = all.findIndex(x => String(x.id) === String(prod.id));
+      if(idx > -1){ all[idx] = prod; localStorage.setItem('products', JSON.stringify(all)); }
+      card.dataset.stock = String(prod.quantity);
+      if(Number(prod.quantity) <= 0){
+        card.querySelectorAll('.add-to-cart').forEach(b => { b.disabled = true; b.classList.add('disabled'); b.textContent = 'Out of Stock'; });
+        newAdd.disabled = true; newAdd.textContent = 'Out of Stock';
+      }
+    }
+
+    // update modal meta cart count
+    const newCartQty = getCartQuantity(id);
+    if(metaEl) metaEl.innerHTML = `Condition: ${escapeHtml(condition || 'N/A')}<br>In Stock: ${escapeHtml(String(card.dataset.stock || stock))}<br>You currently have ${escapeHtml(String(newCartQty))} in your cart`;
+  });
+
+  // Remove from wishlist handler (in modal)
+  newRemove.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    let wl = readJsonKey(getWishlistKey(), []);
+    wl = wl.filter(i => String(i.id) !== String(id));
+    writeJsonKey(getWishlistKey(), wl);
+    overlay.style.display = 'none';
+    renderWishlistItems(sortSelect?.value || 'recent');
+    showToast('Removed from wishlist', 'error');
+  });
+
+  overlay.style.display = 'flex';
+}
+
+// 🔥 Load all seller products (from all boxes) so cart/wishlist see real stock
+function loadAllProductsFromStorage(){
+  const all = [];
+  for(let i = 0; i < localStorage.length; i++){
+    const key = localStorage.key(i);
+    if(key && (key === 'products' || key.startsWith('products__seller__'))){
+      try{
+        const arr = JSON.parse(localStorage.getItem(key) || '[]');
+        if(Array.isArray(arr) && arr.length > 0) all.push(...arr);
+      }catch(e){ console.warn('Bad product box:', key, e); }
+    }
+  }
+  // remove duplicates by ID
+  const seen = new Set();
+  const unique = [];
+  for(const p of all){
+    if(p && p.id && !seen.has(p.id)){
+      seen.add(p.id);
+      unique.push(p);
+    }
+  }
+  return unique;
+}
+
+
+/* ---------- render wishlist (kept product image markup intact) ---------- */
+async function renderWishlistItems(sortOption = 'recent'){
+  // ✅ SYNC FROM FIRESTORE FIRST
+  await syncWishlistWithFirestore();
+  let wishlist = readJsonKey(getWishlistKey(), []);
+  const products = loadAllProductsFromStorage();
+  
+  // normalize wishlist items (prefer local product data)
+  const normalized = wishlist.map(it => {
+    const id = it.id ?? it.productId ?? it.product ?? null;
+    const prod = products.find(p => String(p.id) === String(id));
+    return {
+      id,
+      title: prod ? (prod.title || prod.name || it.title || '') : (it.title || it.name || ''),
+      price: prod ? Number(prod.price || 0) : Number(it.price || 0),
+      image: prod ? (prod.image || (prod.images && prod.images[0]) || it.image) : (it.image || DEFAULT_PRODUCT_IMAGE),
+      sellerId: prod ? (prod.sellerId || it.sellerId || null) : (it.sellerId || null),
+      sellerNameFallback: it.seller || it.sellerName || null,
+      condition: prod ? prod.condition : (it.condition || ''),
+      description: prod ? prod.description || it.description || '' : (it.description || ''),
+      badge: prod ? prod.badge || '' : (it.badge || ''),
+      quantity: prod ? Number(prod.quantity || 0) : (it.quantity ?? it.qty ?? 1),
+      location: prod ? prod.location || '' : (it.location || ''),
+      oldPrice: prod ? (prod.oldPrice || prod.old_price) : (it.oldPrice || null),
+      createdAt: prod ? (prod.createdAt || prod.addedAt) : (it.addedAt || it.createdAt || nowISO()),
+      raw: it
+    };
+  });
+
+  // sort
+  switch(sortOption) {
+    case 'price-low': normalized.sort((a,b)=>a.price-b.price); break;
+    case 'price-high': normalized.sort((a,b)=>b.price-a.price); break;
+    case 'name': normalized.sort((a,b)=> (a.title||'').localeCompare(b.title||'')); break;
+    default: normalized.reverse();
+  }
+
+  if(!normalized.length){
+    wishlistGrid.innerHTML = '';
+    if(emptyWishlist){
+      wishlistGrid.appendChild(emptyWishlist);
+      emptyWishlist.style.display = 'block';
+    }
+    return;
+  }
+  if(emptyWishlist) emptyWishlist.style.display = 'none';
+  wishlistGrid.innerHTML = '';
+
+  // batch fetch sellers for enrichment
+  const sellerIds = [...new Set(normalized.map(i => i.sellerId).filter(Boolean).map(String))];
+  const sellerProms = sellerIds.map(id=> getSellerInfo(id));
+  const sellerVals = await Promise.all(sellerProms);
+  const sellerMap = new Map();
+  sellerIds.forEach((id, idx)=> sellerMap.set(id, sellerVals[idx]));
+
+  // create a market-style card (KEEP product image markup exactly the same)
+  function createCard(item){
+    const sellerData = item.sellerId ? sellerMap.get(String(item.sellerId)) : null;
+    const sellerName = sellerData?.name || item.sellerNameFallback || 'Seller';
+    const sellerAvatar = sellerData?.profilePictureUrl || DEFAULT_AVATAR;
+    const availableStock = Number(item.quantity || 0);
+    const outOfStock = availableStock <= 0;
+    const createdAt = item.createdAt || nowISO();
+    const cartQty = getCartQuantity(item.id);
+
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.dataset.id = String(item.id ?? '');
+    card.dataset.title = item.title || '';
+    card.dataset.price = String(Number(item.price || 0));
+    card.dataset.image = item.image || DEFAULT_PRODUCT_IMAGE;
+    card.dataset.seller = sellerName;
+    card.dataset.sellerAvatar = sellerAvatar;
+    if(item.sellerId) card.dataset.sellerId = String(item.sellerId);
+    card.dataset.condition = item.condition || '';
+    card.dataset.description = item.description || '';
+    card.dataset.stock = String(availableStock);
+    card.dataset.createdAt = String(createdAt);
+    if(item.oldPrice) card.dataset.oldPrice = String(item.oldPrice);
+    if(item.location) card.dataset.location = String(item.location);
+    card.dataset.status = item.status || '';
+
+    card.innerHTML = `
+      <div style="position:relative;overflow:hidden;border-radius:10px;">
+        <img src="${escapeHtml(item.image || DEFAULT_PRODUCT_IMAGE)}" alt="${escapeHtml(item.title||'')}" class="product-image" data-id="${escapeHtml(String(item.id||''))}" loading="lazy" style="width:100%;height:140px;object-fit:cover;display:block" onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}';">
+        <div style="position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,0.6);color:#fff;padding:4px 8px;border-radius:6px;font-weight:800">GHC ${Number(item.price||0).toFixed(2)}</div>
+      </div>
+      <div class="card-content" style="padding:10px 6px;">
+        <h3 class="product-title" data-id="${escapeHtml(String(item.id||''))}" tabindex="0" style="margin:6px 0;font-size:0.9rem;line-height:1.2">${escapeHtml(item.title||'')}</h3>
+        <div style="font-size:0.78rem;color:var(--gray-text);margin-bottom:6px">
+          by Seller <strong style="color:var(--primary-color)">${escapeHtml(sellerName)}</strong> • ${escapeHtml(timeAgo(createdAt))} (${escapeHtml(formatWithTimezone(createdAt))})
+        </div>
+        <div class="meta-row small-muted" style="font-size:0.78rem;margin-bottom:8px;color:var(--muted)">
+          Condition: ${escapeHtml(item.condition || 'N/A')} • In Stock: ${escapeHtml(String(availableStock))} • You currently have ${escapeHtml(String(cartQty))} in your cart
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <a href="${item.sellerId ? `../../profile/sellerprofile.html?uid=${encodeURIComponent(item.sellerId)}` : '#'}" class="seller-link" title="View profile">
+              <img src="${escapeHtml(sellerAvatar)}" alt="${escapeHtml(sellerName)}" class="seller-avatar" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid rgba(0,0,0,0.06)" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';">
+            </a>
+            <div class="seller-name" style="font-size:0.8rem">${escapeHtml(sellerName)}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            ${ outOfStock
+              ? `<button class="add-to-cart disabled" data-id="${escapeHtml(String(item.id||''))}" aria-label="Out of stock" disabled style="padding:8px 10px;border-radius:8px;border:none;cursor:not-allowed;background:#ddd;color:#666;font-weight:700">Out of Stock</button>`
+              : `<button class="add-to-cart" data-id="${escapeHtml(String(item.id||''))}" aria-label="Add to cart" style="padding:8px 10px;border-radius:8px;border:none;cursor:pointer"><i class="fas fa-cart-plus"></i></button>`
+            }
+            <button class="quick-view" data-id="${escapeHtml(String(item.id||''))}" aria-label="Quick view" style="padding:6px 8px;border-radius:8px;border:1px solid #e6eefc;cursor:pointer">Quick</button>
+            <i class="${isInWishlist(item.id)?'fas':'far'} fa-heart wishlist-icon active" data-id="${escapeHtml(String(item.id||''))}" aria-label="Remove from wishlist" style="font-size:1.05rem;margin-left:6px;cursor:pointer"></i>
+          </div>
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  // append cards
+  for(const it of normalized){
+    const c = createCard(it);
+    wishlistGrid.appendChild(c);
+  }
+}
+
+/* ---------- small helpers for wishlist state ---------- */
+function isInWishlist(id){
+  try {
+    const wl = readJsonKey(getWishlistKey(), []);
+    return wl.some(i => String(i.id) === String(id));
+  } catch(e){
+    return false;
+  }
+}
+
+/* ---------- events & delegation ---------- */
+function setupEventListeners(){
+  if(darkModeToggle) darkModeToggle.addEventListener('click', ()=> {
+    document.body.classList.toggle('dark-mode');
+    const dark = document.body.classList.contains('dark-mode');
+    darkModeToggle.innerHTML = dark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+  });
+
+  wishlistGrid.addEventListener('click', async function(e){
+    const heart = e.target.closest('.wishlist-icon');
+    const cartBtn = e.target.closest('.add-to-cart');
+    const quick = e.target.closest('.quick-view');
+
+    // remove from wishlist
+    if(heart){
+      e.stopPropagation();
+      const id = heart.dataset.id;
+      let wl = readJsonKey(getWishlistKey(), []);
+      wl = wl.filter(i => String(i.id) !== String(id));
+      writeJsonKey(getWishlistKey(), wl);
+      renderWishlistItems(sortSelect?.value || 'recent');
+      showToast('Item removed from wishlist', 'error');
+      return;
+    }
+
+    // add to cart (card-level; ensure available stock)
+    if(cartBtn){
+      e.stopPropagation();
+      const card = cartBtn.closest('.product-card');
+      if(!card) return;
+      const id = card.dataset.id;
+      const title = card.dataset.title || card.querySelector('.product-title')?.textContent || 'Item';
+      const price = Number(card.dataset.price || 0);
+      const image = card.dataset.image || card.querySelector('.product-image')?.src || DEFAULT_PRODUCT_IMAGE;
+      const seller = card.dataset.seller || card.querySelector('.seller-name')?.textContent || 'Seller';
+      const sellerId = card.dataset.sellerId || null;
+      const availableStock = Number(card.dataset.stock || 0);
+
+      // current amount in uid-scoped cart
+      let cart = readJsonKey(getCartKey(), []);
+      const existing = cart.find(i => String(i.id) === String(id));
+      const qtyNow = existing ? (existing.quantity || 0) : 0;
+
+      if(availableStock <= 0){
+        showToast('Product is out of stock','error');
+        card.querySelectorAll('.add-to-cart').forEach(b => { b.disabled = true; b.classList.add('disabled'); b.textContent = 'Out of Stock'; });
+        return;
+      }
+
+      if(qtyNow >= availableStock){
+        showToast(`Only ${availableStock} available in stock.`, 'error');
+        return;
+      }
+
+      if(existing) existing.quantity = (existing.quantity || 0) + 1;
+      else cart.push({ id, title, price, image, seller, sellerId, quantity: 1 });
+
+      writeJsonKey(getCartKey(), cart);
+      updateCartCount();
+      showToast(`"${title}" added to cart`, 'success');
+
+      // Decrement local product store quantity (optional, keeps UI consistent)
+      try {
+        let all = JSON.parse(localStorage.getItem('products')||'[]') || [];
+        const idx = all.findIndex(p => String(p.id) === String(id));
+        if(idx > -1){
+          all[idx].quantity = Math.max(0, (Number(all[idx].quantity||0) - 1));
+          localStorage.setItem('products', JSON.stringify(all));
+          // update card dataset stock
+          card.dataset.stock = String(all[idx].quantity);
+          if(Number(all[idx].quantity) <= 0){
+            card.querySelectorAll('.add-to-cart').forEach(b => { b.disabled = true; b.classList.add('disabled'); b.textContent = 'Out of Stock'; });
+          }
+        }
+      } catch(err){ /* ignore */ }
+
+      // update cart count display inside meta row for this card
+      const cartQtyNow = getCartQuantity(id);
+      const metaRow = card.querySelector('.meta-row');
+      if(metaRow) metaRow.innerHTML = `Condition: ${escapeHtml(card.dataset.condition || 'N/A')} • In Stock: ${escapeHtml(card.dataset.stock || '0')} • You currently have ${escapeHtml(String(cartQtyNow))} in your cart`;
+
+      return;
+    }
+
+    // quick button
+    if(quick){
+      e.stopPropagation();
+      const card = quick.closest('.product-card');
+      if(card) openQuickViewFromCard(card);
+      return;
+    }
+
+    // click on card => quick view (except when clicking a button/link)
+    const card = e.target.closest('.product-card');
+    if(card && !e.target.closest('button') && !e.target.closest('a')){
+      openQuickViewFromCard(card);
+      return;
+    }
+  });
+
+  // sort
+  if(sortSelect) sortSelect.addEventListener('change', ()=> renderWishlistItems(sortSelect.value));
+
+  // storage sync: respond to UID-scoped keys and products changes
+  window.addEventListener('storage', (e)=>{
+    const wishlistKey = getWishlistKey();
+    const cartKey = getCartKey();
+    if(e.key === wishlistKey || e.key === cartKey || e.key === 'products'){
+      renderWishlistItems(sortSelect?.value || 'recent');
+      updateCartCount();
+    }
+    // Also if a global (old) 'wishlist'/'cart' change exists (backwards compatibility)
+    if(e.key === 'wishlist' || e.key === 'cart') {
+      renderWishlistItems(sortSelect?.value || 'recent');
+      updateCartCount();
+    }
+  });
+}
+
+/* ---------- small UI helpers ---------- */
+function updateCartCount(){
+  const cartBtn = document.querySelector(cartBtnSelector);
+  let cart = readJsonKey(getCartKey(), []);
+  let count = cart.reduce((acc, item) => acc + (item.quantity || 1), 0);
+  if(cartBtn) cartBtn.setAttribute('data-count', count);
+}
+
+/* ---------- auth handling ---------- */
+const userAvatar = document.querySelector(".user-avatar");
+const profileDropdown = document.querySelector(".profile-dropdown .dropdown-content");
+let logoutBtn = null;
+if(profileDropdown) logoutBtn = profileDropdown.querySelector("a[href='../../../index.html'], a#logoutBtn") || profileDropdown.querySelector("a[href='../../home.html']");
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = "../../../index.html"; return; }
+  try {
+    // ensure sessionStorage uid set so keys are correct
+    try { sessionStorage.setItem('uid', user.uid); } catch(e) {}
+    const userRef = ref(database, `users/${user.uid}`);
+    const snapshot = await get(userRef);
+    if (!snapshot.exists()) { window.location.href = "../../../index.html"; return; }
+    const userData = snapshot.val();
+    if (userData.declined) { window.location.href = "../../../adminlogic/declined/declined.html"; return; }
+    if (userData.banned) { window.location.href = "../../../adminlogic/banned/banned.html"; return; }
+    if(userAvatar) { userAvatar.src = userData.profilePictureUrl || DEFAULT_AVATAR; userAvatar.alt = (userData.name || 'User') + "'s profile picture"; }
+  } catch(err){ console.warn('Auth lookup failed', err); }
+});
+if(logoutBtn){
+  logoutBtn.addEventListener('click', async (e)=> { e.preventDefault(); await signOut(auth); sessionStorage.removeItem('uid'); window.location.href = "../../../index.html"; });
+}
+
+/* ---------- init ---------- */
+document.addEventListener('DOMContentLoaded', async ()=>{
+  if(localStorage.getItem('theme') === 'dark'){ 
+    document.body.classList.add('dark-mode'); 
+    if(darkModeToggle) darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>'; 
+  }
+  
+  // ✅ SYNC FROM FIRESTORE BEFORE RENDERING
+  await syncWishlistWithFirestore();
+  await syncCartWithFirestore();
+  
+  setupEventListeners();
+  await renderWishlistItems();
+  ensureQuickViewModal();
+  updateCartCount();
+});
+
+// expose for debugging
+window.__wishlist = { renderWishlistItems, openQuickViewFromCard, getCartKey, getWishlistKey };
+</script>
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In - Guildite</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('images/market-background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .auth-container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 40px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+    }
+
+    .welcome-heading {
+      text-align: center;
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 30px;
+      line-height: 1.4;
+    }
+
+    .marketplace-glow {
+      font-size: 32px;
+      font-weight: bold;
+      color: #00ffcc;
+      text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc, 0 0 30px #00ffcc;
+      animation: glowPulse 2s ease-in-out infinite alternate;
+      letter-spacing: 2px;
+      display: inline-block;
+    }
+
+    /* Animation */
+    @keyframes glowPulse {
+      from {
+        text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc, 0 0 15px #00ffcc;
+      }
+
+      to {
+        text-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffcc, 0 0 45px #00ffcc;
+      }
+    }
+
+    .auth-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .auth-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .auth-container button:hover {
+      background-color: #218838;
+    }
+
+    .auth-links {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .auth-links a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .auth-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 480px) {
+      .welcome-heading {
+        font-size: 20px;
+      }
+
+      .marketplace-glow {
+        font-size: 26px;
+      }
+
+      .auth-container {
+        padding: 30px 20px;
+        width: 90%;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="auth-container">
+    <h2 class="welcome-heading">
+      Welcome to <br><span class="marketplace-glow">Guildite</span>
+    </h2>
+
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit" id="loginBtn">Sign In</button>
+    </form>
+
+    <div class="auth-links">
+      <p><a href="#">Forgot password?</a></p>
+      <p>Don’t have an account? <a href="signup/signup.html">Sign Up here</a></p>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { 
+        getAuth, 
+        signInWithEmailAndPassword,
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+    import { 
+        getDatabase, 
+        ref, 
+        get 
+    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+    import { 
+        getFirestore, 
+        doc, 
+        getDoc, 
+        setDoc 
+    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+    // ✅ Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+        authDomain: "marketplace-e0bff.firebaseapp.com",
+        projectId: "marketplace-e0bff",
+        storageBucket: "marketplace-e0bff.appspot.com",
+        messagingSenderId: "892936444768",
+        appId: "1:892936444768:web:f595b3a3e5d697988e1c05"
+    };
+
+    // ✅ Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app, "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app");
+    const firestore = getFirestore(app);
+
+    // ✅ LISTENER MANAGEMENT SYSTEM
+    class ListenerManager {
+        constructor() {
+            this.activeListeners = new Map();
+            this.isCleanupScheduled = false;
+            this.setupCleanupListeners();
+        }
+
+        // Store listener with key for cleanup
+        addListener(key, unsubscribeFn) {
+            // Clean up existing listener with same key
+            if (this.activeListeners.has(key)) {
+                this.removeListener(key);
+            }
+            
+            this.activeListeners.set(key, unsubscribeFn);
+            console.log(`📞 Listener added: ${key}, Total: ${this.activeListeners.size}`);
+        }
+
+        // Remove specific listener
+        removeListener(key) {
+            if (this.activeListeners.has(key)) {
+                const unsubscribe = this.activeListeners.get(key);
+                unsubscribe();
+                this.activeListeners.delete(key);
+                console.log(`🗑️  Listener removed: ${key}, Remaining: ${this.activeListeners.size}`);
+            }
+        }
+
+        // Clean up all listeners
+        cleanupAll() {
+            if (this.activeListeners.size === 0) return;
+            
+            console.log(`🧹 Cleaning up ${this.activeListeners.size} listener(s)...`);
+            
+            for (const [key, unsubscribe] of this.activeListeners.entries()) {
+                try {
+                    unsubscribe();
+                    console.log(`✓ Cleaned up: ${key}`);
+                } catch (error) {
+                    console.error(`Error cleaning up ${key}:`, error);
+                }
+            }
+            
+            this.activeListeners.clear();
+        }
+
+        // Setup automatic cleanup listeners
+        setupCleanupListeners() {
+            // Clean up on page unload
+            window.addEventListener('beforeunload', () => this.cleanupAll());
+            window.addEventListener('pagehide', () => this.cleanupAll());
+
+            // Clean up on auth state change to logout
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    this.cleanupAll();
+                }
+            });
+
+            // Clean up on page navigation (for SPA if applicable)
+            if (window.history.pushState) {
+                const originalPushState = window.history.pushState;
+                window.history.pushState = function() {
+                    originalPushState.apply(this, arguments);
+                    window.dispatchEvent(new Event('locationchange'));
+                };
+                window.addEventListener('popstate', () => {
+                    window.dispatchEvent(new Event('locationchange'));
+                });
+                window.addEventListener('locationchange', () => this.cleanupAll());
+            }
+        }
+
+        // Verify no listeners remain active (for debugging)
+        verifyCleanup() {
+            if (this.activeListeners.size > 0) {
+                console.warn(`⚠️  ${this.activeListeners.size} listener(s) still active:`, 
+                    Array.from(this.activeListeners.keys()));
+                return false;
+            }
+            console.log("✅ All listeners cleaned up");
+            return true;
+        }
+    }
+
+    // Initialize listener manager
+    const listenerManager = new ListenerManager();
+
+    // ✅ Helper function to detect page role
+    function detectPageRole() {
+        try {
+            const r = document?.body?.dataset?.role;
+            if (r) return r.toLowerCase();
+        } catch(e) {}
+        
+        const p = window.location.pathname.toLowerCase();
+        if (p.includes('testsell') || p.includes('/seller') || p.includes('seller')) return 'seller';
+        if (p.includes('delivery') || p.includes('courier')) return 'courier';
+        return 'buyer';
+    }
+
+    // ✅ nsKey function
+    function nsKey(base, { role='buyer', uid='anon' } = {}) {
+        return `${base}__${role}__${String(uid)}`;
+    }
+
+    // ✅ ONE-TIME READ: SYNC FIRESTORE → LOCALSTORAGE
+    async function syncUserBoxes(uid) {
+        if (!uid) return;
+
+        const role = detectPageRole() || 'buyer';
+        const boxes = ['cart', 'wishlist', 'orders', 'products', 'sales', 'deliveries'];
+        
+        try {
+            // ONE-TIME READ (getDoc) for user data - follows architecture rule
+            const userDocRef = doc(firestore, "users", uid);
+            const docSnap = await getDoc(userDocRef);
+            
+            let userData = {};
+            if (docSnap.exists()) {
+                userData = docSnap.data();
+            } else {
+                // Create default document with one-time write
+                boxes.forEach(box => userData[box] = []);
+                userData.profile = { 
+                    uid, 
+                    role,
+                    createdAt: new Date().toISOString() 
+                };
+                await setDoc(userDocRef, userData);
+            }
+
+            // Update localStorage with nsKey format
+            boxes.forEach(box => {
+                const key = nsKey(box, { role, uid });
+                localStorage.setItem(key, JSON.stringify(userData[box] || []));
+            });
+
+            const profileKey = nsKey('profile', { role, uid });
+            localStorage.setItem(profileKey, JSON.stringify(userData.profile || { uid, role }));
+            
+            console.log("✅ Synced Firestore → localStorage for user:", uid);
+            
+        } catch (error) {
+            console.error("Firestore sync error:", error);
+            // Graceful fallback - don't fail silently
+            this.handleFirebaseError(error, 'syncUserBoxes');
+            
+            // Local fallback
+            const role = detectPageRole() || 'buyer';
+            boxes.forEach((box) => {
+                const key = nsKey(box, { role, uid });
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([]));
+                }
+            });
+            const profileKey = nsKey('profile', { role, uid });
+            if (!localStorage.getItem(profileKey)) {
+                localStorage.setItem(profileKey, JSON.stringify({ 
+                    uid, 
+                    role, 
+                    createdAt: new Date().toISOString() 
+                }));
+            }
+        }
+    }
+
+    // ✅ ERROR HANDLER: Graceful error management
+    function handleFirebaseError(error, context) {
+        console.error(`Firebase error in ${context}:`, error.code, error.message);
+        
+        // Handle quota errors gracefully
+        if (error.code === 'resource-exhausted' || 
+            error.code === 'quota-exceeded' ||
+            error.message?.includes('quota')) {
+            console.warn('Firebase quota exceeded. Using fallback data.');
+            // You could show a user-friendly message here
+            return 'quota-exceeded';
+        }
+        
+        // Handle network errors
+        if (error.code === 'unavailable' || 
+            error.code === 'network-request-failed') {
+            console.warn('Network error. Please check connection.');
+            return 'network-error';
+        }
+        
+        // Handle permission errors
+        if (error.code === 'permission-denied') {
+            console.warn('Permission denied. User may need to sign in again.');
+            return 'permission-denied';
+        }
+        
+        return 'unknown-error';
+    }
+
+    // ✅ REAL-TIME LISTENER EXAMPLE (for active orders if needed)
+    // This demonstrates how to add a real-time listener following the rules
+    async function setupOrderStatusListener(uid, role) {
+        // Only one listener per role per page - justified for real-time order updates
+        const listenerKey = `orderStatus_${role}_${uid}`;
+        
+        // Check if already listening to avoid duplicates
+        if (listenerManager.activeListeners.has(listenerKey)) {
+            console.log(`Already listening to ${listenerKey}`);
+            return;
+        }
+        
+        // Justification: Only for active orders that need real-time updates
+        // In practice, you'd implement this where needed
+        console.log(`Setting up real-time listener for ${listenerKey}`);
+        
+        // Example structure (uncomment and implement as needed):
+        /*
+        if (role === 'buyer' || role === 'seller') {
+            try {
+                const ordersRef = collection(firestore, "orders");
+                const q = query(
+                    ordersRef,
+                    where("userId", "==", uid),
+                    where("status", "in", ["pending", "processing", "shipped"]),
+                    limit(10) // ✅ Query constraints to reduce reads
+                );
+                
+                const unsubscribe = onSnapshot(q, 
+                    (snapshot) => {
+                        // Handle real-time updates
+                        snapshot.docChanges().forEach((change) => {
+                            if (change.type === "modified") {
+                                this.updateOrderUI(change.doc.data());
+                            }
+                        });
+                    },
+                    (error) => {
+                        this.handleFirebaseError(error, 'orderStatusListener');
+                        listenerManager.removeListener(listenerKey);
+                    }
+                );
+                
+                // ✅ Store unsubscribe function for cleanup
+                listenerManager.addListener(listenerKey, unsubscribe);
+                
+            } catch (error) {
+                this.handleFirebaseError(error, 'setupOrderStatusListener');
+            }
+        }
+        */
+    }
+
+    // ✅ Sign-in logic with proper cleanup on navigation
+    async function signIn(email, password) {
+        const loginBtn = document.getElementById("loginBtn");
+        if (!loginBtn) return;
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = "Signing in...";
+
+        try {
+            // Clean up any existing listeners before sign-in
+            listenerManager.cleanupAll();
+
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            const uid = user.uid;
+            
+            sessionStorage.setItem("uid", uid);
+
+            // ✅ One-time sync (no listener)
+            await syncUserBoxes(uid);
+
+            // ✅ One-time read from Realtime Database
+            const userRef = ref(db, 'users/' + uid);
+            const snapshot = await get(userRef);
+
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const role = data.role || "user";
+                sessionStorage.setItem("userRole", role);
+
+                // Navigation logic with cleanup
+                const redirects = {
+                    "admin": "adminlogic/approve.html",
+                    "moderator": "adminlogic/approve.html",
+                    "superadmin": "adminlogic/approve.html",
+                    "banned": "adminlogic/banned/banned.html",
+                    "declined": "adminlogic/declined/declined.html",
+                    "approved": "home/home.html",
+                    "pending": "pending/stillpending.html"
+                };
+
+                let target = "formpage/form.html";
+                
+                if (data.banned === true) target = redirects.banned;
+                else if (data.declined === true) target = redirects.declined;
+                else if (data.approved === true) target = redirects.approved;
+                else if (data.approved === false) target = redirects.pending;
+                else if (["admin", "moderator", "superadmin"].includes(role)) {
+                    target = redirects[role] || redirects.admin;
+                }
+
+                // Clean up before navigation
+                listenerManager.cleanupAll();
+                window.location.href = target;
+            } else {
+                listenerManager.cleanupAll();
+                window.location.href = "formpage/form.html";
+            }
+
+        } catch (error) {
+            console.warn("Sign-in error:", error.code);
+            
+            const errorMessages = {
+                "auth/invalid-login-credentials": "Invalid email or password.",
+                "auth/user-not-found": "No account found with this email.",
+                "auth/wrong-password": "Incorrect password.",
+                "auth/too-many-requests": "Too many attempts. Please wait.",
+                "auth/network-request-failed": "Network error. Check connection.",
+                "resource-exhausted": "Service temporarily unavailable. Please try again later.",
+                "quota-exceeded": "Service quota exceeded. Please try again later."
+            };
+
+            const errorType = handleFirebaseError(error, 'signIn');
+            const message = errorMessages[error.code] || 
+                          errorMessages[errorType] || 
+                          `Login failed: ${error.message}`;
+            
+            alert(message);
+            
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.textContent = "Sign In";
+        }
+    }
+
+    // ✅ Initialize page with verification
+    function initializePage() {
+        console.log("Initializing login page...");
+        
+        // Verify initial state
+        console.assert(listenerManager.activeListeners.size === 0, 
+            "Should start with no listeners");
+        
+        // Attach login form
+        const loginForm = document.getElementById("loginForm");
+        if (loginForm) {
+            loginForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const email = document.getElementById("email").value.trim();
+                const password = document.getElementById("password").value;
+
+                if (!email || !password) {
+                    alert("Please enter both email and password.");
+                    return;
+                }
+
+                signIn(email, password);
+            });
+        }
+
+        // Setup periodic verification (for debugging)
+        if (window.DEBUG_FIREBASE) {
+            setInterval(() => {
+                listenerManager.verifyCleanup();
+            }, 10000);
+        }
+    }
+
+    // Start initialization when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializePage);
+    } else {
+        initializePage();
+    }
+
+    // ✅ Verify cleanup on unload
+    window.addEventListener('beforeunload', () => {
+        const remaining = listenerManager.activeListeners.size;
+        if (remaining > 0) {
+            console.warn(`⚠️  ${remaining} listener(s) active on page unload`);
+        }
+        listenerManager.cleanupAll();
+    });
+
+</script>
+
+</body>
+
+</html>

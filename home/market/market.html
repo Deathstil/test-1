@@ -1,0 +1,4418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Guildite for buying and selling items among people">
+  <title>Guildite - People's Guilds</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    
+    /* ===== Base Styles ===== */
+    :root {
+      --primary-color: #2563eb; /* Blue-600 */
+      --primary-dark: #1d4ed8; /* Blue-700 */
+      --primary-light: #93c5fd; /* Blue-300 */
+      --dark-bg: #0f172a; /* Slate-900 */
+      --dark-secondary: #1e293b; /* Slate-800 */
+      --light-bg: #f8fafc; /* Slate-50 */
+      --light-text: #f8fafc; /* Slate-50 */
+      --dark-text: #0f172a; /* Slate-900 */
+      --gray-text: #64748b; /* Slate-500 */
+      --error-color: #ef4444; /* Red-500 */
+      --success-color: #10b981; /* Emerald-500 */
+      --warning-color: #f59e0b; /* Amber-500 */
+      --card-bg: #ffffff;
+      --card-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* ===== Reset & Base ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--light-bg);
+      color: var(--dark-text);
+      line-height: 1.6;
+      transition: background-color 0.5s ease, color 0.3s ease;
+    }
+    
+    body.dark-mode {
+      background-color: var(--dark-bg);
+      color: var(--light-text);
+    }
+    
+    /* Focus styles for accessibility */
+    :focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+    
+    /* Reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    
+    /* ===== Animations ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    @keyframes heartBeat {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.3); }
+      50% { transform: scale(1); }
+      75% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .animate-fade {
+      animation: fadeIn 0.6s ease forwards;
+    }
+    
+    .animate-slide {
+      animation: slideIn 0.5s ease forwards;
+    }
+    
+    /* ===== Header Styles ===== */
+    .site-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+      padding: 20px 40px;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+    
+    .site-header.scrolled {
+      background-color: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+    
+    body.dark-mode .site-header {
+      background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9) 0%, transparent 100%);
+    }
+    
+    body.dark-mode .site-header.scrolled {
+      background-color: rgba(15, 23, 42, 0.98);
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+    
+    .brand:hover {
+      transform: scale(1.02);
+    }
+    
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 5px;
+      transition: var(--transition);
+    }
+    
+    .brand-name {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      letter-spacing: 0.5px;
+      transition: var(--transition);
+    }
+    
+    /* Mobile Menu Button */
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--light-text);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+    
+    .mobile-menu-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-nav {
+      display: flex;
+      gap: 25px;
+    }
+    
+    .nav-link {
+      color: var(--light-text);
+      font-weight: 500;
+      font-size: 1rem;
+      transition: var(--transition);
+      position: relative;
+      padding: 5px 0;
+      text-decoration: none;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    .nav-link.active {
+      font-weight: 700;
+    }
+    
+    .nav-link.active::after {
+      width: 100%;
+    }
+    
+    .user-controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--light-text);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      padding: 8px;
+      border-radius: 50%;
+    }
+    
+    .icon-btn:hover {
+      color: var(--primary-color);
+      background-color: rgba(255, 255, 255, 0.1);
+      transform: scale(1.1);
+    }
+    
+    .cart-btn {
+      position: relative;
+    }
+    
+    .cart-btn::after {
+      content: attr(data-count);
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: var(--primary-color);
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      transition: var(--transition);
+    }
+    
+    .profile-dropdown {
+      position: relative;
+    }
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: var(--transition);
+    }
+    
+    .user-avatar:hover {
+      border-color: var(--primary-color);
+      transform: scale(1.1);
+    }
+    
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: var(--dark-bg);
+      min-width: 180px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      animation: fadeIn 0.2s ease-out;
+    }
+    
+    .dropdown-content a {
+      color: var(--light-text);
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    
+    .dropdown-content a:hover {
+      background-color: var(--primary-dark);
+      padding-left: 20px;
+    }
+    
+    .dropdown-content a i {
+      margin-right: 8px;
+      width: 20px;
+      text-align: center;
+    }
+    
+    .profile-dropdown:hover .dropdown-content {
+      display: block;
+    }
+    
+    /* Mobile Navigation */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 80px;
+      left: 0;
+      width: 100%;
+      background-color: var(--dark-bg);
+      z-index: 99;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    .mobile-nav.active {
+      display: block;
+    }
+    
+    .mobile-nav-links {
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    
+    .mobile-nav-link {
+      color: var(--light-text);
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      transition: var(--transition);
+      text-decoration: none;
+    }
+    
+    .mobile-nav-link:last-child {
+      border-bottom: none;
+    }
+    
+    .mobile-nav-link:hover {
+      color: var(--primary-light);
+      padding-left: 10px;
+    }
+    
+    /* Search Container */
+    .search-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      height: 0;
+      overflow: hidden;
+      transition: height 0.3s ease, padding 0.3s ease;
+      opacity: 0;
+    }
+    
+    .search-container.active {
+      height: 60px;
+      padding: 10px 40px;
+      opacity: 1;
+    }
+    
+    .search-form {
+      position: relative;
+      width: 100%;
+    }
+    
+    .search-box {
+      width: 100%;
+      padding: 15px 50px 15px 20px;
+      border: none;
+      border-radius: 30px;
+      font-size: 1rem;
+      background-color: rgba(255,255,255,0.2);
+      color: white;
+      backdrop-filter: blur(10px);
+      transition: var(--transition);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .search-box:focus {
+      outline: none;
+      background-color: rgba(255,255,255,0.3);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    .search-box::placeholder {
+      color: rgba(255,255,255,0.7);
+    }
+    
+    .search-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: white;
+      cursor: pointer;
+      transition: var(--transition);
+      padding: 8px;
+    }
+    
+    .search-btn:hover {
+      color: var(--primary-light);
+      transform: translateY(-50%) scale(1.1);
+    }
+    
+    .search-error {
+      color: var(--error-color);
+      font-size: 0.8rem;
+      margin-top: 5px;
+      display: none;
+    }
+    
+    /* ===== Hero Banner ===== */
+    .hero-banner {
+      height: 70vh;
+      min-height: 500px;
+      background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-top: -80px; /* To account for fixed header */
+    }
+    
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to top, var(--dark-bg) 0%, transparent 50%);
+    }
+    
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+    
+    .hero-content h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--light-text);
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+      line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.5rem;
+      margin-bottom: 30px;
+      color: var(--light-text);
+      max-width: 600px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+      opacity: 0.9;
+    }
+    
+    .hero-buttons {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .hero-btn {
+      padding: 12px 30px;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .hero-btn.primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .hero-btn.primary:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .hero-btn.secondary {
+      background-color: transparent;
+      color: white;
+      border: 1px solid white;
+    }
+    
+    .hero-btn.secondary:hover {
+      background-color: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* ===== Content Wrapper ===== */
+    .content-wrapper {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px;
+      margin-top: -100px; /* Pull up over hero gradient */
+      position: relative;
+      z-index: 3;
+    }
+    
+    /* ===== Category Rows ===== */
+    .category-row {
+      margin-bottom: 40px;
+      animation: fadeIn 0.6s ease forwards;
+      animation-delay: 0.3s;
+      opacity: 0;
+    }
+    
+    .category-row:nth-child(2) {
+      animation-delay: 0.4s;
+    }
+    
+    .category-row:nth-child(3) {
+      animation-delay: 0.5s;
+    }
+    
+    .row-title {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .see-all {
+      font-size: 0.9rem;
+      color: var(--primary-color);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+    }
+    
+    .see-all:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+    
+    .see-all i {
+      transition: transform 0.3s ease;
+    }
+    
+    .see-all:hover i {
+      transform: translateX(3px);
+    }
+    
+    .horizontal-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 20px;
+      padding: 20px 0;
+      scrollbar-width: thin; /* Firefox */
+      scrollbar-color: var(--primary-color) transparent;
+      scroll-behavior: smooth;
+    }
+    
+    .horizontal-scroll::-webkit-scrollbar {
+      height: 8px;
+    }
+    
+    .horizontal-scroll::-webkit-scrollbar-track {
+      background: transparent;
+      border-radius: 10px;
+    }
+    
+    .horizontal-scroll::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: 10px;
+    }
+    
+    /* Scroll buttons */
+    .scroll-controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .scroll-btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      opacity: 0.7;
+    }
+    
+    .scroll-btn:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    
+    /* ===== Product Cards ===== */
+    .product-card {
+      min-width: 220px;
+      width: 220px;
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      position: relative;
+      flex-shrink: 0;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    body.dark-mode .product-card {
+      background-color: var(--dark-secondary);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .product-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+    
+    .product-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      z-index: 1;
+    }
+    
+    .product-image-container {
+      position: relative;
+      overflow: hidden;
+      height: 150px;
+    }
+    
+    .product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+    
+    .product-card:hover .product-image {
+      transform: scale(1.05);
+    }
+    
+    .card-content {
+      padding: 15px;
+    }
+    
+    .product-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .product-price {
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .product-price .old-price {
+      font-size: 0.8rem;
+      color: var(--gray-text);
+      text-decoration: line-through;
+    }
+    
+    .product-seller {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .seller-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .seller-name {
+      font-size: 0.8rem;
+      color: var(--gray-text);
+    }
+    
+    .card-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .add-to-cart {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      flex: 1;
+      min-height: 36px;
+      font-weight: 600;
+    }
+    
+    .add-to-cart:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    .add-to-cart:active {
+      transform: translateY(0);
+    }
+    
+    .wishlist-icon {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      color: #0f0f0f;
+      cursor: pointer;
+      transition: var(--transition);
+      z-index: 2;
+      background: rgba(255, 255, 255, 0.9);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .wishlist-icon.active {
+      color: var(--error-color);
+      animation: heartBeat 0.5s;
+    }
+    
+    .wishlist-icon:hover {
+      color: var(--error-color);
+      background: rgba(255, 255, 255, 1);
+      transform: scale(1.1);
+    }
+    
+    .rating {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      margin-bottom: 8px;
+    }
+    
+    .rating i {
+      color: #fbbf24; /* Amber-400 */
+      font-size: 0.8rem;
+    }
+    
+    .rating-count {
+      font-size: 0.7rem;
+      color: var(--gray-text);
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    
+    .page-btn {
+      padding: 8px 12px;
+      border: 1px solid var(--primary-color);
+      background-color: transparent;
+      color: var(--primary-color);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .page-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .page-btn:hover:not(.active) {
+      background-color: rgba(37, 99, 235, 0.1);
+    }
+    
+    .page-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* ===== Footer ===== */
+    .site-footer {
+      background-color: var(--dark-bg);
+      color: var(--light-text);
+      padding: 60px 0 20px;
+      position: relative;
+    }
+    
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+    }
+    
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .footer-logo {
+      width: 30px;
+      height: 30px;
+    }
+    
+    .footer-brand span {
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+    
+    .footer-description {
+      color: var(--gray-text);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .link-group h3 {
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+      color: var(--light-text);
+      position: relative;
+      padding-bottom: 8px;
+    }
+    
+    .link-group h3::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background-color: var(--primary-color);
+    }
+    
+    .link-group a {
+      display: block;
+      color: var(--gray-text);
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    
+    .link-group a i {
+      width: 16px;
+      text-align: center;
+    }
+    
+    .link-group a:hover {
+      color: var(--primary-light);
+      padding-left: 5px;
+    }
+    
+    .social-links {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .social-links a {
+      color: var(--gray-text);
+      font-size: 1.2rem;
+      transition: var(--transition);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .social-links a:hover {
+      color: var(--primary-light);
+      background-color: rgba(37, 99, 235, 0.2);
+      transform: translateY(-3px);
+    }
+    
+    .footer-bottom {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: var(--gray-text);
+      font-size: 0.8rem;
+    }
+    
+    .back-to-top {
+      position: absolute;
+      right: 40px;
+      top: -20px;
+      background-color: var(--primary-color);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border: none;
+    }
+    
+    .back-to-top:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-3px);
+    }
+    
+    /* ===== Dark Mode ===== */
+    body.dark-mode {
+      --card-bg: var(--dark-secondary);
+      --card-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    body.dark-mode .brand-name {
+      color: var(--primary-light);
+    }
+    
+    body.dark-mode .nav-link {
+      color: var(--light-text);
+    }
+    
+    body.dark-mode .icon-btn {
+      color: var(--light-text);
+    }
+    
+    body.dark-mode .hero-content h1,
+    body.dark-mode .hero-subtitle {
+      color: var(--light-text);
+    }
+    
+    body.dark-mode .product-card {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* ===== Loading Animation ===== */
+    .loading-spinner {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(37, 99, 235, 0.2);
+      border-top: 4px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    
+    /* ===== Toast Notification ===== */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .toast i {
+      font-size: 1.2rem;
+    }
+    
+    /* ===== Offline Message ===== */
+    .offline-message {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: var(--warning-color);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      z-index: 1001;
+      display: none;
+    }
+    
+    /* ===== Responsive Design ===== */
+    @media (max-width: 1024px) {
+      .header-content {
+        padding: 0 20px;
+      }
+      
+      .hero-content h1 {
+        font-size: 2.5rem;
+      }
+      
+      .hero-subtitle {
+        font-size: 1.2rem;
+      }
+      
+      .product-card {
+        min-width: 200px;
+        width: 200px;
+      }
+    }
+    
+    /* ===== MOBILE-ONLY STYLES ===== */
+    @media (max-width: 768px) {
+      html {
+          font-size: 14px;
+      }
+      
+      body {
+          font-size: 0.9rem;
+          line-height: 1.4;
+      }
+      
+      /* ===== Header - Mobile Compact ===== */
+      .site-header {
+          padding: 10px 15px;
+          height: 55px;
+          background: rgba(15, 23, 42, 0.95);
+      }
+      
+      .brand {
+          gap: 8px;
+      }
+      
+      .brand-icon {
+          width: 30px;
+          height: 30px;
+      }
+      
+      .brand-name {
+          font-size: 1.2rem;
+      }
+      
+      .mobile-menu-btn {
+          display: block;
+          font-size: 1.2rem;
+          padding: 6px;
+      }
+      
+      .main-nav {
+          display: none;
+      }
+      
+      .user-controls {
+          gap: 12px;
+      }
+      
+      .icon-btn {
+          font-size: 1rem;
+          padding: 6px;
+      }
+      
+      .cart-btn::after {
+          top: -3px;
+          right: -3px;
+          width: 16px;
+          height: 16px;
+          font-size: 0.6rem;
+      }
+      
+      .user-avatar {
+          width: 30px;
+          height: 30px;
+      }
+      
+      .dropdown-content {
+          min-width: 160px;
+          font-size: 0.8rem;
+      }
+      
+      .dropdown-content a {
+          padding: 10px 12px;
+          font-size: 0.8rem;
+      }
+      
+      /* Mobile Navigation */
+      .mobile-nav {
+          top: 55px;
+      }
+      
+      .mobile-nav-links {
+          padding: 15px;
+      }
+      
+      .mobile-nav-link {
+          padding: 10px 0;
+          font-size: 0.9rem;
+      }
+      
+      /* Search Container */
+      .search-container {
+          padding: 0 15px;
+      }
+      
+      .search-container.active {
+          height: 50px;
+          padding: 8px 15px;
+      }
+      
+      .search-box {
+          padding: 12px 45px 12px 15px;
+          font-size: 0.9rem;
+      }
+      
+      .search-btn {
+          right: 8px;
+          padding: 6px;
+      }
+      
+      /* ===== Hero Banner - Mobile Compact ===== */
+      .hero-banner {
+          height: 40vh;
+          min-height: 300px;
+          margin-top: -55px;
+      }
+      
+      .hero-content {
+          padding: 0 20px;
+      }
+      
+      .hero-content h1 {
+          font-size: 1.8rem;
+          margin-bottom: 15px;
+      }
+      
+      .hero-subtitle {
+          font-size: 0.95rem;
+          margin-bottom: 20px;
+      }
+      
+      .hero-buttons {
+          flex-direction: column;
+          gap: 10px;
+      }
+      
+      .hero-btn {
+          padding: 10px 20px;
+          font-size: 0.9rem;
+          gap: 6px;
+          justify-content: center;
+      }
+      
+      /* ===== Content Wrapper ===== */
+      .content-wrapper {
+          padding: 20px 15px;
+          margin-top: -70px;
+      }
+      
+      /* ===== Category Rows - Mobile Compact ===== */
+      .category-row {
+          margin-bottom: 25px;
+      }
+      
+      .row-title {
+          font-size: 1.2rem;
+          margin-bottom: 12px;
+      }
+      
+      .see-all {
+          font-size: 0.8rem;
+      }
+      
+      .horizontal-scroll {
+          gap: 12px;
+          padding: 12px 0;
+          scrollbar-width: none;
+      }
+      
+      .horizontal-scroll::-webkit-scrollbar {
+          display: none;
+      }
+      
+      /* Scroll buttons */
+      .scroll-controls {
+          gap: 8px;
+          margin-bottom: 8px;
+      }
+      
+      .scroll-btn {
+          width: 26px;
+          height: 26px;
+          font-size: 0.8rem;
+      }
+      
+      /* ===== Product Cards - Mobile Compact ===== */
+      .product-card {
+          min-width: 150px;
+          width: 150px;
+          border-radius: 8px;
+      }
+      
+      .product-badge {
+          top: 6px;
+          left: 6px;
+          padding: 2px 6px;
+          font-size: 0.6rem;
+      }
+      
+      .product-image-container {
+          height: 120px;
+      }
+      
+      .card-content {
+          padding: 10px 8px 8px 8px;
+      }
+      
+      .product-title {
+          font-size: 0.85rem;
+          margin-bottom: 6px;
+          line-height: 1.2;
+          height: 2.4em;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          white-space: normal;
+      }
+      
+      .product-price {
+          font-size: 0.9rem;
+          margin-bottom: 8px;
+      }
+      
+      .product-price .old-price {
+          font-size: 0.7rem;
+      }
+      
+      .product-seller {
+          gap: 6px;
+          margin-bottom: 8px;
+      }
+      
+      .seller-avatar {
+          width: 20px;
+          height: 20px;
+      }
+      
+      .seller-name {
+          font-size: 0.7rem;
+      }
+      
+      .card-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 6px;
+      }
+      
+      .add-to-cart {
+          padding: 8px 10px;
+          font-size: 0.75rem;
+          gap: 4px;
+          flex: 1;
+          min-height: 32px;
+          border-radius: 6px;
+          font-weight: 600;
+          white-space: nowrap;
+      }
+      
+      .wishlist-icon {
+          top: 6px;
+          right: 6px;
+          font-size: 0.8rem;
+          width: 28px;
+          height: 28px;
+      }
+      
+      .rating {
+          gap: 2px;
+          margin-bottom: 6px;
+      }
+      
+      .rating i {
+          font-size: 0.7rem;
+      }
+      
+      .rating-count {
+          font-size: 0.6rem;
+      }
+      
+     
+      /* ===== Footer - Mobile Compact ===== */
+      .site-footer {
+          padding: 40px 0 15px;
+      }
+      
+      .footer-content {
+          padding: 0 20px;
+          grid-template-columns: 1fr;
+          gap: 25px;
+      }
+      
+      .footer-brand {
+          gap: 8px;
+          margin-bottom: 15px;
+      }
+      
+      .footer-logo {
+          width: 25px;
+          height: 25px;
+      }
+      
+      .footer-brand span {
+          font-size: 1.1rem;
+      }
+      
+      .footer-description {
+          font-size: 0.85rem;
+          line-height: 1.4;
+          margin-bottom: 15px;
+      }
+      
+      .link-group h3 {
+          font-size: 1rem;
+          margin-bottom: 12px;
+          padding-bottom: 6px;
+      }
+      
+      .link-group h3::after {
+          width: 30px;
+      }
+      
+      .link-group a {
+          font-size: 0.85rem;
+          margin-bottom: 8px;
+          gap: 6px;
+      }
+      
+      .social-links {
+          gap: 10px;
+          margin-top: 15px;
+      }
+      
+      .social-links a {
+          font-size: 1.1rem;
+          width: 34px;
+          height: 34px;
+      }
+      
+      .footer-bottom {
+          margin-top: 30px;
+          padding-top: 15px;
+          font-size: 0.75rem;
+      }
+      
+      .back-to-top {
+          right: 20px;
+          top: -18px;
+          width: 35px;
+          height: 35px;
+          font-size: 0.9rem;
+      }
+      
+      /* ===== Loading Animation ===== */
+      .loading-spinner {
+          width: 30px;
+          height: 30px;
+          border: 3px solid rgba(37, 99, 235, 0.2);
+          border-top: 3px solid var(--primary-color);
+          margin: 15px auto;
+      }
+      
+      /* ===== Toast Notification - Mobile Fixed ===== */
+      .toast {
+          bottom: 15px;
+          right: 15px;
+          left: 15px;
+          padding: 12px 15px;
+          font-size: 0.85rem;
+          transform: translateY(100px);
+          opacity: 0;
+          transition: transform 0.3s ease, opacity 0.3s ease;
+      }
+      
+      .toast.show {
+          transform: translateY(0);
+          opacity: 1;
+      }
+      
+      .toast i {
+          font-size: 1rem;
+      }
+      
+      /* ===== Quick View Modal - Mobile Compact ===== */
+      #quickViewModal {
+          padding: 10px;
+      }
+      
+      #qv_inner {
+          max-height: 85vh;
+          padding: 15px;
+          border-radius: 10px;
+          margin: 10px;
+      }
+      
+      #qv_close {
+          right: 8px;
+          top: 8px;
+          font-size: 1.1rem;
+          padding: 5px;
+      }
+      
+      #qv_content {
+          font-size: 0.9rem;
+          line-height: 1.4;
+      }
+      
+      .qv-grid {
+          flex-direction: column;
+          gap: 12px;
+      }
+      
+      .qv-images {
+          flex: 1 1 200px;
+          min-width: 100%;
+      }
+      
+      .qv-images img.qv-img {
+          margin-bottom: 8px;
+          border-radius: 6px;
+      }
+      
+      .qv-main {
+          flex: 1 1 200px;
+          min-width: 100%;
+      }
+      
+      #qv_addcart,
+      #qv_wishlist,
+      #qv_close_btn {
+          padding: 8px 12px;
+          font-size: 0.85rem;
+          border-radius: 6px;
+      }
+      
+      /* ===== Pagination - Mobile ===== */
+      .pagination {
+          gap: 8px;
+          margin-top: 20px;
+          flex-wrap: wrap;
+          justify-content: center;
+      }
+      
+      .page-btn {
+          padding: 6px 10px;
+          font-size: 0.8rem;
+          min-width: 36px;
+      }
+          /* Hide seller name on mobile */
+      .seller-name {
+        display: none;
+      }
+      
+      /* Adjust seller avatar container to take less space */
+      .product-seller {
+        justify-content: center;
+      }
+      
+      /* Make seller avatar smaller on mobile */
+      .seller-avatar {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    /* ===== EXTRA SMALL MOBILE OPTIMIZATION ===== */
+    @media (max-width: 480px) {
+        .site-header {
+            padding: 8px 12px;
+            height: 50px;
+        }
+        
+        .brand-icon {
+            width: 26px;
+            height: 26px;
+        }
+        
+        .brand-name {
+            font-size: 1.1rem;
+        }
+        
+        .user-controls {
+            gap: 8px;
+        }
+        
+        .icon-btn {
+            font-size: 0.9rem;
+            padding: 5px;
+        }
+        
+        .user-avatar {
+            width: 26px;
+            height: 26px;
+        }
+        
+        .hero-banner {
+            height: 35vh;
+            min-height: 250px;
+            margin-top: -50px;
+        }
+        
+        .hero-content h1 {
+            font-size: 1.6rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 0.9rem;
+        }
+        
+        .content-wrapper {
+            padding: 15px 12px;
+            margin-top: -60px;
+        }
+        
+        .product-card {
+            min-width: 140px;
+            width: 140px;
+        }
+        
+        .product-image-container {
+            height: 100px;
+        }
+        
+        .card-content {
+            padding: 8px 6px 6px 6px;
+        }
+        
+        .product-title {
+            font-size: 0.8rem;
+            height: 2.2em;
+        }
+        
+        .add-to-cart {
+            padding: 6px 8px;
+            font-size: 0.7rem;
+            min-height: 30px;
+        }
+        
+        .toast {
+            bottom: 10px;
+            right: 10px;
+            left: 10px;
+            padding: 10px 12px;
+            font-size: 0.8rem;
+        }
+        
+        .footer-content {
+            padding: 0 15px;
+            gap: 20px;
+        }
+
+        .seller-name {
+          display: none;
+        }
+
+    }
+    
+
+    /* ===== ULTRA COMPACT FOR VERY SMALL PHONES ===== */
+    @media (max-width: 360px) {
+        .product-card {
+            min-width: 130px;
+            width: 130px;
+        }
+        
+        .product-image-container {
+            height: 90px;
+        }
+        
+        .brand-name {
+            font-size: 1rem;
+        }
+        
+        .hero-content h1 {
+            font-size: 1.4rem;
+        }
+        
+        .horizontal-scroll {
+            gap: 10px;
+        }
+        
+        .add-to-cart {
+            padding: 5px 6px;
+            font-size: 0.65rem;
+        }
+    }
+
+    /* ===== LANDSCAPE MOBILE OPTIMIZATION ===== */
+    @media (max-width: 768px) and (orientation: landscape) {
+        .hero-banner {
+            height: 50vh;
+            min-height: 200px;
+        }
+        
+        .hero-content h1 {
+            font-size: 1.6rem;
+        }
+        
+        .content-wrapper {
+            margin-top: -50px;
+        }
+        
+        .product-card {
+            min-width: 160px;
+        }
+    }
+
+    /* ----- Quick View Modal (matches your JS markup) ----- */
+    #quickViewModal {
+      display: none; /* JS will set display:flex when opened */
+      position: fixed;
+      inset: 0; /* top:0; right:0; bottom:0; left:0; */
+      background: rgba(0,0,0,0.55);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* inner white panel */
+    #qv_inner {
+      max-width: 1000px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--card-bg);
+      color: var(--dark-text);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      animation: fadeIn 0.18s ease;
+    }
+
+    /* dark mode panel */
+    body.dark-mode #qv_inner {
+      background: var(--dark-secondary);
+      color: var(--light-text);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+    }
+
+    /* close button top-right (matches id qv_close in your markup) */
+    #qv_close {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      border: none;
+      background: transparent;
+      font-size: 1.2rem;
+      color: var(--gray-text);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+    #qv_close:hover,
+    #qv_close:focus {
+      color: var(--error-color);
+      transform: scale(1.05);
+      outline: none;
+    }
+
+    /* content wrapper inside modal (id qv_content) */
+    #qv_content {
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    /* small two-column layout for images + details */
+    .qv-grid {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    /* images column */
+    .qv-images {
+      flex: 1 1 280px;
+      min-width: 220px;
+    }
+
+    /* each image in quick view */
+    .qv-images img.qv-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    /* details column */
+    .qv-main {
+      flex: 1 1 300px;
+      min-width: 260px;
+      color: #0f0f0f;
+    }
+
+    /* buttons inside quick view */
+    #qv_addcart,
+    #qv_wishlist,
+    #qv_close_btn {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+    }
+
+    /* primary add-to-cart */
+    #qv_addcart {
+      background: var(--primary-color);
+      color: #233894;
+    }
+    #qv_addcart[disabled] {
+      background: #d1d5db;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
+    /* wishlist outline button */
+    #qv_wishlist {
+      background: transparent;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    /* close link/button */
+    #qv_close_btn {
+      background: transparent;
+      color: var(--gray-text);
+    }
+
+    /* focus styles for accessibility */
+    #qv_addcart:focus,
+    #qv_wishlist:focus,
+    #qv_close_btn:focus,
+    #qv_close:focus {
+      outline: 3px solid rgba(37,99,235,0.2);
+      outline-offset: 3px;
+    }
+
+
+    /* Seller avatar with status */
+    .seller-avatar-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .seller-avatar {
+      position: relative;
+    }
+
+    /* Status in quick view modal */
+    .qv-seller-avatar-container {
+      position: relative;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    /* ===== Online Status Animations ===== */
+.status-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.status-indicator.online {
+  background-color: var(--success-color);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+  animation: pulse-online 2s infinite;
+}
+
+.status-indicator.offline {
+  background-color: var(--gray-text);
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.3);
+}
+
+/* Pulsing animation for online status */
+@keyframes pulse-online {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    transform: scale(1);
+  }
+}
+
+/* Alternative breathing animation */
+@keyframes breathe-online {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.8);
+  }
+}
+
+/* For mobile optimization */
+@media (max-width: 768px) {
+  .status-indicator {
+    width: 10px;
+    height: 10px;
+    border-width: 1.5px;
+    bottom: 1px;
+    right: 1px;
+  }
+  
+  .status-indicator.online {
+    animation: pulse-online-mobile 2s infinite;
+  }
+}
+
+@keyframes pulse-online-mobile {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* Ensure seller avatar containers are properly positioned */
+.seller-avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+.qv-seller-avatar-container {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+</style>
+</head>
+
+<body class="light-mode">
+
+  <div class="app-container">
+    <!-- Offline Message -->
+    <div class="offline-message" id="offlineMessage">
+      <i class="fas fa-wifi"></i> You're currently offline. Some features may not be available.
+    </div>
+
+    <!-- Header -->
+    <header class="site-header">
+      <div class="header-content">
+        <a href="../home.html" class="brand" aria-label="Market Home">
+          <img src="../../images/logo ssi.png" alt="Guildite Logo" class="brand-icon">
+          <span class="brand-name">Guildite</span>
+        </a>
+        
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="#home" class="nav-link active" aria-current="page">Home</a>
+          <a href="#books" class="nav-link">Books</a>
+          <a href="#electronics" class="nav-link">Electronics</a>
+          <a href="#clothing" class="nav-link">Clothing</a>
+          <a href="#services" class="nav-link">Services</a>
+          <a href="#food" class="nav-link">Food</a>
+          <a href="#others" class="nav-link">Others</a>
+        </nav>
+        
+        <div class="user-controls">
+          <button id="searchToggle" class="icon-btn" aria-label="Search">
+            <i class="fas fa-search"></i>
+          </button>
+          <button id="darkModeToggle" class="icon-btn" aria-label="Toggle dark mode">
+            <i class="fas fa-moon"></i>
+          </button>
+          <a href="../shopping/wishlist/wishlist.html" class="icon-btn" aria-label="View wishlist">
+            <i class="fas fa-heart"></i>
+          </a>
+          <a href="../shopping/cart/cart.html" class="icon-btn cart-btn" aria-label="View shopping cart" data-count="0">
+            <i class="fas fa-shopping-cart"></i>
+          </a>
+          <div class="profile-dropdown">
+            <img src="../../images/no profile pic.jpg" alt="User profile" class="user-avatar">
+            <div class="dropdown-content" aria-label="User menu">
+              <a href="../profile/profile.html"><i class="fas fa-user"></i> Profile</a>
+              <a href="../shopping/orders/orders.html"><i class="fas fa-box"></i> Orders</a>
+              <a href="../delivery/delivery.html"><i class="fas fa-shipping-fast"></i>Carriers</a>
+              <a href="../seller/testsell.html"><i class="fas fa-plus-circle"></i> Seller Workshop</a>
+              <a href="../community/community.html"><i class="fas fa-users"></i>Guild Hall</a>
+              <a href="../map/map.html"><i class="fas fa-map-marker-alt"></i>Map</a>
+              <!-- Admin link - only visible to higher roles -->
+              <a href="../../adminlogic/approve.html" id="adminLink" style="display: none;"><i class="fas fa-cog"></i> Admin Panel</a>
+              <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Leave Guildite</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Mobile Navigation -->
+      <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-links">
+          <a href="#home" class="mobile-nav-link active" aria-current="page">Home</a>
+          <a href="#books" class="mobile-nav-link">Books</a>
+          <a href="#electronics" class="mobile-nav-link">Electronics</a>
+          <a href="#clothing" class="mobile-nav-link">Clothing</a>
+          <a href="#services" class="mobile-nav-link">Services</a>
+          <a href="#food" class="mobile-nav-link">food</a>
+          <a href="#others" class="mobile-nav-link">others</a>
+        </div>
+      </div>
+      
+      <!-- Search bar -->
+      <div class="search-container" id="searchContainer">
+        <form class="search-form" id="searchForm">
+          <input type="text" placeholder="Search for textbooks, gadgets, clothes..." class="search-box" id="searchBox" 
+                 aria-label="Search products" required minlength="3">
+          <button type="submit" class="search-btn" aria-label="Submit search">
+            <i class="fas fa-search"></i>
+          </button>
+          <div class="search-error" id="searchError">Please enter at least 3 characters</div>
+        </form>
+      </div>
+    </header>
+
+    <!-- Hero Banner -->
+    <section class="hero-banner" id="home">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h1>Buy. Sell. Connect.</h1>
+        <p class="hero-subtitle">Step into the Guild Hall of Wonders: Electronics, Gear, and Goods Await!</p>
+        <div class="hero-buttons">
+          <button class="hero-btn primary" id="browseBtn">
+            <i class="fas fa-search"></i> Browse Items
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Rows -->
+    <main class="content-wrapper">
+      <section class="category-row">
+        <div class="scroll-controls">
+          <button class="scroll-btn scroll-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+          <button class="scroll-btn scroll-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <h2 class="row-title">Trending Now </h2>
+        <div class="horizontal-scroll" id="trending">
+          <div class="loading-spinner"></div>
+        </div>
+        <div class="pagination" id="trendingPagination"></div>
+      </section>
+      
+      <section class="category-row">
+        <div class="scroll-controls">
+          <button class="scroll-btn scroll-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+          <button class="scroll-btn scroll-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <h2 class="row-title">Recently Added</h2>
+        <div class="horizontal-scroll" id="recent">
+          <div class="loading-spinner"></div>
+        </div>
+        <div class="pagination" id="recentPagination"></div>
+      </section>
+      
+      <section class="category-row">
+        <div class="scroll-controls">
+          <button class="scroll-btn scroll-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+          <button class="scroll-btn scroll-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <h2 class="row-title">Budget Buys</h2>
+        <div class="horizontal-scroll" id="budget">
+          <div class="loading-spinner"></div>
+        </div>
+        <div class="pagination" id="budgetPagination"></div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="../../images/logo ssi.png" alt="Market Logo" class="footer-logo">
+          <span>Guildite</span>
+        </div>
+        
+        <div>
+          <p class="footer-description">
+            Welcome to the Guild’s Hall: where treasures, tools, and everyday essentials await your discovery.
+          </p>
+          <div class="social-links">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          </div>
+        </div>
+        
+        <div class="link-group">
+          <h3>Shop</h3>
+          <a href="#books"><i class="fas fa-book"></i> Textbooks</a>
+          <a href="#electronics"><i class="fas fa-laptop"></i> Electronics</a>
+          <a href="#clothing"><i class="fas fa-tshirt"></i> Clothing</a>
+          <a href="#food"><i class="fas fa-utensils"></i> Food</a>
+          <a href="#services"><i class="fas fa-tools"></i> Services</a>
+        </div>
+        
+        <div class="link-group">
+          <h3>Sell</h3>
+          <a href="../../help/seller Tips.html"><i class="fas fa-lightbulb"></i> Seller Tips</a>
+          <a href="../../help/safety.html"><i class="fas fa-shield-alt"></i> Safety</a>
+          <a href="../../help/pricing.html"><i class="fas fa-dollar-sign"></i> Pricing</a>
+        </div>
+        
+        <div class="link-group">
+          <h3>Help</h3>
+          <a href="../../help/FAQ.html"><i class="fas fa-question-circle"></i> FAQ</a>
+          <a href="../../help/Contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+          <a href="../../help/about.html"><i class="fas fa-info-circle"></i> About</a>
+          <a href="../../help/newsletter.html"><i class="fas fa-envelope"></i> Newsletter</a>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Guildite. Powered by People.</p>
+      </div>
+      
+      <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+      </button>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast" role="alert" aria-live="assertive">
+      <i class="fas fa-check-circle"></i>
+      <span id="toastMessage">Item added to cart!</span>
+    </div>
+
+  </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+import { getDatabase, ref, get, onValue, set } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, arrayUnion, arrayRemove, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+  authDomain: "marketplace-e0bff.firebaseapp.com",
+  projectId: "marketplace-e0bff",
+  storageBucket: "marketplace-e0bff.appspot.com",
+  messagingSenderId: "892936444768",
+  appId: "1:892936444768:web:f595b3a3e5d697988e1c05",
+  databaseURL: "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+
+/* ----------------- CONFIG / DEFAULTS ----------------- */
+const DEFAULT_PRODUCT_IMAGE = '../../images/default-product.jpg';
+const DEFAULT_AVATAR = '../../images/no profile pic.jpg';
+const PREDEFINED_CATEGORIES = ['books','food','electronics','others','services','clothing'];
+
+/* ----------------- DOM refs ----------------- */
+const elements = {
+  darkModeToggle: document.getElementById('darkModeToggle'),
+  searchToggle: document.getElementById('searchToggle'),
+  searchContainer: document.getElementById('searchContainer'),
+  searchForm: document.getElementById('searchForm'),
+  searchBox: document.getElementById('searchBox'),
+  searchError: document.getElementById('searchError'),
+  cartBtn: document.querySelector('.cart-btn'),
+  backToTopBtn: document.getElementById('backToTop'),
+  toast: document.getElementById('toast'),
+  toastMessage: document.getElementById('toastMessage'),
+  horizontalScrolls: document.querySelectorAll('.horizontal-scroll'),
+  browseBtn: document.getElementById('browseBtn'),
+  logoutBtn: document.getElementById('logoutBtn'),
+  addProductModal: document.getElementById('addProductModal'),
+  ap_save: document.getElementById('ap_save'),
+  ap_cancel: document.getElementById('ap_cancel'),
+  quickViewModal: document.getElementById('quickViewModal'),
+  qv_close: document.getElementById('qv_close'),
+  qv_content: document.getElementById('qv_content'),
+  contentWrapper: document.querySelector('.content-wrapper')
+};
+
+/* ----------------- STATE ----------------- */
+const state = {
+  products: [],
+  allProducts: [],
+  trending: [],
+  recent: [],
+  budget: [],
+  cart: [],      // will be populated by getCart()
+  wishlist: [],  // will be populated by getWishlist()
+  theme: localStorage.getItem('theme') || 'light',
+  currentPage: { trending:1, recent:1, budget:1 }
+};
+
+const ITEMS_PER_PAGE = 6;
+const BUDGET_CAP = 50;
+
+/* ----------------- UTILITIES ----------------- */
+function sanitize(s){ const d = document.createElement('div'); d.textContent = String(s||''); return d.innerHTML; }
+/* ---------------- Admin Link Visibility ---------------- */
+function updateAdminLinkVisibility(userData) {
+  const adminLink = document.getElementById('adminLink');
+  if (!adminLink) return;
+  
+  const userRole = userData?.role?.toLowerCase() || 'user';
+  const adminRoles = ['moderator', 'admin', 'superadmin'];
+  
+  // Show admin link only for higher privilege roles
+  if (adminRoles.includes(userRole)) {
+    adminLink.style.display = 'flex';
+  } else {
+    adminLink.style.display = 'none';
+  }
+}
+/* ---------------- Admin Functions ---------------- */
+
+// Check if current user is admin
+async function isAdmin() {
+  const uid = getUid();
+  if (!uid) return false;
+  
+  try {
+    const userRef = ref(database, `users/${uid}`);
+    const snapshot = await get(userRef);
+    
+    if (snapshot.exists()) {
+      const userData = snapshot.val();
+      const role = userData?.role?.toLowerCase() || 'user';
+      const adminRoles = ['moderator', 'admin', 'superadmin'];
+      return adminRoles.includes(role);
+    }
+    return false;
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
+}
+
+// Get all users for admin panel
+async function getAllUsers() {
+  if (!(await isAdmin())) {
+    showToast('Admin access required', 'error');
+    return [];
+  }
+  
+  try {
+    const usersRef = ref(database, 'users');
+    const snapshot = await get(usersRef);
+    
+    if (snapshot.exists()) {
+      const users = snapshot.val();
+      return Object.entries(users).map(([uid, userData]) => ({
+        uid,
+        ...userData
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    showToast('Error fetching users', 'error');
+    return [];
+  }
+}
+
+// Update user role
+async function updateUserRole(uid, newRole) {
+  if (!(await isAdmin())) {
+    showToast('Admin access required', 'error');
+    return false;
+  }
+  
+  try {
+    const userRef = ref(database, `users/${uid}/role`);
+    await set(userRef, newRole);
+    showToast(`User role updated to ${newRole}`, 'success');
+    return true;
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    showToast('Error updating user role', 'error');
+    return false;
+  }
+}
+
+// Ban/Unban user
+async function toggleUserBan(uid, banStatus) {
+  if (!(await isAdmin())) {
+    showToast('Admin access required', 'error');
+    return false;
+  }
+  
+  try {
+    const userRef = ref(database, `users/${uid}/banned`);
+    await set(userRef, banStatus);
+    
+    const action = banStatus ? 'banned' : 'unbanned';
+    showToast(`User ${action} successfully`, 'success');
+    return true;
+  } catch (error) {
+    console.error('Error updating user ban status:', error);
+    showToast('Error updating user status', 'error');
+    return false;
+  }
+}
+function isValidImage(url){
+  const s = String(url||'').trim();
+  if(!s) return false;
+  return /^(data:|https?:\/\/|\/|\.)/.test(s) || /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(s);
+}
+function makeId(prefix='p'){ return `${prefix}_${Date.now()}_${Math.floor(Math.random()*9000)+1000}`; }
+function nowISO(){ return new Date().toISOString(); }
+function timeAgo(iso){
+  if(!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff/60000);
+  if(mins<1) return 'just now';
+  if(mins<60) return `${mins}m ago`;
+  const hrs = Math.floor(mins/60);
+  if(hrs<24) return `${hrs}h ago`;
+  const days = Math.floor(hrs/24);
+  if(days<30) return `${days}d ago`;
+  const months = Math.floor(days/30);
+  if(months<12) return `${months}mo ago`;
+  return `${Math.floor(months/12)}y ago`;
+}
+
+/* ===== STORAGE PROTECTION ===== */
+let statusInitCount = 0;
+const MAX_STATUS_INITS = 2;
+let rebuildTimeout = null;
+let lastRebuildTime = 0;
+let productsCache = null;
+let productsCacheTime = 0;
+const PRODUCTS_CACHE_TTL = 30000; // 30 seconds
+
+// Safe storage function
+function safeStorageSet(key, value) {
+  try {
+    // Test if storage has space
+    const testKey = 'storage_test';
+    localStorage.setItem(testKey, 'test');
+    localStorage.removeItem(testKey);
+    
+    // If we get here, storage has space
+    localStorage.setItem(key, value);
+    return true;
+  } catch (e) {
+    console.warn('🔄 Storage full, skipping write to:', key);
+    return false;
+  }
+}
+
+/* ----------------- Seller Status Management ----------------- */
+const sellerStatusCache = new Map(); // uid -> { status, lastChecked }
+const sellerCache = new Map(); // uid -> { name, profilePictureUrl } or null
+
+// Status types
+const STATUS_TYPES = {
+  ONLINE: 'online',
+  OFFLINE: 'offline'
+};
+
+// Real-time status listeners
+const statusListeners = new Map();
+
+// Get seller status with real-time updates
+function getSellerStatus(sellerId) {
+  if (!sellerId) return STATUS_TYPES.OFFLINE;
+  
+  // Check cache first (shorter cache time - 30 seconds)
+  if (sellerStatusCache.has(sellerId)) {
+    const cached = sellerStatusCache.get(sellerId);
+    if (Date.now() - cached.lastChecked < 30 * 1000) { // 30 seconds cache
+      return cached.status;
+    }
+  }
+  
+  // Set up real-time listener if not already exists
+  if (!statusListeners.has(sellerId)) {
+    const userRef = ref(database, `users/${sellerId}/lastSeen`);
+    
+    const unsubscribe = onValue(userRef, (snapshot) => {
+      let status = STATUS_TYPES.OFFLINE;
+      
+      if (snapshot.exists()) {
+        const lastSeen = snapshot.val();
+        // Consider user online if active in last 2 minutes (more strict)
+        if (Date.now() - lastSeen < 10 * 1000) {  // 10 seconds instead of 2 minutes
+          status = STATUS_TYPES.ONLINE;
+        }
+      }
+      
+      // Update cache
+      sellerStatusCache.set(sellerId, {
+        status: status,
+        lastChecked: Date.now()
+      });
+      
+      // Update all UI indicators for this seller
+      updateSellerStatusIndicators(sellerId, status);
+    });
+    
+    statusListeners.set(sellerId, unsubscribe);
+  }
+  
+  // Return cached status or offline as default
+  const cached = sellerStatusCache.get(sellerId);
+  return cached ? cached.status : STATUS_TYPES.OFFLINE;
+}
+
+// Remove status listener when no longer needed
+function cleanupSellerStatus(sellerId) {
+  if (statusListeners.has(sellerId)) {
+    const unsubscribe = statusListeners.get(sellerId);
+    unsubscribe();
+    statusListeners.delete(sellerId);
+  }
+}
+
+// Add status indicator to seller avatar
+function addStatusIndicator(avatarElement, sellerId) {
+  if (!avatarElement || !sellerId) return;
+  
+  // Create container if it doesn't exist
+  let container = avatarElement.parentElement;
+  if (!container?.classList?.contains('seller-avatar-container')) {
+    const newContainer = document.createElement('div');
+    newContainer.className = 'seller-avatar-container';
+    avatarElement.parentNode.insertBefore(newContainer, avatarElement);
+    newContainer.appendChild(avatarElement);
+    container = newContainer;
+  }
+  
+  // Remove existing status indicator
+  const existingIndicator = container.querySelector('.status-indicator');
+  if (existingIndicator) {
+    existingIndicator.remove();
+  }
+  
+  // Create status indicator
+  const indicator = document.createElement('div');
+  indicator.className = `status-indicator ${getSellerStatus(sellerId)}`;
+  container.appendChild(indicator);
+}
+
+// Update all status indicators for a specific seller
+function updateSellerStatusIndicators(sellerId, status) {
+  const containers = document.querySelectorAll(`[data-seller-id="${sellerId}"] .seller-avatar-container`);
+  
+  containers.forEach(container => {
+    const existingIndicator = container.querySelector('.status-indicator');
+    if (existingIndicator) {
+      existingIndicator.className = `status-indicator ${status}`;
+    } else {
+      const indicator = document.createElement('div');
+      indicator.className = `status-indicator ${status}`;
+      container.appendChild(indicator);
+    }
+  });
+  
+  // Also update quick view modal if open
+  const quickViewIndicator = document.querySelector(`#qv_content [data-seller-id="${sellerId}"] .status-indicator`);
+  if (quickViewIndicator) {
+    quickViewIndicator.className = `status-indicator ${status}`;
+  }
+}
+
+// Initialize status indicators for all seller avatars
+function initializeStatusIndicators() {
+  statusInitCount++;
+  
+  // 🚨 STOP if called too many times
+  if (statusInitCount > MAX_STATUS_INITS) {
+    return;
+  }
+  
+  console.log('Initializing status indicators...', statusInitCount);
+  
+  // Add to product cards
+  document.querySelectorAll('.product-card').forEach(card => {
+    const sellerAvatar = card.querySelector('.seller-avatar');
+    const sellerId = card.getAttribute('data-seller-id');
+    
+    if (sellerAvatar && sellerId) {
+      addStatusIndicator(sellerAvatar, sellerId);
+    }
+  });
+  
+  // Add to quick view modal if open
+  const quickViewSellerAvatar = document.querySelector('#qv_content .qv-seller-avatar');
+  const quickViewSellerLink = document.querySelector('#qv_content .qv-seller-link');
+  
+  if (quickViewSellerAvatar && quickViewSellerLink) {
+    const urlParams = new URL(quickViewSellerLink.href).searchParams;
+    const sellerId = urlParams.get('uid');
+    
+    if (sellerId) {
+      let container = quickViewSellerAvatar.parentElement;
+      if (!container?.classList?.contains('qv-seller-avatar-container')) {
+        const newContainer = document.createElement('div');
+        newContainer.className = 'qv-seller-avatar-container';
+        quickViewSellerAvatar.parentNode.insertBefore(newContainer, quickViewSellerAvatar);
+        newContainer.appendChild(quickViewSellerAvatar);
+        container = newContainer;
+      }
+      
+      addStatusIndicator(quickViewSellerAvatar, sellerId);
+    }
+  }
+}
+
+// Update user's lastSeen timestamp when they're active
+function updateUserPresence() {
+  const uid = getUid();
+  if (!uid) return;
+  
+  const userRef = ref(database, `users/${uid}/lastSeen`);
+  
+  // Update immediately
+  set(userRef, Date.now());
+  
+  // Update every 45 seconds while user is active (more frequent)
+  const presenceInterval = setInterval(() => {
+    if (getUid()) { // Only if still logged in
+      set(userRef, Date.now());
+    } else {
+      clearInterval(presenceInterval);
+    }
+  }, 45000);
+  
+  // Also update on user interactions
+  const updatePresence = () => {
+    if (getUid()) {
+      set(userRef, Date.now());
+    }
+  };
+  
+  // Update presence on various user interactions
+  ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+    document.addEventListener(event, updatePresence, { passive: true });
+  });
+}
+
+// Clean up status listeners when leaving page
+function cleanupAllStatusListeners() {
+  statusListeners.forEach((unsubscribe, sellerId) => {
+    unsubscribe();
+  });
+  statusListeners.clear();
+}
+
+// Update your existing polling function to be less frequent:
+function startStatusPolling() {
+  // No need for frequent polling since we have real-time listeners
+  // Just clean up old cache entries occasionally
+  setInterval(() => {
+    const now = Date.now();
+    sellerStatusCache.forEach((value, key) => {
+      if (now - value.lastChecked > 5 * 60 * 1000) { // 5 minutes
+        sellerStatusCache.delete(key);
+      }
+    });
+  }, 60000); // Every minute
+}
+
+/* ----------------- Seller info fetcher + cache ----------------- */
+async function getSellerInfo(uid){
+  if(!uid) return null;
+  
+  // Check cache first
+  if(sellerCache.has(uid)) {
+    const cached = sellerCache.get(uid);
+    // Cache for 5 minutes
+    if (Date.now() - (cached._timestamp || 0) < 300000) {
+      return cached;
+    }
+  }
+  
+  try {
+    // Try Firestore first
+    const userDocRef = doc(firestore, "users", uid);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const sellerInfo = {
+        ...userData,
+        _timestamp: Date.now()
+      };
+      sellerCache.set(uid, sellerInfo);
+      return sellerInfo;
+    }
+    
+    // Fallback to Realtime Database
+    const userRef = ref(database, `users/${uid}`);
+    const snap = await get(userRef);
+    if (snap.exists()) {
+      const sellerInfo = {
+        ...snap.val(),
+        _timestamp: Date.now()
+      };
+      sellerCache.set(uid, sellerInfo);
+      return sellerInfo;
+    }
+    
+    sellerCache.set(uid, null);
+    return null;
+    
+  } catch (err) {
+    console.warn('getSellerInfo err', err);
+    sellerCache.set(uid, null);
+    return null;
+  }
+}
+
+/* ----------------- Page role & namespaced keys ----------------- */
+function detectPageRole() {
+  try {
+    const r = document?.body?.dataset?.role;
+    if (r) return r.toLowerCase();
+  } catch(e){}
+  const p = window.location.pathname.toLowerCase();
+  if (p.includes('testsell') || p.includes('/seller') || p.includes('seller')) return 'seller';
+  if (p.includes('delivery') || p.includes('courier')) return 'courier';
+  return 'buyer';
+}
+
+function getUid() {
+  return sessionStorage.getItem('uid') || null;
+}
+
+function nsKey(base, { role = null, uid = null } = {}) {
+  const finalRole = role || detectPageRole() || 'buyer';
+  const finalUid = uid || getUid() || 'anon';
+  return `${base}__${finalRole}__${String(finalUid)}`;
+}
+
+function getCartKey(){ return nsKey('cart'); }
+function getWishlistKey(){ return nsKey('wishlist'); }
+function getProductsKey(){ return nsKey('products'); }
+
+/* ----- JSON read/write helpers ----- */
+function readJsonKey(k, fallback = []) {
+  try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); }
+  catch(e) { return fallback; }
+}
+function writeJsonKey(k, data) {
+  try { 
+    const success = safeStorageSet(k, JSON.stringify(data || []));
+    if (!success) {
+      console.log('🔄 Storage full - could not write to:', k);
+    }
+  } catch(e){}
+}
+
+/* ----------------- cart & wishlist helpers (uid-scoped) ----------------- */
+function getCart(){ return readJsonKey(getCartKey(), []); }
+function getWishlist(){ return readJsonKey(getWishlistKey(), []); }
+
+
+// ✅ NEW: Update Firestore when cart changes
+async function updateFirestoreCart(cart) {
+  const uid = getUid();
+  if (!uid) return;
+  
+  try {
+    const userDocRef = doc(firestore, "users", uid);
+    await setDoc(userDocRef, { cart }, { merge: true });
+  } catch (error) {
+    console.error('Error updating Firestore cart:', error);
+  }
+}
+
+// ✅ NEW: Update Firestore when wishlist changes
+// ✅ UPDATED: Update Firestore when wishlist changes (with data sanitization)
+// ✅ UPDATED: Update Firestore when wishlist changes (with data sanitization)
+async function updateFirestoreWishlist(wishlist) {
+  const uid = getUid();
+  if (!uid || uid === 'anon') return;
+  
+  try {
+    // Clean and validate wishlist data before saving
+    const cleanWishlist = (wishlist || []).map(item => {
+      if (!item || typeof item !== 'object') return null;
+      
+      return {
+        id: String(item.id || ''),
+        title: String(item.title || 'Untitled'),
+        price: Number(item.price || 0),
+        oldPrice: item.oldPrice !== undefined ? Number(item.oldPrice) : null,
+        image: String(item.image || DEFAULT_PRODUCT_IMAGE),
+        seller: String(item.seller || 'Seller'),
+        sellerId: item.sellerId ? String(item.sellerId) : null,
+        addedAt: String(item.addedAt || nowISO()),
+        condition: String(item.condition || ''),
+        description: String(item.description || ''),
+        quantity: Number(item.quantity || 0),
+        location: String(item.location || ''),
+        category: String(item.category || ''),
+        // Ensure no undefined values remain
+        ...(item.status && { status: String(item.status) })
+      };
+    }).filter(item => item !== null); // Remove null items
+
+    const userDocRef = doc(firestore, "users", uid);
+    await setDoc(userDocRef, { 
+      wishlist: cleanWishlist,
+      lastUpdated: nowISO() // Add timestamp for debugging
+    }, { merge: true });
+    
+    console.log('✅ Wishlist saved to Firestore:', cleanWishlist.length, 'items');
+  } catch (error) {
+    console.error('Error updating Firestore wishlist:', error);
+    // Log the problematic data
+    console.log('Problematic wishlist data:', JSON.stringify(wishlist, null, 2));
+  }
+}
+
+// ✅ UPDATED setCart function (now updates Firestore too):
+function setCart(arr){ 
+  writeJsonKey(getCartKey(), arr); 
+  updateHeaderBadges(); 
+  // Update Firestore (don't await to keep it fast)
+  updateFirestoreCart(arr);
+}
+
+
+// ✅ UPDATED setWishlist function (now updates Firestore too):
+function setWishlist(arr){ 
+  writeJsonKey(getWishlistKey(), arr); 
+  updateHeaderBadges(); 
+  // Update Firestore (don't await to keep it fast)
+  updateFirestoreWishlist(arr);
+}
+
+/* populate state from scoped storage */
+state.cart = getCart();
+state.wishlist = getWishlist();
+
+/* ---------- header badges (data-count attributes) ---------- */
+function updateHeaderBadges() {
+  const cartArr = getCart() || [];
+  const wishArr = getWishlist() || [];
+  const cartCount = cartArr.reduce((s,i) => s + (Number(i.quantity) || 1), 0);
+  const wishCount = wishArr.length;
+
+  const cartBtn = document.querySelector('.cart-btn');
+  const wishBtn = document.querySelector('.wishlist-btn');
+
+  if (cartBtn) cartBtn.setAttribute('data-count', String(cartCount));
+  if (wishBtn) wishBtn.setAttribute('data-count', String(wishCount));
+}
+
+/* ----------------- wishlist functions ----------------- */
+function loadWishlist(){ state.wishlist = getWishlist(); }
+function persistWishlist(){ setWishlist(state.wishlist || []); }
+function isInWishlist(id){ return (getWishlist()||[]).some(i => String(i.id) === String(id)); }
+
+function toggleWishlist(productId) {
+  const idStr = String(productId);
+  const list = getWishlist() || [];
+  const idx = list.findIndex(i => String(i.id) === idStr);
+  
+  if (idx > -1) {
+    // Remove from wishlist
+    list.splice(idx, 1);
+    setWishlist(list);
+    updateWishlistIcons();
+    showToast('Removed from wishlist', 'warning');
+    return false;
+  } else {
+    // Add to wishlist - ensure ALL required fields are present
+    const p = state.allProducts.find(x => String(x.id) === idStr);
+    
+    // Create a complete wishlist item with all required fields
+    const toSave = {
+      id: idStr,
+      title: p ? String(p.title || 'Untitled') : 'Unknown Product',
+      price: p ? Number(p.price || 0) : 0,
+      oldPrice: p && p.oldPrice !== undefined ? Number(p.oldPrice) : null, // Use null instead of undefined
+      image: p ? String(p.image || (p.images && p.images[0]) || DEFAULT_PRODUCT_IMAGE) : DEFAULT_PRODUCT_IMAGE,
+      seller: p ? String(p.seller || 'Seller') : 'Seller',
+      sellerId: p && p.sellerId ? String(p.sellerId) : null,
+      addedAt: nowISO(),
+      // Additional fields for compatibility
+      condition: p ? String(p.condition || '') : '',
+      description: p ? String(p.description || '') : '',
+      quantity: p ? Number(p.quantity || 0) : 0,
+      location: p ? String(p.location || '') : '',
+      category: p ? String(p.category || '') : '',
+      status: p ? String(p.status || 'Active') : 'Active'
+    };
+    
+    // Remove any null/undefined properties that might cause issues
+    Object.keys(toSave).forEach(key => {
+      if (toSave[key] === undefined) {
+        delete toSave[key];
+      }
+    });
+
+    list.push(toSave);
+    setWishlist(list);
+    updateWishlistIcons();
+    showToast('Added to wishlist', 'success');
+    return true;
+  }
+}
+
+function updateWishlistIcons(){
+  document.querySelectorAll('.wishlist-icon').forEach(icon => {
+    const id = icon.getAttribute('data-id');
+    if(isInWishlist(id)) {
+      icon.classList.remove('far');
+      icon.classList.add('fas','active');
+    } else {
+      icon.classList.remove('fas','active');
+      icon.classList.add('far');
+    }
+  });
+  const qvBtn = document.getElementById('qv_wishlist');
+  if(qvBtn && qvBtn.dataset?.forId){
+    qvBtn.textContent = isInWishlist(qvBtn.dataset.forId) ? 'Remove wishlist' : 'Add wishlist';
+  }
+}
+
+/* ----------------- ensure quick-view modal exists ----------------- */
+function ensureQuickViewModalExists(){
+  if(document.getElementById('quickViewModal')){
+    elements.quickViewModal = document.getElementById('quickViewModal');
+    elements.qv_content = document.getElementById('qv_content');
+    elements.qv_close = document.getElementById('qv_close');
+    if(elements.qv_close) elements.qv_close.addEventListener('click', closeQuickView);
+    if(elements.quickViewModal) elements.quickViewModal.addEventListener('click', (e)=> { if(e.target === elements.quickViewModal) closeQuickView(); });
+    return;
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'quickViewModal';
+  modal.className = 'quick-view-modal';
+  modal.setAttribute('aria-hidden','true');
+  Object.assign(modal.style, {
+    display: 'none',
+    position: 'fixed',
+    left: 0, top: 0, right: 0, bottom: 0,
+    background: 'rgba(0,0,0,0.5)',
+    zIndex: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px'
+  });
+
+  modal.innerHTML = `
+    <div id="qv_inner" style="max-width:1000px;width:100%;background:#fff;border-radius:12px;padding:18px;overflow:auto;position:relative;">
+      <button id="qv_close" aria-label="Close quick view" style="position:absolute;right:12px;top:12px;border:none;background:transparent;font-size:1.2rem;cursor:pointer"><i class="fas fa-times"></i></button>
+      <div id="qv_content"></div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  elements.quickViewModal = document.getElementById('quickViewModal');
+  elements.qv_content = document.getElementById('qv_content');
+  elements.qv_close = document.getElementById('qv_close');
+
+  if(elements.qv_close) elements.qv_close.addEventListener('click', closeQuickView);
+  if(elements.quickViewModal) elements.quickViewModal.addEventListener('click', (e)=> { if(e.target === elements.quickViewModal) closeQuickView(); });
+  document.addEventListener('keydown', (e)=> { if(e.key === 'Escape') closeQuickView(); });
+}
+
+/* ----------------- product card rendering (uses isInWishlist) ----------------- */
+function createProductCard(p){
+  const title = sanitize(p.title);
+  const price = Number(p.price||0).toFixed(2);
+  const oldPrice = p.oldPrice ? Number(p.oldPrice).toFixed(2) : null;
+  const image = (p.images && p.images[0]) || p.image || DEFAULT_PRODUCT_IMAGE;
+  const badgeHtml = p.badge ? `<span class="product-badge" style="position:absolute;left:8px;top:8px;z-index:2;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,0.6);color:#fff;font-weight:700;font-size:0.8rem">${sanitize(p.badge)}</span>` : '';
+  const created = timeAgo(p.createdAt);
+
+  const isOutOfStock = (String(p.status || '').toLowerCase().trim() === 'out of stock') || (Number(p.quantity || 0) <= 0);
+
+  const globalProfileEl = document.getElementById('profilePic');
+  const initialSellerAvatar = (globalProfileEl && isValidImage(globalProfileEl.src)) ? globalProfileEl.src : (isValidImage(p.sellerAvatar) ? p.sellerAvatar : DEFAULT_AVATAR);
+
+  const profileHref = p.sellerId ? `../profile/sellerprofile.html?uid=${encodeURIComponent(p.sellerId)}` : '../profile/sellerprofile.html';
+
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.setAttribute('data-id', p.id);
+  if (p.sellerId) {
+    card.setAttribute('data-seller-id', p.sellerId);
+  }
+
+  card.innerHTML = `
+    <div style="position:relative;overflow:hidden;border-radius:10px;">
+      ${badgeHtml}
+      <img src="${sanitize(image)}" alt="${title}" class="product-image" data-id="${p.id}" loading="lazy" style="width:100%;height:200px;object-fit:cover;display:block" onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}';">
+      <div style="position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,0.6);color:#fff;padding:6px 10px;border-radius:8px;font-weight:800">GHC ${price}</div>
+    </div>
+
+    <div class="card-content" style="padding:10px 6px;">
+      <h3 class="product-title" data-id="${p.id}" tabindex="0" style="margin:6px 0;font-size:1rem;line-height:1.2">${title}</h3>
+
+      <div class="meta-row small-muted" style="font-size:0.85rem;margin-bottom:8px;color:var(--muted)">
+        ${p.condition ? `<span>${sanitize(p.condition)}</span>` : ''}
+        ${p.location ? ` • <span>${sanitize(p.location)}</span>` : ''}
+        ${created ? ` • <span>${sanitize(created)}</span>` : ''}
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <a href="${profileHref}" class="seller-link" title="View profile">
+            <div class="seller-avatar-container">
+              <img src="${sanitize(initialSellerAvatar)}" alt="Seller" class="seller-avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid rgba(0,0,0,0.06)" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';">
+            </div>
+          </a>
+          <div class="seller-name" style="font-size:0.9rem">${sanitize(p.seller || 'Seller')}</div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center">
+          ${ isOutOfStock
+            ? `<button class="add-to-cart disabled" data-id="${p.id}" aria-label="Out of stock" disabled style="padding:8px 10px;border-radius:8px;border:none;cursor:not-allowed;background:#ddd;color:#666;font-weight:700">Out of Stock</button>`
+            : `<button class="add-to-cart" data-id="${p.id}" aria-label="Add ${title} to cart" style="padding:8px 10px;border-radius:8px;border:none;cursor:pointer"><i class="fas fa-cart-plus"></i></button>`
+          }
+          <i class="${isInWishlist(p.id)?'fas':'far'} fa-heart wishlist-icon" data-id="${p.id}" aria-label="Wishlist ${title}" style="font-size:1.05rem;margin-left:6px"></i>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (p.sellerId) {
+    (async () => {
+      try {
+        const sd = await getSellerInfo(p.sellerId);
+        if (!sd) return;
+        const avatarImg = card.querySelector('.seller-avatar');
+        const nameEl = card.querySelector('.seller-name');
+        if (avatarImg && sd.profilePictureUrl && isValidImage(sd.profilePictureUrl)) avatarImg.src = sd.profilePictureUrl;
+        if (nameEl && typeof sd.name === 'string' && sd.name.trim()) nameEl.textContent = sd.name;
+        
+        // Add status indicator after avatar is loaded
+        addStatusIndicator(avatarImg, p.sellerId);
+      } catch (err) { /* ignore */ }
+    })();
+  }
+
+  const imageButton = card.querySelector('.product-image');
+  const titleEl = card.querySelector('.product-title');
+  const quickBtn = card.querySelector('.quick-view');
+
+  const openHandler = () => openQuickView(p.id);
+  if(imageButton) { imageButton.addEventListener('click', openHandler); }
+  if(titleEl) { titleEl.addEventListener('click', openHandler); titleEl.addEventListener('keydown', (e)=> { if(e.key === 'Enter') openHandler(); }); }
+  if(quickBtn) quickBtn.addEventListener('click', openHandler);
+
+  return card;
+}
+
+/* ----------------- quick view ----------------- */
+function openQuickView(id) {
+  bumpPopularity(id,'views');
+  const p = state.allProducts.find(x => String(x.id) === String(id));
+  if (!p) return showToast('Product not found', 'error');
+
+  ensureQuickViewModalExists();
+
+  const images = (Array.isArray(p.images) && p.images.length)
+    ? p.images
+    : (p.image ? [p.image] : [DEFAULT_PRODUCT_IMAGE]);
+
+  const imgsHtml = images.map(src => `
+    <img src="${isValidImage(src) ? sanitize(src) : DEFAULT_PRODUCT_IMAGE}" 
+         class="qv-img" 
+         loading="lazy" 
+         style="max-width:100%;display:block;margin-bottom:8px" 
+         onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}'">
+  `).join('');
+
+  const createdFull = new Date(p.createdAt).toLocaleString();
+  const availableStock = Number(p.quantity || 0);
+  const isOutOfStock =
+    (String(p.status || '').toLowerCase().trim() === 'out of stock') ||
+    (availableStock <= 0);
+
+  const cart = getCart();
+  const existing = cart.find(i => String(i.id) === String(p.id));
+  const currentQty = existing ? existing.quantity || 0 : 0;
+
+  const globalProfileEl = document.getElementById('profilePic');
+  const initialSellerAvatar = (globalProfileEl && isValidImage(globalProfileEl.src))
+    ? globalProfileEl.src
+    : (isValidImage(p.sellerAvatar) ? p.sellerAvatar : DEFAULT_AVATAR);
+
+  const profileHref = p.sellerId
+    ? `../profile/sellerprofile.html?uid=${encodeURIComponent(p.sellerId)}`
+    : '../profile/sellerprofile.html';
+
+  elements.qv_content.innerHTML = `
+    <div class="qv-grid" style="display:flex;gap:16px;flex-wrap:wrap">
+      <div class="qv-images" style="flex:1;min-width:220px">${imgsHtml}</div>
+      <div class="qv-main" style="flex:1;min-width:260px">
+        <h2 style="margin:0 0 8px 0">${sanitize(p.title)}</h2>
+        <div class="small-muted" style="margin-bottom:12px">
+          by <a href="${profileHref}" class="seller-link qv-seller-link">
+            <div class="qv-seller-avatar-container">
+              <img src="${sanitize(initialSellerAvatar)}" class="qv-seller-avatar" alt="Seller" 
+                   style="width:24px;height:24px;border-radius:50%;object-fit:cover;vertical-align:middle" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}'">
+            </div>
+            <span class="qv-seller-name">${sanitize(p.seller || 'Seller')}</span>
+          </a> • ${timeAgo(p.createdAt)} (${createdFull})
+        </div>
+        <div style="margin:8px 0;font-size:1.1rem;font-weight:700">
+          GHC ${Number(p.price || 0).toFixed(2)} 
+          ${p.oldPrice ? `<span class="old-price" style="margin-left:8px;color:#6b7280">GHC ${Number(p.oldPrice).toFixed(2)}</span>` : ''}
+        </div>
+        <div class="small-muted" style="margin-bottom:12px">
+          Condition: ${sanitize(p.condition || '')}${p.location ? ` • Location: ${sanitize(p.location)}` : ''}
+        </div>
+        <div class="small-muted" style="margin-bottom:12px; font-weight:bold; color:${isOutOfStock ? 'red' : 'green'}">
+          ${isOutOfStock ? 'Out of Stock' : `In Stock: ${availableStock}`}
+        </div>
+        <div id="cartNote" style="margin-bottom:12px; font-size:0.9rem; color:#b91c1c; ${currentQty > 0 ? '' : 'display:none'}">
+          You currently have ${currentQty} in your cart
+        </div>
+        <div style="margin-top:8px">${sanitize(p.description || 'No description provided.')}</div>
+        <div style="margin-top:16px;display:flex;gap:10px;">
+          <button id="qv_addcart" class="btn"${isOutOfStock ? ' disabled' : ''}>
+            ${isOutOfStock ? 'Out of Stock' : 'Add to cart'}
+          </button>
+          <button id="qv_wishlist" class="btn btn-outline">
+            ${isInWishlist(p.id) ? 'Remove wishlist' : 'Add wishlist'}
+          </button>
+          <button id="qv_close_btn" class="btn btn-link">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // open modal
+  elements.quickViewModal.style.display = 'flex';
+  elements.quickViewModal.setAttribute('aria-hidden', 'false');
+
+  const qvWishlistBtn = document.getElementById('qv_wishlist');
+  const qvAddCart = document.getElementById('qv_addcart');
+  const cartNote = document.getElementById('cartNote');
+
+  if (qvWishlistBtn) {
+    qvWishlistBtn.dataset.forId = p.id;
+    qvWishlistBtn.textContent = isInWishlist(p.id) ? 'Remove wishlist' : 'Add wishlist';
+    qvWishlistBtn.onclick = () => {
+      toggleWishlist(p.id);
+      qvWishlistBtn.textContent = isInWishlist(p.id) ? 'Remove wishlist' : 'Add wishlist';
+    };
+  }
+
+  if (qvAddCart) {
+    qvAddCart.onclick = () => {
+      if (isOutOfStock) {
+        showToast(`"${p.title}" is out of stock`, 'error');
+        return;
+      }
+      
+
+      const cart = getCart();
+      const existing = cart.find(i => String(i.id) === String(p.id));
+      const currentQty = existing ? existing.quantity || 0 : 0;
+
+      if (currentQty >= availableStock) {
+        showToast(`Only ${availableStock} available in stock.`, 'error');
+        return;
+      }
+
+      addToCart(p.id);
+
+      const updatedCart = getCart();
+      const updated = updatedCart.find(i => String(i.id) === String(p.id));
+      const newQty = updated ? updated.quantity : 0;
+      if (newQty > 0 && cartNote) {
+        cartNote.style.display = '';
+        cartNote.textContent = `You already have ${newQty} in your cart`;
+      }
+
+      showToast(`"${p.title}" added to cart`, 'success');
+    };
+  }
+
+  document.getElementById('qv_close_btn').addEventListener('click', closeQuickView);
+
+  if (p.sellerId) {
+    (async () => {
+      try {
+        const sd = await getSellerInfo(p.sellerId);
+        if (!sd) return;
+        const avatarImg = elements.qv_content.querySelector('.qv-seller-avatar');
+        const nameSpan = elements.qv_content.querySelector('.qv-seller-name');
+        if (avatarImg && sd.profilePictureUrl && isValidImage(sd.profilePictureUrl)) avatarImg.src = sd.profilePictureUrl;
+        if (nameSpan && typeof sd.name === 'string' && sd.name.trim()) nameSpan.textContent = sd.name;
+        
+        // Add status indicator to quick view
+        addStatusIndicator(avatarImg, p.sellerId);
+      } catch (err) { /* ignore */ }
+    })();
+  }
+}
+
+function closeQuickView() {
+  if (!elements.quickViewModal) return;
+  elements.quickViewModal.style.display = 'none';
+  elements.quickViewModal.setAttribute('aria-hidden', 'true');
+  if(elements.qv_content) elements.qv_content.innerHTML = '';
+}
+
+/* ----------------- cart ----------------- */
+function addToCart(id){
+  const p = state.allProducts.find(x => String(x.id) === String(id));
+  if(!p) return showToast('Product not found','error');
+
+  const isOutOfStock = (String(p.status || '').toLowerCase().trim() === 'out of stock') || (Number(p.quantity || 0) <= 0);
+  if (isOutOfStock) {
+    showToast(`"${p.title}" is out of stock`,'error');
+    return;
+  }
+
+  const cart = getCart() || [];
+  const existing = cart.find(i => String(i.id) === String(p.id));
+  const currentQuantityInCart = existing ? (existing.quantity || 0) : 0;
+  const availableStock = Number(p.quantity || 0);
+
+  if (currentQuantityInCart >= availableStock) {
+    showToast(`Only ${availableStock} available in stock. That's all the seller has.`,'error');
+    return;
+  }
+
+  if(existing) {
+    existing.quantity = (existing.quantity || 0) + 1;
+  } else {
+    cart.push({
+      id: p.id,
+      title: p.title,
+      price: p.price,
+      image: p.image || (p.images && p.images[0]) || DEFAULT_PRODUCT_IMAGE,
+      seller: p.seller,
+      sellerId: p.sellerId || null,
+      quantity: 1,
+      addedAt: nowISO()
+    });
+  }
+
+  setCart(cart);
+  state.cart = cart;
+  updateHeaderBadges();
+}
+function updateCartBadge(){
+  const total = (getCart()||[]).reduce((s,i)=> s + (i.quantity||1), 0);
+  const el = document.querySelector('.cart-btn');
+  if(el) el.setAttribute('data-count', total);
+}
+
+/* ----------------- rendering categories ----------------- */
+async function loadProductsFromStorage() {
+  try {
+    const uid = getUid();
+    if (!uid) {
+      console.log('No user ID, returning empty products');
+      return [];
+    }
+    
+    const role = detectPageRole();
+    const productsKey = nsKey('products', { role, uid });
+    const cachedProducts = JSON.parse(localStorage.getItem(productsKey) || '[]');
+    
+    console.log('Returning cached products:', cachedProducts.length);
+    
+    // Process and return cached products
+    return cachedProducts.map(p => {
+      if (!p) return null;
+      
+      let cat = (p.category || p.cat || '').toString().trim().toLowerCase();
+      if(cat && !PREDEFINED_CATEGORIES.includes(cat)) cat = '';
+
+      const images = Array.isArray(p.images) ? p.images.slice() : (p.image ? [p.image] : []);
+      const primaryImage = images[0] || p.image || p.img || DEFAULT_PRODUCT_IMAGE;
+
+      return {
+        id: p.id ?? makeId('s'),
+        title: p.title ?? p.name ?? 'Untitled',
+        subtitle: p.subtitle || '',
+        price: Number(p.price || 0),
+        oldPrice: p.oldPrice || p.old_price || undefined,
+        image: primaryImage,
+        images: images.length ? images : (p.image ? [p.image] : []),
+        seller: p.seller || 'Seller',
+        sellerId: p.sellerId || p.ownerId || null,
+        sellerAvatar: p.sellerAvatar || p.sellerProfileUrl || DEFAULT_AVATAR,
+        badge: p.badge || (p.trending ? 'Trending' : ''),
+        condition: p.condition || '',
+        location: p.location || '',
+        description: p.description || '',
+        category: cat || '',
+        createdAt: p.createdAt || nowISO(),
+        quantity: Number(p.quantity || p.qty || 0),
+        status: p.status || (Number(p.quantity || p.qty || 0) <= 0 ? 'Out of Stock' : 'Active')
+      };
+    }).filter(p => p !== null);
+    
+  } catch(e) {
+    console.warn('Error loading products from storage:', e);
+    return [];
+  }
+}
+
+// ✅ ADD Firestore sync function
+// ✅ UPDATED: Better Firestore sync function
+// ✅ UPDATED: Firestore as Source of Truth for Market Page
+// ✅ ADD THESE NEW FUNCTIONS AFTER syncFirestoreProducts function:
+
+// ✅ NEW: Real-time listener for product updates without infinite refresh loop
+// ✅ FIXED: Real-time listener without infinite refresh loop
+function setupProductsRealtimeListener() {
+  try {
+    console.log('🔄 Setting up real-time products listener...');
+    
+    // Don't set up if already listening
+    if (window._productsUnsubscribe) {
+      console.log('✅ Listener already exists, skipping...');
+      return;
+    }
+    
+    // Listen to products collection for real-time updates
+    const productsCollection = collection(firestore, "products");
+    
+    // Use onSnapshot for real-time updates
+    const unsubscribe = onSnapshot(productsCollection, 
+      (snapshot) => {
+        console.log('🔄 Real-time products update received');
+        
+        const updatedProducts = [];
+        let hasChanges = false;
+        
+        snapshot.docChanges().forEach((change) => {
+          const data = change.doc.data();
+          const id = change.doc.id;
+          
+          // Only process if approved
+          if (data.approved !== false) {
+            const normalizedProduct = {
+              id: id,
+              title: data.title || data.name || 'Untitled Product',
+              name: data.name || data.title || 'Untitled Product',
+              price: Number(data.price || 0),
+              image: data.image || (data.images && data.images[0]) || DEFAULT_PRODUCT_IMAGE,
+              seller: data.seller || 'Seller',
+              sellerId: data.sellerId || data.sellerUid,
+              sellerAvatar: data.sellerAvatar || DEFAULT_AVATAR,
+              description: data.description || '',
+              condition: data.condition || '',
+              location: data.location || '',
+              category: data.category || '',
+              quantity: Number(data.quantity || 0),
+              status: data.status || 'Active',
+              createdAt: data.createdAt || nowISO(),
+              updatedAt: data.updatedAt || nowISO(),
+              _syncedAt: Date.now(),
+              _source: 'firestore_realtime'
+            };
+            
+            if (change.type === 'added' || change.type === 'modified') {
+              updatedProducts.push(normalizedProduct);
+              hasChanges = true;
+            }
+            
+            if (change.type === 'removed') {
+              hasChanges = true;
+            }
+          }
+        });
+        
+        // Only update if there are actual changes (not the initial load)
+        if (hasChanges && updatedProducts.length > 0) {
+          console.log(`🔄 Processing ${updatedProducts.length} updated products`);
+          
+          // Update cache directly WITHOUT calling rebuildCategoryArrays
+          updateProductsCache(updatedProducts);
+          
+          // Update state by merging with existing products
+          updateProductsInState(updatedProducts);
+          
+          // Rebuild categories from updated state
+          rebuildCategoriesFromUpdatedState();
+          
+          // Refresh only the visible UI
+          refreshVisibleCategories();
+          
+          console.log('✅ UI updated with real-time changes');
+        }
+      },
+      (error) => {
+        console.error('❌ Real-time listener error:', error);
+        showToast('Real-time updates failed', 'error');
+      }
+    );
+    
+    // Store unsubscribe function for cleanup
+    window._productsUnsubscribe = unsubscribe;
+    console.log('✅ Real-time listener set up successfully');
+    
+  } catch (error) {
+    console.error('❌ Real-time listener setup failed:', error);
+    showToast('Failed to set up real-time updates', 'error');
+  }
+}
+
+
+
+
+// ✅ NEW: Helper to update products in state
+// function updateProductsInState(currentProducts, updatedProducts) { ... } // DELETE THIS
+// 
+// ✅ NEW: Rebuild categories from current state WITHOUT fetching from Firestore
+// function rebuildCategoriesFromState() { ... } // DELETE THIS
+// 
+// ✅ NEW: Refresh only visible categories
+// function refreshVisibleCategories() { ... } // DELETE THIS
+// ✅ KEEP THIS: Update products in state without recreating the entire array
+function updateProductsInState(updatedProducts) {
+  const productMap = new Map();
+  
+  // Add all current products to map
+  state.allProducts.forEach(p => productMap.set(p.id, p));
+  
+  // Update with new products
+  updatedProducts.forEach(p => productMap.set(p.id, p));
+  
+  // Convert back to array
+  state.allProducts = Array.from(productMap.values());
+}
+
+// ✅ KEEP THIS: Rebuild categories from current state
+function rebuildCategoriesFromUpdatedState() {
+  // Build categories from current state.allProducts
+  state.trending = state.allProducts
+    .filter(p => {
+      const pop = getPopularity(p.id);
+      const score = pop.views + pop.wishlistCount * 2 + pop.purchaseCount * 3;
+      return score >= 100;
+    })
+    .sort((a, b) => {
+      const scoreA = getPopularity(a.id).views + getPopularity(a.id).wishlistCount * 2 + getPopularity(a.id).purchaseCount * 3;
+      const scoreB = getPopularity(b.id).views + getPopularity(b.id).wishlistCount * 2 + getPopularity(b.id).purchaseCount * 3;
+      return scoreB - scoreA;
+    })
+    .sort((a,b)=> (new Date(b.createdAt)-new Date(a.createdAt)))
+    .slice(0,50);
+
+  state.recent = [...state.allProducts].sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt)).slice(0,50);
+
+  state.budget = state.allProducts.filter(p=> Number(p.price||0) <= BUDGET_CAP).slice(0,50);
+}
+
+// ✅ KEEP THIS: Refresh only visible categories
+function refreshVisibleCategories() {
+  // Check which categories are currently visible and only refresh those
+  const trendingSection = document.getElementById('trending');
+  const recentSection = document.getElementById('recent');
+  const budgetSection = document.getElementById('budget');
+  
+  if (trendingSection && trendingSection.innerHTML !== '') {
+    renderCategory('trending', state.currentPage.trending);
+  }
+  
+  if (recentSection && recentSection.innerHTML !== '') {
+    renderCategory('recent', state.currentPage.recent);
+  }
+  
+  if (budgetSection && budgetSection.innerHTML !== '') {
+    renderCategory('budget', state.currentPage.budget);
+  }
+  
+  // Also update search results if they're visible
+  const searchSection = document.getElementById('searchResultsSection');
+  if (searchSection && searchSection.style.display !== 'none') {
+    const currentPage = 1; // Reset to first page for search results
+    renderSearchResults(currentPage);
+  }
+}
+
+
+
+
+// ✅ NEW: Rebuild categories from current state WITHOUT fetching from Firestore
+function rebuildCategoriesFromState() {
+  console.log('🔄 Rebuilding categories from local state...');
+  
+  // Build categories from current state.allProducts
+  const map = new Map();
+  state.allProducts.forEach(p => map.set(String(p.id), p));
+  state.allProducts = Array.from(map.values());
+
+  // Build categories
+  state.trending = state.allProducts
+    .filter(p => {
+      const pop = getPopularity(p.id);
+      const score = pop.views + pop.wishlistCount * 2 + pop.purchaseCount * 3;
+      return score >= 100;
+    })
+    .sort((a, b) => {
+      const scoreA = getPopularity(a.id).views + getPopularity(a.id).wishlistCount * 2 + getPopularity(a.id).purchaseCount * 3;
+      const scoreB = getPopularity(b.id).views + getPopularity(b.id).wishlistCount * 2 + getPopularity(b.id).purchaseCount * 3;
+      return scoreB - scoreA;
+    })
+    .sort((a,b)=> (new Date(b.createdAt)-new Date(a.createdAt)))
+    .slice(0,50);
+
+  state.recent = [...state.allProducts].sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt)).slice(0,50);
+
+  state.budget = state.allProducts.filter(p=> Number(p.price||0) <= BUDGET_CAP).slice(0,50);
+  
+  console.log(`✅ Categories rebuilt: ${state.allProducts.length} total products`);
+}
+
+
+// ✅ MODIFIED: Rebuild categories without infinite loops
+async function rebuildCategoryArrays() {
+  console.log('🔄 Rebuilding categories...');
+  
+  // 1. SYNC FROM FIRESTORE (but only if we don't have data yet)
+  if (state.allProducts.length === 0) {
+    await syncFirestoreProducts();
+  }
+  
+  // 2. Process products
+  const map = new Map();
+  state.allProducts.forEach(p => map.set(String(p.id), p));
+  state.allProducts = Array.from(map.values());
+
+  // 3. Build categories
+  state.trending = state.allProducts
+    .filter(p => {
+      const pop = getPopularity(p.id);
+      const score = pop.views + pop.wishlistCount * 2 + pop.purchaseCount * 3;
+      return score >= 100;
+    })
+    .sort((a, b) => {
+      const scoreA = getPopularity(a.id).views + getPopularity(a.id).wishlistCount * 2 + getPopularity(a.id).purchaseCount * 3;
+      const scoreB = getPopularity(b.id).views + getPopularity(b.id).wishlistCount * 2 + getPopularity(b.id).purchaseCount * 3;
+      return scoreB - scoreA;
+    })
+    .sort((a,b)=> (new Date(b.createdAt)-new Date(a.createdAt)))
+    .slice(0,50);
+
+  state.recent = [...state.allProducts].sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt)).slice(0,50);
+
+  state.budget = state.allProducts.filter(p=> Number(p.price||0) <= BUDGET_CAP).slice(0,50);
+  
+  console.log(`✅ Categories rebuilt: ${state.allProducts.length} total products`);
+}
+
+// ✅ NEW: Update products cache
+function updateProductsCache(updatedProducts) {
+  const role = detectPageRole();
+  const uid = getUid();
+  const productsKey = nsKey('products', { role, uid });
+  
+  let cached = JSON.parse(localStorage.getItem(productsKey) || '[]');
+  const updatedIds = new Set(updatedProducts.map(p => p.id));
+  
+  // Remove old versions of updated products
+  cached = cached.filter(p => !updatedIds.has(p.id));
+  
+  // Add updated products
+  cached.push(...updatedProducts);
+  
+  // Sort by updatedAt (newest first)
+  cached.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+  
+  // Save to cache
+  localStorage.setItem(productsKey, JSON.stringify(cached));
+  
+  // Update state
+  state.allProducts = cached;
+}
+
+// ✅ UPDATED: Firestore sync function without infinite loops
+async function syncFirestoreProducts() {
+  console.log('🔄 Syncing products from Firestore (Source of Truth)...');
+  
+  try {
+    const uid = getUid();
+    const role = detectPageRole();
+    const productsKey = nsKey('products', { role, uid });
+    
+    // 1. FETCH FROM FIRESTORE (Source of Truth)
+    const productsCollection = collection(firestore, "products");
+    const querySnapshot = await getDocs(productsCollection);
+    
+    const allProducts = [];
+    const now = Date.now();
+    
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const id = docSnap.id;
+      
+      // Only include approved products (or all if approved field doesn't exist)
+      if (data.approved !== false) {
+        // Normalize product data for market page
+        const normalizedProduct = {
+          id: id,
+          title: data.title || data.name || 'Untitled Product',
+          name: data.name || data.title || 'Untitled Product',
+          price: Number(data.price || 0),
+          oldPrice: data.oldPrice ? Number(data.oldPrice) : undefined,
+          image: data.image || (data.images && data.images[0]) || DEFAULT_PRODUCT_IMAGE,
+          images: data.images || (data.image ? [data.image] : []),
+          seller: data.seller || 'Seller',
+          sellerId: data.sellerId || data.sellerUid || data.ownerId,
+          sellerAvatar: data.sellerAvatar || DEFAULT_AVATAR,
+          description: data.description || '',
+          condition: data.condition || '',
+          location: data.location || '',
+          category: data.category || data.cat || '',
+          quantity: Number(data.quantity || data.qty || 0),
+          status: data.status || (Number(data.quantity || data.qty || 0) <= 0 ? 'Out of Stock' : 'Active'),
+          createdAt: data.createdAt || data.timestamp || nowISO(),
+          updatedAt: data.updatedAt || nowISO(),
+          _syncedAt: now,
+          _source: 'firestore'
+        };
+        
+        allProducts.push(normalizedProduct);
+      }
+    });
+    
+    console.log(`✅ Fetched ${allProducts.length} products from Firestore`);
+    
+    // 2. UPDATE LOCALSTORAGE CACHE
+    localStorage.setItem(productsKey, JSON.stringify(allProducts));
+    
+    // Also update global cache for backward compatibility
+    localStorage.setItem('products', JSON.stringify(allProducts));
+    
+    // 3. UPDATE STATE
+    state.allProducts = allProducts;
+    
+    // 4. SETUP REAL-TIME LISTENER FOR FUTURE UPDATES (only once)
+    if (!window._productsUnsubscribe) {
+      setupProductsRealtimeListener();
+    }
+    
+    return allProducts;
+    
+  } catch (error) {
+    console.error('❌ Firestore sync failed:', error);
+    
+    // FALLBACK: Try to use cached data
+    const role = detectPageRole();
+    const uid = getUid();
+    const productsKey = nsKey('products', { role, uid });
+    const cached = JSON.parse(localStorage.getItem(productsKey) || '[]');
+    
+    console.log(`🔄 Falling back to cached products: ${cached.length} items`);
+    
+    // Filter out stale cache (older than 1 hour)
+    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    const freshCache = cached.filter(p => p._syncedAt && p._syncedAt > oneHourAgo);
+    
+    if (freshCache.length > 0) {
+      state.allProducts = freshCache;
+      return freshCache;
+    }
+    
+    return [];
+  }
+}
+
+
+function renderCategory(category, page=1){
+  const container = document.getElementById(category);
+  const pagination = document.getElementById(`${category}Pagination`);
+  if(!container) return;
+  container.innerHTML = '<div class="loading-spinner" style="display:block;"></div>';
+  let list = [];
+  if(category==='trending') list = state.trending;
+  else if(category==='recent') list = state.recent;
+  else if(category==='budget') list = state.budget;
+  else list = [];
+
+  const totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
+  const start = (page-1) * ITEMS_PER_PAGE;
+  const slice = list.slice(start, start + ITEMS_PER_PAGE);
+
+  setTimeout(()=> {
+    container.innerHTML = '';
+    if(!slice.length){
+      container.innerHTML = '<p class="no-items">No items here yet. Sellers can add products using the Sell button.</p>';
+    } else {
+      slice.forEach(p => container.appendChild(createProductCard(p)));
+    }
+    createPagination(pagination, page, totalPages, category);
+    bindDynamicHandlers();
+    updateCartBadge();
+    updateWishlistIcons();
+    initializeStatusIndicators(); // Initialize status indicators after rendering
+  }, 120);
+}
+
+/* pagination and handlers (kept simple) */
+function createPagination(container, currentPage, totalPages, category){
+  if(!container) return;
+  container.innerHTML = '';
+  if(totalPages<=1) return;
+  const prev = document.createElement('button'); prev.className = `page-btn ${currentPage===1?'disabled':''}`; prev.innerHTML = '<i class="fas fa-chevron-left"></i>';
+  prev.addEventListener('click', ()=> { if(currentPage>1) renderCategory(category, currentPage-1); });
+  container.appendChild(prev);
+
+  const maxVisible = 5;
+  let start = Math.max(1, currentPage - Math.floor(maxVisible/2));
+  let end = Math.min(totalPages, start + maxVisible - 1);
+  if(end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
+
+  if(start > 1){
+    const b = document.createElement('button'); b.textContent = '1'; b.className = 'page-btn'; b.addEventListener('click', ()=> renderCategory(category, 1)); container.appendChild(b);
+    if(start>2){ const dots = document.createElement('span'); dots.textContent = '...'; dots.style.padding='0 10px'; container.appendChild(dots); }
+  }
+
+  for(let i=start;i<=end;i++){
+    const btn = document.createElement('button'); btn.className = `page-btn ${i===currentPage?'active':''}`; btn.textContent = i;
+    btn.addEventListener('click', ()=> renderCategory(category, i));
+    container.appendChild(btn);
+  }
+
+  if(end < totalPages){
+    if(end < totalPages - 1){ const dots = document.createElement('span'); dots.textContent = '...'; dots.style.padding='0 10px'; container.appendChild(dots); }
+    const last = document.createElement('button'); last.className='page-btn'; last.textContent = totalPages; last.addEventListener('click', ()=> renderCategory(category, totalPages)); container.appendChild(last);
+  }
+
+  const next = document.createElement('button'); next.className = `page-btn ${currentPage===totalPages?'disabled':''}`; next.innerHTML = '<i class="fas fa-chevron-right"></i>';
+  next.addEventListener('click', ()=> { if(currentPage < totalPages) renderCategory(category, currentPage+1); });
+  container.appendChild(next);
+}
+
+function bindDynamicHandlers(){
+  document.querySelectorAll('.wishlist-icon').forEach(icon => {
+    if(icon._bound) return; icon._bound = true;
+    icon.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = icon.getAttribute('data-id');
+      const added = toggleWishlist(id);
+      if(added){ icon.classList.remove('far'); icon.classList.add('fas','active'); }
+      else { icon.classList.remove('fas','active'); icon.classList.add('far'); }
+    });
+  });
+
+  document.querySelectorAll('.add-to-cart').forEach(btn => {
+    if(btn._bound) return; btn._bound = true;
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+
+      let prod = null;
+      if (window.state && Array.isArray(window.state.allProducts)) {
+        prod = window.state.allProducts.find(x => String(x.id) === String(id));
+      }
+      if (!prod) {
+        try { const stored = JSON.parse(localStorage.getItem('products')||'[]'); prod = stored.find(x => String(x.id) === String(id)); } catch(e){}
+      }
+
+      if (prod && (String(prod.status || '').toLowerCase() === 'out of stock' || Number(prod.quantity || 0) <= 0)) {
+        btn.disabled = true;
+        btn.classList.add('disabled');
+        btn.innerHTML = 'Out of Stock';
+        return showToast('Product is out of stock','error');
+      }
+
+      const cart = getCart();
+      const existingInCart = cart.find(i => String(i.id) === String(id));
+      const currentQuantityInCart = existingInCart ? (existingInCart.quantity || 0) : 0;
+      const availableStock = Number(prod.quantity || 0);
+
+      if (currentQuantityInCart >= availableStock) {
+        showToast(`Only ${availableStock} available in stock. That's all the seller has.`,'error');
+        return;
+      }
+
+      addToCart(id);
+      const prev = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i>';
+      setTimeout(()=> { btn.innerHTML = prev; }, 1200);
+    });
+  });
+}
+
+/* ----------------- filter bar (predefined categories) ----------------- */
+function ensureFilterBarExists() {
+  if (!elements.contentWrapper) return;
+  if (document.getElementById('marketFilterBar')) {
+    initializeFilterBar(); // Make sure to initialize if it already exists
+    return;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'marketFilterBar';
+  wrapper.className = 'market-filters';
+  
+  // Add some CSS for the filter bar
+  const filterStyles = `
+    .market-filters {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: var(--card-shadow);
+    }
+    .filters-inner {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filters-inner input, 
+    .filters-inner select {
+      padding: 10px 15px;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      background: var(--card-bg);
+      color: var(--dark-text);
+    }
+    .filters-inner .btn {
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .filters-inner .btn:hover {
+      background: var(--primary-dark);
+    }
+    .filters-inner .btn-link {
+      background: transparent;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+    .filters-inner .btn-link:hover {
+      background: rgba(37, 99, 235, 0.1);
+    }
+    @media (max-width: 768px) {
+      .filters-inner {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  `;
+
+  // Add styles if not already added
+  if (!document.getElementById('filterBarStyles')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'filterBarStyles';
+    styleEl.textContent = filterStyles;
+    document.head.appendChild(styleEl);
+  }
+
+  const categoryOptions = PREDEFINED_CATEGORIES.map(c => 
+    `<option value="${c}">${c.charAt(0).toUpperCase() + c.slice(1)}</option>`
+  ).join('');
+
+  wrapper.innerHTML = `
+    <div class="filters-inner">
+      <input id="priceMin" type="number" placeholder="Min GHC" aria-label="Min price" min="0">
+      <input id="priceMax" type="number" placeholder="Max GHC" aria-label="Max price" min="0">
+      <select id="categorySelect" aria-label="Category">
+        <option value="">All categories</option>
+        ${categoryOptions}
+      </select>
+      <select id="sortSelect" aria-label="Sort by">
+        <option value="newest">Newest</option>
+        <option value="priceLow">Price: Low → High</option>
+        <option value="priceHigh">Price: High → Low</option>
+        <option value="popular">Popular</option>
+      </select>
+      <button id="applyFiltersBtn" class="btn">Apply</button>
+      <button id="clearFiltersBtn" class="btn btn-link">Clear</button>
+    </div>
+  `;
+
+  elements.contentWrapper.prepend(wrapper);
+  initializeFilterBar(); // Initialize the functionality
+}
+
+/* ----------------- search/filter logic ----------------- */
+let currentFiltered = [];
+function applyFiltersAndSearch({ query = '', min = 0, max = Infinity, category = '', sort = 'newest' } = {}){
+  const q = (query||'').trim().toLowerCase();
+  currentFiltered = state.allProducts.filter(p => {
+    const matchesQuery = !q || (String(p.title||'').toLowerCase().includes(q) || String(p.seller||'').toLowerCase().includes(q) || String(p.description||'').toLowerCase().includes(q));
+    const price = Number(p.price||0);
+    const matchesPrice = price >= min && price <= max;
+    const matchesCategory = !category || (String((p.category||'')).toLowerCase() === String(category).toLowerCase());
+    return matchesQuery && matchesPrice && matchesCategory;
+  });
+
+  switch(sort){
+    case 'priceLow': currentFiltered.sort((a,b)=>Number(a.price||0) - Number(b.price||0)); break;
+    case 'priceHigh': currentFiltered.sort((a,b)=>Number(b.price||0) - Number(a.price||0)); break;
+    case 'popular': currentFiltered.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt)); break;
+    default: currentFiltered.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  renderSearchResults();
+}
+function renderSearchResults(page=1){
+  if(!document.getElementById('searchResultsSection')){
+    const s = document.createElement('section');
+    s.className = 'category-row';
+    s.id = 'searchResultsSection';
+    s.style.display = 'none';
+    s.innerHTML = `<h2 class="row-title">Search Results <span id="searchResultCount" style="font-weight:400; font-size:0.9rem; margin-left:8px;"></span></h2>
+      <div class="horizontal-scroll" id="searchResults"></div>
+      <div class="pagination" id="searchResultsPagination"></div>`;
+    elements.contentWrapper.prepend(s);
+  }
+  const section = document.getElementById('searchResultsSection');
+  const container = document.getElementById('searchResults');
+  const pagination = document.getElementById('searchResultsPagination');
+  if(!currentFiltered || !currentFiltered.length){
+    section.style.display = 'block';
+    container.innerHTML = '<p class="no-items">No matching products found.</p>';
+    pagination.innerHTML = '';
+    document.getElementById('searchResultCount').textContent = '(0)';
+    toggleCategoryRows(false);
+    return;
+  }
+  toggleCategoryRows(false);
+  section.style.display = 'block';
+  const totalPages = Math.ceil(currentFiltered.length / ITEMS_PER_PAGE);
+  const start = (page-1)*ITEMS_PER_PAGE;
+  const slice = currentFiltered.slice(start, start+ITEMS_PER_PAGE);
+  container.innerHTML = '';
+  slice.forEach(p => container.appendChild(createProductCard(p)));
+  createPagination(pagination, page, totalPages, 'searchResults');
+  document.getElementById('searchResultCount').textContent = `(${currentFiltered.length})`;
+  bindDynamicHandlers();
+  updateCartBadge();
+  updateWishlistIcons();
+  initializeStatusIndicators(); // Initialize status indicators for search results
+}
+function toggleCategoryRows(show=true){
+  document.querySelectorAll('.category-row').forEach(row=>{
+    if(row.id === 'searchResultsSection') return;
+    row.style.display = show ? '' : 'none';
+  });
+}
+
+/* ----------------- network, sw, auth, logout ----------------- */
+function checkNetworkStatus(){
+  const offlineMessage = document.getElementById('offlineMessage');
+  if(offlineMessage) offlineMessage.style.display = navigator.onLine ? 'none' : 'block';
+  window.addEventListener('online', ()=> { if(offlineMessage) offlineMessage.style.display='none'; showToast('You are back online','success'); });
+  window.addEventListener('offline', ()=> { if(offlineMessage) offlineMessage.style.display='block'; });
+}
+
+// Add to your cleanup section (if you have one) or create one:
+window.addEventListener('beforeunload', () => {
+  if (window._productsUnsubscribe) {
+    window._productsUnsubscribe();
+  }
+});
+
+function initializeServiceWorker(){ if('serviceWorker' in navigator){ window.addEventListener('load', ()=> { navigator.serviceWorker.register('/sw.js').catch(()=>{}); }); } }
+
+onAuthStateChanged(auth, async (user) => {
+  if(!user) return;
+  // ensure sessionStorage uid is set (home page also sets this; this is defensive)
+  try { sessionStorage.setItem('uid', user.uid); } catch(e){}
+
+  const userRef = ref(database, `users/${user.uid}`);
+  const snapshot = await get(userRef);
+  if(!snapshot.exists()) return;
+  const userData = snapshot.val();
+  if(!userData || typeof userData !== 'object') return;
+  if(userData.declined) { window.location.href = "../../adminlogic/declined/declined.html"; return; }
+  if(userData.banned) { window.location.href = "../../adminlogic/banned/banned.html"; return; }
+  // ADD THIS LINE to show/hide admin link based on role
+  updateAdminLinkVisibility(userData);
+
+  const avatarEl = document.querySelector('.user-avatar');
+  if(avatarEl){
+    onValue(userRef, snap => {
+      const d = snap.val();
+      avatarEl.src = d?.profilePictureUrl && isValidImage(d.profilePictureUrl) ? d.profilePictureUrl : (document.getElementById('profilePic')?.src || DEFAULT_AVATAR);
+    });
+  }
+
+  // Start presence tracking for current user
+  updateUserPresence();
+
+  // after auth, refresh cart/wishlist for this uid and badges
+  state.cart = getCart();
+  state.wishlist = getWishlist();
+  updateHeaderBadges();
+});
+
+
+
+const logoutBtnHeader = document.getElementById('logoutBtn');
+if(logoutBtnHeader){
+  logoutBtnHeader.addEventListener('click', async (e)=>{ e.preventDefault(); await signOut(auth).catch(()=>{}); sessionStorage.removeItem('uid'); window.location.href = "../../index.html"; });
+}
+
+/* ----------------- add-product modal (predefined categories) ----------------- */
+function openAddProductModal(){ if(elements.addProductModal) elements.addProductModal.style.display = 'flex'; populateAddProductCategory(); }
+function closeAddProductModal(){ if(elements.addProductModal) elements.addProductModal.style.display = 'none'; }
+function populateAddProductCategory(){
+  const select = document.getElementById('ap_category');
+  if(!select) return;
+  const cur = select.value || '';
+  select.innerHTML = `<option value="">Uncategorized</option>${PREDEFINED_CATEGORIES.map(c => `<option value="${c}">${c.charAt(0).toUpperCase() + c.slice(1)}</option>`).join('')}`;
+  if(cur) select.value = cur;
+}
+elements.ap_save && elements.ap_save.addEventListener('click', ()=> {
+  const title = document.getElementById('ap_title').value.trim();
+  const subtitle = document.getElementById('ap_subtitle').value.trim();
+  const price = Number(document.getElementById('ap_price').value || 0);
+  const oldPrice = Number(document.getElementById('ap_oldPrice').value || 0) || undefined;
+  const seller = document.getElementById('ap_seller').value.trim() || 'You';
+  const location = document.getElementById('ap_location').value.trim() || '';
+  const category = (document.getElementById('ap_category').value || '').toLowerCase();
+  const condition = document.getElementById('ap_condition').value || '';
+  const description = document.getElementById('ap_description').value.trim() || '';
+  const image = document.getElementById('ap_image').value.trim() || '';
+  const badge = document.getElementById('ap_badge').value.trim();
+
+  if(!title || !price) { showToast('Please enter title and price','error'); return; }
+
+  const id = `${Date.now()}_${Math.random().toString(36).slice(2)}_${getUid() || 'anon'}`;
+  const createdAt = new Date().toISOString();
+  const imgArr = image ? [image] : [];
+  const newProduct = {
+    id, title, subtitle, price, oldPrice, image: imgArr[0] || DEFAULT_PRODUCT_IMAGE, images: imgArr, seller, badge, condition, location, createdAt, category: PREDEFINED_CATEGORIES.includes(category) ? category : '', description,
+    quantity: 1,
+    status: 'Active'
+  };
+
+  const existing = loadProductsFromStorage();
+  existing.push(newProduct);
+  const key = getProductsKey();
+  localStorage.setItem(key, JSON.stringify(existing));
+  rebuildCategoryArrays();
+  renderCategory('trending', state.currentPage.trending);
+  renderCategory('recent', state.currentPage.recent);
+  renderCategory('budget', state.currentPage.budget);
+  closeAddProductModal();
+  showToast('Product added locally','success');
+});
+elements.ap_cancel && elements.ap_cancel.addEventListener('click', ()=> closeAddProductModal());
+
+/* ----------------- toast ----------------- */
+let toastTimer = null;
+function showToast(msg, type='success'){
+  if(!elements.toast) { console.log(type.toUpperCase(), msg); return; }
+  elements.toast.style.display = 'flex';
+  elements.toast.classList.remove('success','error','warning');
+  elements.toast.classList.add(type);
+  elements.toast.innerHTML = `<i class="fas ${type==='error'?'fa-exclamation-circle':'fa-check-circle'}"></i><span id="toastMessage">${sanitize(msg)}</span>`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> { elements.toast.style.display = 'none'; }, 3000);
+}
+
+/* ----------------- events & init wiring ----------------- */
+function setupEventListeners(){
+  if(elements.darkModeToggle) elements.darkModeToggle.addEventListener('click', ()=> {
+    document.body.classList.toggle('dark-mode');
+    const dark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+    elements.darkModeToggle.innerHTML = dark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  });
+
+  if(elements.browseBtn) elements.browseBtn.addEventListener('click', ()=> { window.location.hash = 'home'; handleRouting(); });
+  if(elements.sellBtn) elements.sellBtn.addEventListener('click', ()=> { openAddProductModal(); });
+
+  if(elements.qv_close) elements.qv_close.addEventListener('click', closeQuickView);
+  if(elements.quickViewModal) elements.quickViewModal.addEventListener('click', (e)=> { if(e.target === elements.quickViewModal) closeQuickView(); });
+
+  if(elements.backToTopBtn){
+    elements.backToTopBtn.addEventListener('click', ()=> window.scrollTo({top:0,behavior:'smooth'}));
+    window.addEventListener('scroll', ()=> {
+      if(window.pageYOffset > 300){ elements.backToTopBtn.style.display='flex'; document.querySelector('.site-header')?.classList.add('scrolled'); }
+      else { elements.backToTopBtn.style.display='none'; document.querySelector('.site-header')?.classList.remove('scrolled'); }
+    });
+  }
+
+  document.querySelectorAll('.scroll-left').forEach((btn, idx)=> {
+    btn.addEventListener('click', ()=> { const target = document.querySelectorAll('.horizontal-scroll')[idx]; if(target) target.scrollBy({left:-300, behavior:'smooth'}); });
+  });
+  document.querySelectorAll('.scroll-right').forEach((btn, idx)=> {
+    btn.addEventListener('click', ()=> { const target = document.querySelectorAll('.horizontal-scroll')[idx]; if(target) target.scrollBy({left:300, behavior:'smooth'}); });
+  });
+
+  if(elements.searchForm && elements.searchBox){
+    elements.searchForm.addEventListener('submit', (e)=> {
+      e.preventDefault();
+      const q = elements.searchBox.value.trim();
+      if(q.length < 3){ if(elements.searchError) elements.searchError.style.display = 'block'; return; }
+      if(elements.searchError) elements.searchError.style.display = 'none';
+      const min = parseFloat(document.getElementById('priceMin')?.value || 0);
+      const max = parseFloat(document.getElementById('priceMax')?.value || Infinity);
+      const category = document.getElementById('categorySelect')?.value || '';
+      const sort = document.getElementById('sortSelect')?.value || 'newest';
+      applyFiltersAndSearch({ query: q, min, max, category, sort });
+    });
+
+    elements.searchBox.addEventListener('input', (e)=> {
+      const q = elements.searchBox.value.trim();
+      if(q.length < 1){
+        const section = document.getElementById('searchResultsSection'); if(section) section.style.display = 'none';
+        toggleCategoryRows(true); return;
+      }
+      const min = parseFloat(document.getElementById('priceMin')?.value || 0);
+      const max = parseFloat(document.getElementById('priceMax')?.value || Infinity);
+      const category = document.getElementById('categorySelect')?.value || '';
+      const sort = document.getElementById('sortSelect')?.value || 'newest';
+      applyFiltersAndSearch({ query: q, min, max, category, sort });
+    });
+  }
+
+  window.addEventListener('hashchange', handleRouting);
+
+  window.addEventListener('storage', (e)=> {
+    if(e.key === 'products'){
+      rebuildCategoryArrays();
+      renderCategory('trending', state.currentPage.trending);
+      renderCategory('recent', state.currentPage.recent);
+      renderCategory('budget', state.currentPage.budget);
+    }
+    // when cart page completes a purchase, bump counters & refresh trending
+    if (e.key === 'orders_global' && e.newValue) {
+      try {
+        const orders = JSON.parse(e.newValue);
+        const latest = orders[0]; // most recent order is first
+        if (latest && Array.isArray(latest.items)) {
+          latest.items.forEach(it => bumpPopularity(it.id, 'purchaseCount'));
+          rebuildCategoryArrays();          // recalc _score
+          renderCategory('trending', 1);    // redraw trending row
+        }
+      } catch (_) {}
+    }
+    // react to scoped keys for current user
+    if(e.key === getCartKey()){
+      state.cart = getCart();
+      updateCartBadge();
+      updateHeaderBadges();
+    }
+    if(e.key === getWishlistKey()){
+      state.wishlist = getWishlist();
+      updateWishlistIcons();
+      updateHeaderBadges();
+    }
+  });
+}
+
+// scroll arrows
+document.querySelectorAll('.scroll-controls').forEach(ctrl => {
+  const row = ctrl.nextElementSibling; // the .horizontal-scroll element
+  const left = ctrl.querySelector('.scroll-left');
+  const right = ctrl.querySelector('.scroll-right');
+  if (!row || !left || !right) return;
+  left.addEventListener('click', () => row.scrollBy({ left: -300, behavior: 'smooth' }));
+  right.addEventListener('click', () => row.scrollBy({ left: 300, behavior: 'smooth' }));
+});
+
+/* ----------------- routing ----------------- */
+const CATEGORY_MAP = {
+  'home':'home', 'books':'books','electronics':'electronics','clothing':'clothing','others':'others','services':'services','food':'food',
+  'trending':'trending','recent':'recent','budget':'budget'
+};
+
+// Function to clear all filters and search
+function clearAllFilters() {
+  // Clear filter inputs
+  const priceMin = document.getElementById('priceMin');
+  const priceMax = document.getElementById('priceMax');
+  const categorySelect = document.getElementById('categorySelect');
+  const sortSelect = document.getElementById('sortSelect');
+  
+  if (priceMin) priceMin.value = '';
+  if (priceMax) priceMax.value = '';
+  if (categorySelect) categorySelect.value = '';
+  if (sortSelect) sortSelect.value = 'newest';
+  
+  // Clear search box
+  if (elements.searchBox) elements.searchBox.value = '';
+  
+  // Hide search error
+  if (elements.searchError) elements.searchError.style.display = 'none';
+  
+  // Hide search results and show normal categories
+  toggleCategoryRows(true);
+  const searchSection = document.getElementById('searchResultsSection');
+  if (searchSection) searchSection.style.display = 'none';
+  
+  // Close search container if open
+  if (elements.searchContainer) {
+    elements.searchContainer.classList.remove('active');
+  }
+}
+
+function handleRouting(){
+  const hash = window.location.hash.substring(1);
+  
+  // If home is clicked, show ALL products and clear everything
+  if(hash === 'home'){ 
+    // Clear any active filters/search
+    clearAllFilters();
+    
+    // Show all categories (this is what makes it "Home")
+    renderCategory('trending', state.currentPage.trending);
+    renderCategory('recent', state.currentPage.recent);
+    renderCategory('budget', state.currentPage.budget);
+    
+    // Scroll to products section
+    document.querySelector('.content-wrapper')?.scrollIntoView({behavior:'smooth'}); 
+  }
+  // Other category sections (Books, Electronics, etc.)
+  else if(CATEGORY_MAP[hash] && ['trending','recent','budget'].includes(CATEGORY_MAP[hash]) === false){
+    applyFiltersAndSearch({ query:'', min:0, max:Infinity, category: hash, sort:'newest' });
+  }
+  // Trending, Recent, Budget sections
+  else if(CATEGORY_MAP[hash] === 'trending' || CATEGORY_MAP[hash] === 'recent' || CATEGORY_MAP[hash] === 'budget'){
+    toggleCategoryRows(true);
+    if(CATEGORY_MAP[hash] === 'trending') renderCategory('trending', state.currentPage.trending);
+    if(CATEGORY_MAP[hash] === 'recent') renderCategory('recent', state.currentPage.recent);
+    if(CATEGORY_MAP[hash] === 'budget') renderCategory('budget', state.currentPage.budget);
+  }
+  // If no hash, default to home
+  else if(!hash){ 
+    window.location.hash = 'home';
+    return; 
+  }
+
+  // Update active states for ALL navigation links (this makes them stay active)
+  document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === `#${hash}`) {
+      link.classList.add('active');
+    }
+  });
+}
+
+/* ----------------- INIT APP ----------------- */
+function populateCategorySelects(){
+  const sel = document.getElementById('categorySelect');
+  if(sel){
+    const cur = sel.value || '';
+    sel.innerHTML = `<option value="">All categories</option>${PREDEFINED_CATEGORIES.map(c => `<option value="${c}">${c.charAt(0).toUpperCase() + c.slice(1)}</option>`).join('')}`;
+    if(cur) sel.value = cur;
+  }
+  populateAddProductCategory();
+}
+
+async function initApp(){
+  ensureFilterBarExists();
+  ensureQuickViewModalExists();
+  initializeSearchToggle();
+  initializeMobileMenu();
+  loadWishlist();
+
+  // Initialize Firestore if not already
+  if (!window.firestore) {
+    window.firestore = getFirestore(app);
+  }
+  
+  // Wait for auth to be ready
+  await new Promise(resolve => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve();
+    });
+  });
+  
+  // ✅ Force sync from Firestore on initial load
+  console.log('🔄 Initializing app - syncing products from Firestore...');
+  await rebuildCategoryArrays(); // This already calls syncFirestoreProducts()
+  
+  
+  populateCategorySelects();
+
+  if(state.theme === 'dark'){ 
+    document.body.classList.add('dark-mode'); 
+    if(elements.darkModeToggle) elements.darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>'; 
+  }
+  updateCartBadge();
+
+  renderCategory('trending', state.currentPage.trending);
+  renderCategory('recent', state.currentPage.recent);
+  renderCategory('budget', state.currentPage.budget);
+
+  setupEventListeners();
+  checkNetworkStatus();
+  initializeServiceWorker();
+
+  handleRouting();
+
+  const headerAvatar = document.querySelector('.user-avatar');
+  if(headerAvatar){
+    headerAvatar.src = document.getElementById('profilePic')?.src || DEFAULT_AVATAR;
+  }
+
+  initializeStatusIndicators();
+  startStatusPolling();
+  updateHeaderBadges();
+}
+
+/* ------- Delegation so Quick View works even for dynamically created cards ------- */
+document.addEventListener('click', (e) => {
+  const quick = e.target.closest('.quick-view');
+  if (quick) {
+    e.preventDefault(); e.stopPropagation();
+    const id = quick.getAttribute('data-id') || quick.closest('[data-id]')?.getAttribute('data-id');
+    if(id) openQuickView(id);
+    return;
+  }
+  const img = e.target.closest('.product-image');
+  if (img) {
+    e.preventDefault(); e.stopPropagation();
+    const id = img.getAttribute('data-id') || img.closest('[data-id]')?.getAttribute('data-id');
+    if(id) openQuickView(id);
+    return;
+  }
+  const title = e.target.closest('.product-title');
+  if (title) {
+    e.preventDefault(); e.stopPropagation();
+    const id = title.getAttribute('data-id') || title.closest('[data-id]')?.getAttribute('data-id');
+    if(id) openQuickView(id);
+    return;
+  }
+});
+
+/* ----- Listen for when sellers add new products ----- */
+(function startProductsPolling() {
+  let lastKnownProductsCount = 0;
+  
+  function checkForNewProducts() {
+    try {
+      const currentProducts = loadProductsFromStorage();
+      const currentCount = currentProducts.length;
+      
+      // If product count changed, refresh the display
+      if (currentCount !== lastKnownProductsCount) {
+        console.log(`Product count changed: ${lastKnownProductsCount} -> ${currentCount}, refreshing...`);
+        lastKnownProductsCount = currentCount;
+        
+        rebuildCategoryArrays();
+        renderCategory('trending', state.currentPage.trending);
+        renderCategory('recent', state.currentPage.recent);
+        renderCategory('budget', state.currentPage.budget);
+        
+        // Show a subtle notification if products were added
+        if (currentCount > lastKnownProductsCount) {
+          showToast(`${currentCount - lastKnownProductsCount} new products available!`, 'success');
+        }
+      }
+      
+    } catch (err) {
+      console.warn('products polling error', err);
+    }
+  }
+  
+  // Initial count
+  setTimeout(() => {
+    const initialProducts = loadProductsFromStorage();
+    lastKnownProductsCount = initialProducts.length;
+    console.log('Initial product count:', lastKnownProductsCount);
+  }, 1000);
+  
+  // Check every 60 seconds
+  setInterval(checkForNewProducts, 300000);
+})();
+
+/* ---------- popularity counters (global) ---------- */
+function getPopularity(pid){
+  try {
+    return JSON.parse(localStorage.getItem(`popularity__${pid}`) || '{"views":0,"wishlistCount":0,"purchaseCount":0}');
+  } catch { return {views:0,wishlistCount:0,purchaseCount:0}; }
+}
+function setPopularity(pid,data){
+  localStorage.setItem(`popularity__${pid}`, JSON.stringify(data));
+}
+function bumpPopularity(pid,field){
+  const pop = getPopularity(pid);
+  pop[field] = (pop[field]||0)+1;
+  setPopularity(pid,pop);
+}
+
+/* ===== NEW FUNCTIONS FOR FILTERS AND MOBILE ===== */
+
+// 1. Filter Bar Function
+// 1. Filter Bar Function
+function initializeFilterBar() {
+  const applyBtn = document.getElementById('applyFiltersBtn');
+  const clearBtn = document.getElementById('clearFiltersBtn');
+  const priceMin = document.getElementById('priceMin');
+  const priceMax = document.getElementById('priceMax');
+  const categorySelect = document.getElementById('categorySelect');
+  const sortSelect = document.getElementById('sortSelect');
+
+  if (!applyBtn || !clearBtn) return;
+
+  // Apply filters
+  applyBtn.addEventListener('click', () => {
+    const min = priceMin.value ? parseFloat(priceMin.value) : 0;
+    const max = priceMax.value ? parseFloat(priceMax.value) : Infinity;
+    const category = categorySelect.value || '';
+    const sort = sortSelect.value || 'newest';
+    
+    applyFiltersAndSearch({ 
+      query: elements.searchBox?.value.trim() || '', 
+      min, 
+      max, 
+      category, 
+      sort 
+    });
+  });
+
+  // Clear filters - UPDATED TO USE clearAllFilters
+  clearBtn.addEventListener('click', () => {
+    clearAllFilters(); // Use the new function
+    
+    // Re-render categories
+    renderCategory('trending', state.currentPage.trending);
+    renderCategory('recent', state.currentPage.recent);
+    renderCategory('budget', state.currentPage.budget);
+  });
+
+  // Also apply filters when select changes (optional)
+  [categorySelect, sortSelect].forEach(select => {
+    if (select) {
+      select.addEventListener('change', () => {
+        applyBtn.click(); // Trigger apply when selection changes
+      });
+    }
+  });
+}
+
+// 2. Search Toggle Function  
+function initializeSearchToggle() {
+  if (!elements.searchToggle || !elements.searchContainer) return;
+
+  elements.searchToggle.addEventListener('click', () => {
+    elements.searchContainer.classList.toggle('active');
+    
+    // Focus on search box when opened
+    if (elements.searchContainer.classList.contains('active')) {
+      setTimeout(() => {
+        elements.searchBox.focus();
+      }, 100);
+    }
+  });
+
+  // Close search when clicking outside (optional)
+  document.addEventListener('click', (e) => {
+    if (!elements.searchContainer.contains(e.target) && 
+        !elements.searchToggle.contains(e.target) &&
+        elements.searchContainer.classList.contains('active')) {
+      elements.searchContainer.classList.remove('active');
+    }
+  });
+}
+
+// 3. Mobile Menu Function
+function initializeMobileMenu() {
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  const mobileNav = document.getElementById('mobileNav');
+  
+  if (mobileMenuBtn && mobileNav) {
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileNav.classList.toggle('active');
+      // Toggle icon between bars and times
+      const icon = mobileMenuBtn.querySelector('i');
+      if (icon) {
+        if (mobileNav.classList.contains('active')) {
+          icon.className = 'fas fa-times';
+        } else {
+          icon.className = 'fas fa-bars';
+        }
+      }
+    });
+  }
+}
+
+/* ===== END OF NEW FUNCTIONS ===== */
+
+
+/* ----------------- bootstrap ----------------- */
+window.state = state;
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+
+
+
+
+
+</body>
+</html>

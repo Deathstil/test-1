@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration Form</title>
+  <style>
+    /* General body styling */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #2C2C2C;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+/* Form container styling */
+.form-container {
+  width: 80%;
+  max-width: 900px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #3A3A3A;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Header Styling */
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #FF9800; /* Bright color for the header */
+}
+
+/* Form input fields */
+input, textarea {
+  width: calc(50% - 20px); /* For two inline inputs */
+  padding: 12px;
+  margin: 10px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background-color: #2C2C2C;
+  color: #fff;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+input:focus, textarea:focus {
+  border-color: #FF9800; /* Focus color */
+  outline: none;
+}
+
+/* Textarea styling */
+textarea {
+  width: 100%;
+  resize: vertical; /* Allow resizing vertically */
+  height: 150px;
+}
+
+/* Button Styling */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #FF9800;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #FB8C00; /* Darker hover effect */
+}
+
+/* Styling for inline form fields */
+.form-inline {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.form-inline input {
+  width: calc(50% - 20px); /* Adjust width for inline layout */
+}
+
+.form-inline input:last-child {
+  margin-right: 0;
+}
+
+/* Styling for Room Number Input (make it smaller) */
+input[name="room"] {
+  width: calc(25% - 20px); /* Make Room Number input smaller */
+}
+
+/* Styling for form containers */
+textarea {
+  margin-top: 10px;
+}
+
+/* Styling for error messages (if needed) */
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* Button container */
+.btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Styling for the logo (if any) */
+.logo {
+  display: block;
+  margin: 0 auto 20px;
+  width: 150px;
+}
+
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Complete Your Registration</h2>
+    
+    <form id="registrationForm" class="form-inline">
+      <!-- Name Input -->
+      <input type="text" placeholder="Full Name" name="name" required aria-label="Full Name" />
+      
+      <!-- Index Number Input -->
+      <input type="text" placeholder="Index Number" name="index" required aria-label="Index Number" />
+      
+      <!-- Program of Study Input -->
+      <input type="text" placeholder="Program of Study" name="program" required aria-label="Program of Study" />
+      
+      <!-- Phone Number Input -->
+      <input type="tel" placeholder="Phone Number" name="phone" required pattern="^[0-9]{10}$" aria-label="Phone Number" />
+      
+      <!-- Room Number Input -->
+      <input type="text" placeholder="Room Number" name="room" required pattern="^[0-9]{1,3}$" maxlength="3" aria-label="Room Number" />
+      
+      <!-- Message Input -->
+      <textarea id="w3review" name="w3review" rows="4" cols="50" placeholder="Tell us anything you would like to share" aria-label="Message"></textarea>
+      
+      <!-- Submit Button -->
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+</body>
+</html>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+    authDomain: "marketplace-e0bff.firebaseapp.com",
+    projectId: "marketplace-e0bff",
+    storageBucket: "marketplace-e0bff.appspot.com",
+    messagingSenderId: "892936444768",
+    appId: "1:892936444768:web:f595b3a3e5d697988e1c05"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const database = getDatabase(app, "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app");
+
+  const form = document.getElementById("registrationForm");
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      alert("You must be signed in to register.");
+      window.location.href = "../index.html";
+      return;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = e.target.name.value.trim();
+      const index = e.target.index.value.trim();
+      const program = e.target.program.value.trim();
+      const phone = e.target.phone.value.trim();
+      const message = e.target.w3review.value.trim();
+      const roomnumber = e.target.room.value.trim();
+
+      if (!name || !index || !program || !phone || !message || !roomnumber) {
+        alert("All fields are required.");
+        return;
+      }
+
+      const phonePattern = /^[0-9]{10}$/;
+      if (!phone.match(phonePattern)) {
+        alert("Please enter a valid 10-digit phone number.");
+        return;
+      }
+
+      // Use UID as the database key
+      const userRef = ref(database, `users/${user.uid}`);
+
+      try {
+        const snapshot = await get(userRef);
+        if (snapshot.exists()) {
+          alert("You are already registered.");
+          return;
+        }
+
+        await set(userRef, {
+          name,
+          index,
+          program,
+          phone,
+          message,
+          roomnumber,
+          approved: false,
+          banned: false,
+          declined: false,
+          email: user.email,
+          role: "user"
+        });
+
+        alert("Registration successful!");
+        window.location.href = "../pending/pending.html";
+
+      } catch (error) {
+        console.error("Error saving data:", error);
+        alert("Something went wrong. Please try again.");
+      }
+    });
+  });
+</script>
+
+

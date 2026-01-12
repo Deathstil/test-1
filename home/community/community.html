@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#5865F2">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Community Chat - Connect with people">
+  <title>Community - Community Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* ===== CRITICAL CSS - LOAD FIRST ===== */
+    :root {
+      --primary-color: #5865F2;
+      --primary-dark: #4752C4;
+      --primary-light: #7983F5;
+      --dark-bg: #36393f;
+      --dark-secondary: #2f3136;
+      --dark-tertiary: #40444b;
+      --light-bg: #ffffff;
+      --light-secondary: #f2f3f5;
+      --light-tertiary: #e3e5e8;
+      --light-text: #ffffff;
+      --dark-text: #2e3338;
+      --gray-text: #b9bbbe;
+      --success-color: #3ba55c;
+      --error-color: #ed4245;
+      --warning-color: #faa81a;
+      --announcement-color: #faa81a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--dark-bg);
+      color: var(--light-text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== STABLE LAYOUT ===== */
+    .app-container {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+    }
+
+    .sidebar {
+      width: 280px;
+      background-color: var(--dark-secondary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background-color: var(--dark-bg);
+    }
+
+    .chat-header {
+      background-color: var(--dark-secondary);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .chat-header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-action-btn {
+      background: none;
+      border: none;
+      color: var(--gray-text);
+      font-size: 16px;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .header-action-btn:hover {
+      background-color: rgba(79, 84, 92, 0.4);
+      color: var(--light-text);
+    }
+
+    /* ===== PROFILE ICON IN HEADER ===== */
+    .profile-icon-header {
+      position: relative;
+      margin-left: 8px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+      border: 2px solid var(--primary-color);
+      transition: all 0.2s ease;
+    }
+
+    .user-avatar:hover {
+      transform: scale(1.1);
+      border-color: var(--primary-light);
+    }
+
+    .profile-dropdown {
+      position: relative;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background-color: var(--dark-secondary);
+      min-width: 220px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .dropdown-content a {
+      color: var(--light-text);
+      padding: 12px 16px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.2s ease;
+    }
+
+    .dropdown-content a:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .dropdown-content a:last-child {
+      border-bottom: none;
+      color: var(--error-color);
+    }
+
+    .dropdown-content a:last-child:hover {
+      background-color: var(--error-color);
+      color: white;
+    }
+
+    .dropdown-content a i {
+      width: 16px;
+      text-align: center;
+    }
+
+    .show {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* ===== FIXED MEMBERS SIDEBAR ===== */
+    .members-sidebar {
+      width: 240px;
+      background-color: var(--dark-secondary);
+      border-left: 1px solid rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Desktop: Always show members sidebar */
+    @media (min-width: 1025px) {
+      .members-sidebar {
+        display: flex;
+      }
+    }
+
+    /* Tablet: Show members sidebar by default */
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .members-sidebar {
+        display: flex;
+      }
+    }
+
+    /* Mobile: Hidden by default, slides in when active */
+    @media (max-width: 768px) {
+      .members-sidebar {
+        position: fixed;
+        top: 0;
+        right: -100%; /* Start off-screen */
+        width: 85%;
+        max-width: 300px;
+        height: 100vh;
+        z-index: 1001;
+        display: flex !important; /* Force display */
+        transition: right 0.3s ease;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+      }
+      
+      .members-sidebar.active {
+        right: 0; /* Slide in */
+      }
+      
+      /* Mobile overlay for members sidebar */
+      .members-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        backdrop-filter: blur(2px);
+      }
+      
+      .members-overlay.active {
+        display: block;
+      }
+    }
+
+    .members-header {
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gray-text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .members-header::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background-color: var(--success-color);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .close-members {
+      background: none;
+      border: none;
+      color: var(--gray-text);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .close-members:hover {
+      background-color: rgba(79, 84, 92, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .close-members {
+        display: flex;
+      }
+    }
+
+    .members-list {
+      list-style: none;
+      flex: 1;
+    }
+
+    .member-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .member-item:hover {
+      background-color: rgba(79, 84, 92, 0.4);
+    }
+
+    .member-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      position: relative;
+    }
+
+    .member-status {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: var(--success-color);
+      border: 3px solid var(--dark-secondary);
+    }
+
+    .member-name {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    /* ===== MESSAGE STYLES ===== */
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: var(--dark-bg);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      display: flex;
+      gap: 16px;
+      padding: 8px 0;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .message.current-user {
+      background-color: rgba(88, 101, 242, 0.05);
+      margin: 0 -20px;
+      padding: 8px 20px;
+    }
+
+    .message.announcement {
+      background-color: rgba(250, 168, 26, 0.1);
+      border-left: 4px solid var(--announcement-color);
+      margin: 0 -20px;
+      padding: 12px 20px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .message-avatar {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+    }
+
+    .message-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .message-author {
+      font-weight: 600;
+      color: var(--light-text);
+      font-size: 16px;
+    }
+
+    .announcement-badge {
+      background-color: var(--announcement-color);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .message-time {
+      font-size: 12px;
+      color: var(--gray-text);
+    }
+
+    .message-text {
+      color: var(--light-text);
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .announcement-title {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: var(--announcement-color);
+    }
+
+    .welcome-message {
+      text-align: center;
+      padding: 60px 40px;
+      color: var(--gray-text);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .welcome-icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+      color: var(--primary-color);
+      opacity: 0.8;
+    }
+
+    .welcome-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .welcome-description {
+      font-size: 18px;
+      line-height: 1.6;
+      margin: 0 auto 32px;
+      opacity: 0.8;
+    }
+
+    /* ===== EMOJI PICKER STYLES ===== */
+    .emoji-picker {
+      position: absolute;
+      bottom: 70px;
+      right: 100px;
+      background: var(--dark-secondary);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      padding: 16px;
+      width: 320px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .emoji-picker.active {
+      display: block;
+      animation: slideUp 0.2s ease;
+    }
+
+    .emoji-category {
+      margin-bottom: 16px;
+    }
+
+    .emoji-category-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-text);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+    }
+
+    .emoji-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .emoji-btn:hover {
+      background-color: var(--primary-color);
+      transform: scale(1.1);
+    }
+
+    /* ===== REST OF THE STYLES ===== */
+    .server-header {
+      padding: 20px 16px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    }
+
+    .server-name {
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: white;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .new-announcement-btn {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+    }
+
+    .new-announcement-btn:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .channels-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 12px;
+    }
+
+    .channel-category {
+      margin-bottom: 24px;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 8px 6px;
+      color: var(--gray-text);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .channel-list {
+      list-style: none;
+    }
+
+    .channel-item {
+      padding: 10px 12px;
+      margin: 2px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      color: var(--gray-text);
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .channel-item:hover {
+      background-color: rgba(79, 84, 92, 0.4);
+      color: var(--light-text);
+    }
+
+    .channel-item.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .channel-item i {
+      font-size: 18px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .chat-header-name {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .chat-header-topic {
+      font-size: 14px;
+      color: var(--gray-text);
+      margin-left: 12px;
+    }
+
+    .chat-input-container {
+      padding: 20px 24px;
+      background-color: var(--dark-secondary);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    .chat-form {
+      display: flex;
+      background-color: var(--dark-tertiary);
+      border-radius: 12px;
+      padding: 12px 20px;
+      position: relative;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      color: var(--light-text);
+      resize: none;
+      max-height: 120px;
+      min-height: 24px;
+      padding: 8px 0;
+      font-family: inherit;
+    }
+
+    .chat-input:focus {
+      outline: none;
+    }
+
+    .input-actions {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      margin-left: 16px;
+      position: relative;
+    }
+
+    .input-action-btn {
+      background: none;
+      border: none;
+      color: var(--gray-text);
+      font-size: 18px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .input-action-btn:hover {
+      color: var(--primary-color);
+      background-color: rgba(88, 101, 242, 0.1);
+    }
+
+    .chat-send-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .chat-send-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background-color: var(--dark-secondary);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 480px;
+      padding: 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--gray-text);
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .close-modal:hover {
+      background-color: rgba(79, 84, 92, 0.4);
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gray-text);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 14px 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--dark-tertiary);
+      color: var(--light-text);
+      font-size: 16px;
+      font-family: inherit;
+    }
+
+    textarea.form-control {
+      min-height: 140px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background-color: rgba(79, 84, 92, 0.4);
+      color: var(--light-text);
+    }
+
+    .btn-secondary:hover {
+      background-color: rgba(79, 84, 92, 0.6);
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 998;
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+    }
+
+    /* ===== RESPONSIVE DESIGN ===== */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 85%;
+        max-width: 300px;
+        height: 100vh;
+        z-index: 1001;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+      }
+      
+      .sidebar.active {
+        left: 0;
+      }
+      
+      .mobile-menu-toggle {
+        display: flex;
+      }
+      
+      .chat-header {
+        padding: 12px 16px;
+      }
+      
+      .messages-container {
+        padding: 16px;
+        gap: 12px;
+      }
+      
+      .message {
+        gap: 12px;
+      }
+      
+      .message.current-user {
+        margin: 0 -16px;
+        padding: 8px 16px;
+      }
+      
+      .message.announcement {
+        margin: 0 -16px;
+        padding: 12px 16px;
+      }
+      
+      .message-avatar {
+        width: 32px;
+        height: 32px;
+      }
+      
+      .message-author {
+        font-size: 14px;
+      }
+      
+      .chat-input-container {
+        padding: 16px;
+      }
+      
+      .emoji-picker {
+        width: 280px;
+        right: 20px;
+        bottom: 60px;
+      }
+      
+      .emoji-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+      
+      .welcome-message {
+        padding: 40px 20px;
+      }
+      
+      .welcome-title {
+        font-size: 24px;
+      }
+      
+      .welcome-description {
+        font-size: 16px;
+      }
+
+      /* Adjust profile icon size on mobile */
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+      }
+    }
+    .member-section {
+  margin-bottom: 20px;
+}
+
+.section-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.member-status-online {
+  background-color: var(--success-color);
+}
+
+.member-status-offline {
+  background-color: #747f8d;
+}
+
+    @media (max-width: 480px) {
+      .sidebar {
+        width: 90%;
+      }
+      
+      .members-sidebar {
+        width: 90%;
+      }
+      
+      .emoji-picker {
+        width: 260px;
+        right: 10px;
+      }
+      
+      .emoji-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+      
+      .welcome-message {
+        padding: 30px 15px;
+      }
+      
+      .modal-content {
+        width: 95%;
+        margin: 20px;
+      }
+
+      .chat-header-actions {
+        gap: 4px;
+      }
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .animate-fade-in-up {
+      animation: slideUp 0.3s ease 0.1s forwards;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Members Sidebar Overlay -->
+  <div class="members-overlay" id="membersOverlay"></div>
+
+  <!-- Main App Container -->
+  <div class="app-container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="server-header">
+        <div class="server-name">
+          <a href="../home.html" class="brand" aria-label="Community Home">
+            <img src="../../images/logo ssi.png" alt="Community Logo" class="brand-icon">
+            <span class="brand-name">Guildite Community</span>
+          </a>
+        </div>
+        <button class="new-announcement-btn" id="newAnnouncementBtn">
+          <i class="fas fa-bullhorn"></i>
+        </button>
+      </div>
+      
+      <div class="channels-container">
+        <div class="channel-category">
+          <div class="category-header">
+            <span>Channels</span>
+          </div>
+          <ul class="channel-list">
+            <li class="channel-item active" data-channel="general">
+              <i class="fas fa-hashtag channel-hashtag"></i>
+              <span>general</span>
+            </li>
+            <li class="channel-item" data-channel="announcements">
+              <i class="fas fa-bullhorn"></i>
+              <span>announcements</span>
+            </li>
+            <li class="channel-item" data-channel="help">
+              <i class="fas fa-question-circle"></i>
+              <span>help</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Chat Header with Integrated Profile Icon -->
+      <div class="chat-header">
+        <i class="fas fa-hashtag"></i>
+        <div class="chat-header-name">general</div>
+        <div class="chat-header-topic">General discussion </div>
+        <div class="chat-header-actions">
+          <button class="header-action-btn" aria-label="Members" id="membersToggle">
+            <i class="fas fa-users"></i>
+          </button>
+          <!-- Profile Icon Integrated in Header -->
+          <div class="profile-icon-header">
+            <div class="profile-dropdown">
+              <img src="../../images/no profile pic.jpg" alt="User profile" class="user-avatar" id="userAvatar">
+              <div class="dropdown-content" aria-label="User menu" id="userDropdown">
+                <a href="../profile/profile.html"><i class="fas fa-user"></i> Profile</a>
+                <a href="../shopping/orders/orders.html"><i class="fas fa-box"></i> Orders</a>
+                <a href="../delivery/delivery.html"><i class="fas fa-shipping-fast"></i> Carriers</a>
+                <a href="../seller/testsell.html"><i class="fas fa-plus-circle"></i> Seller Workshop</a>
+                <a href="../market/market.html"><i class="fas fa-store"></i>Guild Forge</a>
+                <a href="../map/map.html"><i class="fas fa-map-marker-alt"></i>Map</a>
+
+                <!-- Admin link - only visible to higher roles -->
+                <a href="../../adminlogic/approve.html" id="adminLink" style="display: none;"><i class="fas fa-cog"></i> Admin Panel</a>
+                <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Leave Guildite</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Messages Container -->
+      <div class="messages-container" id="messagesContainer">
+        <!-- Messages will be loaded here -->
+      </div>
+      
+      <!-- Chat Input -->
+      <div class="chat-input-container">
+        <!-- Emoji Picker -->
+        <div class="emoji-picker" id="emojiPicker">
+          <div class="emoji-categories" id="emojiCategories">
+            <!-- Emojis will be loaded here -->
+          </div>
+        </div>
+        
+        <form class="chat-form" id="chatForm">
+          <textarea class="chat-input" id="chatInput" placeholder="Message #general" rows="1"></textarea>
+          <div class="input-actions">
+            <button type="button" class="input-action-btn" aria-label="Add emoji" id="emojiButton">
+              <i class="fas fa-smile"></i>
+            </button>
+            <button type="submit" class="chat-send-btn" id="chatSendBtn" aria-label="Send message">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Members Sidebar -->
+    <div class="members-sidebar" id="membersSidebar">
+      <div class="members-header">
+        <span>Online — <span id="onlineCount">0</span></span>
+        <!-- Close button for mobile -->
+        <button class="close-members" id="closeMembers" aria-label="Close members sidebar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <ul class="members-list" id="membersList">
+        <!-- Members will be loaded here -->
+      </ul>
+    </div>
+    
+    <!-- New Announcement Modal -->
+    <div class="modal" id="announcementModal">
+      <div class="modal-content animate-fade-in-up">
+        <div class="modal-header">
+          <h3 class="modal-title">Create Announcement</h3>
+          <button class="close-modal" id="closeAnnouncementModal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="announcementForm">
+          <div class="form-group">
+            <label for="announcementTitle" class="form-label">Title</label>
+            <input type="text" id="announcementTitle" class="form-control" placeholder="Enter announcement title" required>
+          </div>
+          <div class="form-group">
+            <label for="announcementContent" class="form-label">Content</label>
+            <textarea id="announcementContent" class="form-control" placeholder="Enter announcement content" required></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="cancelAnnouncement">Cancel</button>
+            <button type="submit" class="btn btn-primary">Publish Announcement</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+      authDomain: "marketplace-e0bff.firebaseapp.com",
+      projectId: "marketplace-e0bff",
+      storageBucket: "marketplace-e0bff.appspot.com",
+      messagingSenderId: "892936444768",
+      appId: "1:892936444768:web:f595b3a3e5d697988e1c05",
+      databaseURL: "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const auth = getAuth(app);
+
+    // Default avatar fallback
+    const DEFAULT_AVATAR = '../../images/no profile pic.jpg';
+
+    // Current user data
+    let currentUserData = null;
+
+    // Emoji data - categorized emojis (simplified without search)
+    const emojiCategories = {
+      "Smileys & Emotion": ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳"],
+      "People & Body": ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "👎", "👊", "✊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏"],
+      "Animals & Nature": ["🐵", "🐒", "🦍", "🦧", "🐶", "🐕", "🦮", "🐕‍🦺", "🐩", "🐺", "🦊", "🦝", "🐱", "🐈", "🐈‍⬛", "🦁", "🐯", "🐅", "🐆", "🐴", "🐎", "🦄", "🦓", "🦌", "🐮", "🐂", "🐃", "🐄", "🐷", "🐖", "🐗"],
+      "Food & Drink": ["🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", "🍠"],
+      "Travel & Places": ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚", "🚛", "🚜", "🏍️", "🛵", "🚲", "🛴", "🛹", "🛼", "🚁", "✈️", "🛩️", "🛫", "🛬", "🪂", "💺", "🚀", "🛸", "🚉", "🚊"],
+      "Activities": ["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "🎿", "⛷️", "🏂", "🪂", "🏋️", "🤼", "🤸", "⛹️", "🤾", "🚴", "🚵", "🧗", "🏇", "🏊"],
+      "Objects": ["⌚", "📱", "📲", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "🖲️", "🕹️", "🗜️", "💽", "💾", "💿", "📀", "📼", "📷", "📸", "📹", "🎥", "📽️", "🎞️", "📞", "☎️", "📟", "📠", "📺", "📻", "🎙️", "🎚️", "🎛️"],
+      "Symbols": ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "☮️", "✝️", "☪️", "🕉️", "☸️", "✡️", "🔯", "🕎", "☯️", "☦️", "🛐", "⛎"]
+    };
+
+    // Utilities
+    function isValidImage(url) {
+      if (!url) return false;
+      const s = String(url).trim();
+      return /^(data:|https?:\/\/|\/|\.)/.test(s) || /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(s);
+    }
+
+    function getUid() {
+      return sessionStorage.getItem('uid') || null;
+    }
+
+    function updateAdminLinkVisibility(userData) {
+      const adminLink = document.getElementById('adminLink');
+      if (!adminLink) return;
+      
+      const userRole = (userData?.role || 'user').toLowerCase();
+      const adminRoles = ['moderator', 'admin', 'superadmin'];
+      
+      if (adminRoles.includes(userRole)) {
+        adminLink.style.display = 'flex';
+      } else {
+        adminLink.style.display = 'none';
+      }
+    }
+
+    function formatTime(timestamp) {
+      return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDate(timestamp) {
+      return new Date(timestamp).toLocaleDateString();
+    }
+
+    // HTML escape function to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Initialize emoji picker - SIMPLIFIED VERSION
+    function initializeEmojiPicker() {
+      const emojiButton = document.getElementById('emojiButton');
+      const emojiPicker = document.getElementById('emojiPicker');
+      const emojiCategoriesContainer = document.getElementById('emojiCategories');
+      const chatInput = document.getElementById('chatInput');
+
+      // Populate emoji categories - SIMPLE VERSION
+      function populateEmojiPicker() {
+        emojiCategoriesContainer.innerHTML = '';
+        
+        for (const [category, emojis] of Object.entries(emojiCategories)) {
+          const categoryDiv = document.createElement('div');
+          categoryDiv.className = 'emoji-category';
+          
+          const categoryTitle = document.createElement('div');
+          categoryTitle.className = 'emoji-category-title';
+          categoryTitle.textContent = category;
+          
+          const emojiGrid = document.createElement('div');
+          emojiGrid.className = 'emoji-grid';
+          
+          emojis.forEach(emoji => {
+            const emojiBtn = document.createElement('button');
+            emojiBtn.className = 'emoji-btn';
+            emojiBtn.textContent = emoji;
+            emojiBtn.setAttribute('aria-label', `Add ${emoji} emoji`);
+            
+            emojiBtn.addEventListener('click', () => {
+              insertEmoji(emoji);
+            });
+            
+            emojiGrid.appendChild(emojiBtn);
+          });
+          
+          categoryDiv.appendChild(categoryTitle);
+          categoryDiv.appendChild(emojiGrid);
+          emojiCategoriesContainer.appendChild(categoryDiv);
+        }
+      }
+
+      // Insert emoji into chat input
+      function insertEmoji(emoji) {
+        const start = chatInput.selectionStart;
+        const end = chatInput.selectionEnd;
+        const text = chatInput.value;
+        const newText = text.substring(0, start) + emoji + text.substring(end);
+        
+        chatInput.value = newText;
+        chatInput.focus();
+        chatInput.setSelectionRange(start + emoji.length, start + emoji.length);
+        
+        // Trigger input event for auto-resize
+        chatInput.dispatchEvent(new Event('input'));
+        
+        // Close emoji picker
+        emojiPicker.classList.remove('active');
+      }
+
+      // Toggle emoji picker
+      emojiButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        emojiPicker.classList.toggle('active');
+      });
+
+      // Close emoji picker when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+          emojiPicker.classList.remove('active');
+        }
+      });
+
+      // Close emoji picker when pressing Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && emojiPicker.classList.contains('active')) {
+          emojiPicker.classList.remove('active');
+        }
+      });
+
+      // Initial population
+      populateEmojiPicker();
+    }
+
+    // Load approved users for members list
+    // Load approved users for members list - FIXED VERSION
+// Load approved users for members list - WITH SEPARATE ONLINE/OFFLINE SECTIONS
+function loadApprovedUsers() {
+  const usersRef = ref(database, 'users');
+  
+  onValue(usersRef, (snapshot) => {
+    const usersData = snapshot.exists() ? snapshot.val() : {};
+    const membersList = document.getElementById('membersList');
+    const onlineCount = document.getElementById('onlineCount');
+    
+    if (!membersList) return;
+    
+    // Clear existing members
+    membersList.innerHTML = '';
+    
+    let onlineUsersCount = 0;
+    const currentUserId = getUid();
+    
+    // Separate users into online and offline arrays
+    const onlineUsers = [];
+    const offlineUsers = [];
+    
+    // Filter and categorize users
+    for (const userId in usersData) {
+      const user = usersData[userId];
+      
+      // Check if user is approved (not banned, not declined)
+      if (user && !user.banned && !user.declined) {
+        const userName = user?.name || 'Anonymous';
+        const userAvatar = user?.profilePictureUrl && isValidImage(user.profilePictureUrl) 
+          ? user.profilePictureUrl 
+          : DEFAULT_AVATAR;
+        
+        // Determine if user is online (for now, only current user is online)
+        const isOnline = userId === currentUserId;
+        
+        if (isOnline) {
+          onlineUsersCount++;
+          onlineUsers.push({ userId, user, userName, userAvatar, isOnline });
+        } else {
+          offlineUsers.push({ userId, user, userName, userAvatar, isOnline });
+        }
+      }
+    }
+    
+    // Create Online Section (if there are online users)
+    if (onlineUsers.length > 0) {
+      const onlineSection = document.createElement('div');
+      onlineSection.className = 'member-section';
+      onlineSection.innerHTML = `
+        <div class="section-header">Online — ${onlineUsers.length}</div>
+      `;
+      
+      onlineUsers.forEach(({ userId, userName, userAvatar, isOnline }) => {
+        const memberEl = document.createElement('li');
+        memberEl.className = 'member-item';
+        memberEl.setAttribute('data-uid', userId);
+        
+        // Highlight current user
+        if (userId === currentUserId) {
+          memberEl.style.backgroundColor = 'rgba(88, 101, 242, 0.2)';
+        }
+        
+        memberEl.innerHTML = `
+          <div class="member-avatar">
+            <img src="${userAvatar}" alt="${userName}" class="member-avatar" onerror="this.src='${DEFAULT_AVATAR}'">
+            <span class="member-status member-status-online"></span>
+          </div>
+          <span class="member-name">${userName} ${userId === currentUserId ? '(You)' : ''}</span>
+        `;
+        
+        onlineSection.appendChild(memberEl);
+      });
+      
+      membersList.appendChild(onlineSection);
+    }
+    
+    // Create Offline Section (if there are offline users)
+    if (offlineUsers.length > 0) {
+      const offlineSection = document.createElement('div');
+      offlineSection.className = 'member-section';
+      offlineSection.innerHTML = `
+        <div class="section-header">Offline — ${offlineUsers.length}</div>
+      `;
+      
+      offlineUsers.forEach(({ userId, userName, userAvatar, isOnline }) => {
+        const memberEl = document.createElement('li');
+        memberEl.className = 'member-item';
+        memberEl.setAttribute('data-uid', userId);
+        
+        // Highlight current user (even if offline - though this shouldn't happen)
+        if (userId === currentUserId) {
+          memberEl.style.backgroundColor = 'rgba(88, 101, 242, 0.1)';
+        }
+        
+        memberEl.innerHTML = `
+          <div class="member-avatar">
+            <img src="${userAvatar}" alt="${userName}" class="member-avatar" onerror="this.src='${DEFAULT_AVATAR}'">
+            <span class="member-status member-status-offline"></span>
+          </div>
+          <span class="member-name">${userName} ${userId === currentUserId ? '(You)' : ''}</span>
+        `;
+        
+        offlineSection.appendChild(memberEl);
+      });
+      
+      membersList.appendChild(offlineSection);
+    }
+    
+    // Update online count
+    if (onlineCount) {
+      onlineCount.textContent = onlineUsersCount;
+    }
+    
+    // If no users found at all, show message
+    if (onlineUsers.length === 0 && offlineUsers.length === 0) {
+      membersList.innerHTML = `
+        <div style="text-align: center; color: var(--gray-text); padding: 20px;">
+          <i class="fas fa-users" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+          <div>No users found</div>
+        </div>
+      `;
+    }
+  });
+}
+// Load messages from localStorage with proper styling
+    function loadMessages(channel = 'general') {
+      const messagesContainer = document.getElementById('messagesContainer');
+      messagesContainer.innerHTML = '';
+      
+      if (channel === 'announcements') {
+        // Load announcements
+        const announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+        
+        if (announcements.length === 0) {
+          messagesContainer.innerHTML = `
+            <div class="welcome-message animate-fade-in-up">
+              <div class="welcome-icon"><i class="fas fa-bullhorn"></i></div>
+              <h2 class="welcome-title">Welcome to #announcements!</h2>
+              <p class="welcome-description">This is where important announcements will be posted. Check back regularly for updates!</p>
+            </div>
+          `;
+        } else {
+          // Display announcements with special styling
+          announcements.forEach((announcement) => {
+            const announcementEl = createAnnouncementElement(announcement);
+            messagesContainer.appendChild(announcementEl);
+          });
+        }
+      } else {
+        // Load regular messages
+        const messages = JSON.parse(localStorage.getItem(`chat_${channel}`) || '[]');
+
+        if (messages.length === 0) {
+          messagesContainer.innerHTML = `
+            <div class="welcome-message animate-fade-in-up">
+              <div class="welcome-icon"><i class="fas fa-comments"></i></div>
+              <h2 class="welcome-title">Welcome to #${channel}!</h2>
+              <p class="welcome-description">This is the start of the ${channel} channel. Be the first to send a message!</p>
+            </div>
+          `;
+        } else {
+          // Display all messages with proper styling
+          messages.forEach((msg) => {
+            const isCurrentUser = currentUserData && msg.userId === currentUserData.uid;
+            const msgEl = createMessageElement(msg, isCurrentUser);
+            messagesContainer.appendChild(msgEl);
+          });
+        }
+      }
+      
+      // Scroll to bottom
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Create a message element with proper styling
+    function createMessageElement(msg, isCurrentUser = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isCurrentUser ? 'current-user' : ''}`;
+      
+      const avatarUrl = msg.avatar && isValidImage(msg.avatar) ? msg.avatar : DEFAULT_AVATAR;
+      
+      messageDiv.innerHTML = `
+        <div class="message-avatar">
+          <img src="${avatarUrl}" alt="${msg.userName}" onerror="this.src='${DEFAULT_AVATAR}'">
+        </div>
+        <div class="message-content">
+          <div class="message-header">
+            <span class="message-author">${msg.userName}</span>
+            <span class="message-time">${formatTime(msg.timestamp)}</span>
+          </div>
+          <div class="message-text">${escapeHtml(msg.text)}</div>
+        </div>
+      `;
+      
+      return messageDiv;
+    }
+
+    // Create an announcement element with special styling
+    function createAnnouncementElement(announcement) {
+      const announcementDiv = document.createElement('div');
+      announcementDiv.className = 'message announcement';
+      
+      const avatarUrl = announcement.avatar && isValidImage(announcement.avatar) ? announcement.avatar : DEFAULT_AVATAR;
+      
+      announcementDiv.innerHTML = `
+        <div class="message-avatar">
+          <img src="${avatarUrl}" alt="${announcement.author}" onerror="this.src='${DEFAULT_AVATAR}'">
+        </div>
+        <div class="message-content">
+          <div class="message-header">
+            <span class="message-author">${announcement.author}</span>
+            <span class="announcement-badge">Announcement</span>
+            <span class="message-time">${formatDate(announcement.timestamp)} at ${formatTime(announcement.timestamp)}</span>
+          </div>
+          <div class="announcement-title">${escapeHtml(announcement.title)}</div>
+          <div class="message-text">${escapeHtml(announcement.content)}</div>
+        </div>
+      `;
+      
+      return announcementDiv;
+    }
+
+    // Add a new message to localStorage
+    function addMessage(channel, text) {
+      if (!currentUserData || !text.trim()) return;
+      
+      const message = {
+        userId: currentUserData.uid,
+        userName: currentUserData.name || 'Anonymous',
+        avatar: currentUserData.profilePictureUrl || DEFAULT_AVATAR,
+        text: text.trim(),
+        timestamp: Date.now()
+      };
+
+      // Get existing messages
+      const messages = JSON.parse(localStorage.getItem(`chat_${channel}`) || '[]');
+      
+      // Add new message
+      messages.push(message);
+      
+      // Save back to localStorage (limit to last 100 messages to prevent storage issues)
+      const limitedMessages = messages.slice(-100);
+      localStorage.setItem(`chat_${channel}`, JSON.stringify(limitedMessages));
+      
+      // Reload messages to show the new one
+      loadMessages(channel);
+    }
+
+    // Add a new announcement
+    function addAnnouncement(title, content) {
+      if (!currentUserData || !title.trim() || !content.trim()) return;
+      
+      const announcement = {
+        id: Date.now().toString(),
+        author: currentUserData.name || 'Anonymous',
+        avatar: currentUserData.profilePictureUrl || DEFAULT_AVATAR,
+        title: title.trim(),
+        content: content.trim(),
+        timestamp: Date.now()
+      };
+
+      // Get existing announcements
+      const announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+      
+      // Add new announcement at the beginning (most recent first)
+      announcements.unshift(announcement);
+      
+      // Save back to localStorage (limit to last 50 announcements)
+      const limitedAnnouncements = announcements.slice(0, 50);
+      localStorage.setItem('announcements', JSON.stringify(limitedAnnouncements));
+      
+      // Close modal and show success message
+      document.getElementById('announcementModal').classList.remove('active');
+      document.getElementById('announcementForm').reset();
+      
+      // If currently viewing announcements, reload them
+      const currentChannel = document.querySelector('.channel-item.active')?.dataset.channel;
+      if (currentChannel === 'announcements') {
+        loadMessages('announcements');
+      }
+      
+      alert('Announcement published successfully!');
+    }
+
+    // Initialize chat functionality
+    function initializeChat() {
+      const chatForm = document.getElementById('chatForm');
+      const chatInput = document.getElementById('chatInput');
+      
+      if (chatForm && chatInput) {
+        chatForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const text = chatInput.value.trim();
+          if (!text) return;
+
+          const activeChannel = document.querySelector('.channel-item.active')?.dataset.channel || 'general';
+          
+          // Don't allow regular messages in announcements channel
+          if (activeChannel === 'announcements') {
+            alert('This channel is for announcements only. Please use the announcement button to post announcements.');
+            chatInput.value = '';
+            return;
+          }
+          
+          addMessage(activeChannel, text);
+          
+          // Reset input
+          chatInput.value = '';
+          chatInput.style.height = 'auto';
+        });
+
+        // Auto-resize textarea
+        chatInput.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+      }
+    }
+
+    // Initialize announcement functionality
+    function initializeAnnouncements() {
+      const announcementForm = document.getElementById('announcementForm');
+      const newAnnouncementBtn = document.getElementById('newAnnouncementBtn');
+      const announcementModal = document.getElementById('announcementModal');
+      const closeAnnouncementModal = document.getElementById('closeAnnouncementModal');
+      const cancelAnnouncement = document.getElementById('cancelAnnouncement');
+
+      // Only show announcement button to admins/moderators
+      function updateAnnouncementButtonVisibility() {
+        if (!currentUserData) return;
+        
+        const userRole = currentUserData.role?.toLowerCase() || 'user';
+        const allowedRoles = ['moderator', 'admin', 'superadmin'];
+        
+        if (allowedRoles.includes(userRole)) {
+          newAnnouncementBtn.style.display = 'flex';
+        } else {
+          newAnnouncementBtn.style.display = 'none';
+        }
+      }
+
+      // Show announcement modal
+      if (newAnnouncementBtn) {
+        newAnnouncementBtn.addEventListener('click', function() {
+          announcementModal.classList.add('active');
+        });
+      }
+
+      // Close announcement modal
+      if (closeAnnouncementModal) {
+        closeAnnouncementModal.addEventListener('click', function() {
+          announcementModal.classList.remove('active');
+        });
+      }
+
+      // Cancel announcement
+      if (cancelAnnouncement) {
+        cancelAnnouncement.addEventListener('click', function() {
+          announcementModal.classList.remove('active');
+          announcementForm.reset();
+        });
+      }
+
+      // Submit announcement form
+      if (announcementForm) {
+        announcementForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const title = document.getElementById('announcementTitle').value;
+          const content = document.getElementById('announcementContent').value;
+          
+          if (title && content) {
+            addAnnouncement(title, content);
+          }
+        });
+      }
+
+      // Close modal when clicking outside
+      announcementModal.addEventListener('click', function(e) {
+        if (e.target === announcementModal) {
+          announcementModal.classList.remove('active');
+        }
+      });
+
+      // Update button visibility when user data is available
+      if (currentUserData) {
+        updateAnnouncementButtonVisibility();
+      }
+    }
+
+    // Channel switching
+    function initializeChannels() {
+      const channelItems = document.querySelectorAll('.channel-item');
+      const headerName = document.querySelector('.chat-header-name');
+      const headerTopic = document.querySelector('.chat-header-topic');
+      const chatInput = document.getElementById('chatInput');
+      const chatForm = document.getElementById('chatForm');
+
+      channelItems.forEach(item => {
+        item.addEventListener('click', function() {
+          // Update active channel
+          channelItems.forEach(i => i.classList.remove('active'));
+          this.classList.add('active');
+          
+          const channel = this.dataset.channel;
+          
+          // Update UI
+          if (headerName) headerName.textContent = channel;
+          if (chatInput) chatInput.placeholder = `Message #${channel}`;
+          
+          // Update topic based on channel
+          const channelTopics = {
+            'general': 'General discussion for all people',
+            'announcements': '',
+            'help': 'Get help and support from the community'
+          };
+          
+          if (headerTopic) {
+            headerTopic.textContent = channelTopics[channel]  ;
+          }
+
+          // Show/hide chat input based on channel
+          if (channel === 'announcements') {
+            chatForm.style.display = 'none';
+          } else {
+            chatForm.style.display = 'flex';
+          }
+          
+          // Load messages for this channel
+          loadMessages(channel);
+          
+          // Close sidebar on mobile
+          if (window.innerWidth <= 768) {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            if (sidebar && sidebarOverlay) {
+              sidebar.classList.remove('active');
+              sidebarOverlay.classList.remove('active');
+            }
+          }
+        });
+      });
+    }
+
+    // Authentication state listener
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "../../index.html";
+        return;
+      }
+
+      // Store user ID
+      sessionStorage.setItem('uid', user.uid);
+      
+      // Get user data from database
+      const userRef = ref(database, `users/${user.uid}`);
+      const snapshot = await get(userRef);
+      
+      if (!snapshot.exists()) {
+        console.warn('User data not found');
+        return;
+      }
+
+      const userData = snapshot.val();
+      if (!userData) return;
+
+      // Check if user is banned or declined
+      if (userData.declined) {
+        window.location.href = "../../adminlogic/declined/declined.html";
+        return;
+      }
+      if (userData.banned) {
+        window.location.href = "../../adminlogic/banned/banned.html";
+        return;
+      }
+
+      // Store current user data for chat
+      currentUserData = {
+        uid: user.uid,
+        name: userData.name || 'Anonymous',
+        profilePictureUrl: userData.profilePictureUrl,
+        role: userData.role
+      };
+
+      // Update UI
+      updateAdminLinkVisibility(userData);
+
+      const avatarEl = document.getElementById('userAvatar');
+      if (avatarEl) {
+        avatarEl.src = userData.profilePictureUrl && isValidImage(userData.profilePictureUrl) 
+          ? userData.profilePictureUrl 
+          : DEFAULT_AVATAR;
+
+        // Listen for profile picture updates
+        onValue(userRef, snap => {
+          const updatedData = snap.val();
+          if (updatedData?.profilePictureUrl && isValidImage(updatedData.profilePictureUrl)) {
+            avatarEl.src = updatedData.profilePictureUrl;
+            // Update current user data
+            if (currentUserData) {
+              currentUserData.profilePictureUrl = updatedData.profilePictureUrl;
+            }
+          }
+        });
+      }
+
+      // Load users and messages
+      loadApprovedUsers();
+      loadMessages('general');
+      initializeAnnouncements();
+    });
+
+    // Enhanced logout functionality
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (confirm('Are you sure you want to logout?')) {
+          try {
+            await signOut(auth);
+            sessionStorage.removeItem('uid');
+            window.location.href = "../../index.html";
+          } catch (error) {
+            console.error('Logout error:', error);
+            window.location.href = "../../index.html";
+          }
+        }
+      });
+    }
+
+    // Initialize UI when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeUI();
+      setupEventListeners();
+      initializeChannels();
+      initializeChat();
+      initializeEmojiPicker();
+      
+      console.log('Community chat initialized with emoji picker');
+    });
+
+    function initializeUI() {
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      if (window.innerWidth <= 768) {
+        mobileMenuToggle.style.display = 'flex';
+      }
+
+      // Initialize members sidebar based on screen size
+      const membersSidebar = document.getElementById('membersSidebar');
+      
+      if (window.innerWidth <= 768) {
+        // Mobile: hidden by default (positioned off-screen)
+        membersSidebar.style.display = 'flex';
+        membersSidebar.classList.remove('active');
+      } else {
+        // Desktop/Tablet: show by default
+        membersSidebar.style.display = 'flex';
+      }
+    }
+
+    function setupEventListeners() {
+      // Mobile menu
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      const sidebar = document.getElementById('sidebar');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+      
+      mobileMenuToggle.addEventListener('click', function() {
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+      });
+
+      sidebarOverlay.addEventListener('click', function() {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+      });
+
+      // Members toggle
+      const membersToggle = document.getElementById('membersToggle');
+      const membersSidebar = document.getElementById('membersSidebar');
+      const membersOverlay = document.getElementById('membersOverlay');
+      const closeMembersBtn = document.getElementById('closeMembers');
+      
+      membersToggle.addEventListener('click', function() {
+        if (window.innerWidth <= 768) {
+          // Mobile behavior: toggle the active class
+          const isActive = membersSidebar.classList.contains('active');
+          
+          if (isActive) {
+            membersSidebar.classList.remove('active');
+            membersOverlay.classList.remove('active');
+          } else {
+            membersSidebar.classList.add('active');
+            membersOverlay.classList.add('active');
+          }
+        } else {
+          // Desktop/Tablet behavior: toggle between flex and none
+          if (membersSidebar.style.display === 'none') {
+            membersSidebar.style.display = 'flex';
+          } else {
+            membersSidebar.style.display = 'none';
+          }
+        }
+      });
+
+      // Close members sidebar on mobile
+      closeMembersBtn.addEventListener('click', function() {
+        membersSidebar.classList.remove('active');
+        membersOverlay.classList.remove('active');
+      });
+
+      membersOverlay.addEventListener('click', function() {
+        membersSidebar.classList.remove('active');
+        membersOverlay.classList.remove('active');
+      });
+
+      // Profile dropdown
+      const userAvatar = document.getElementById('userAvatar');
+      const userDropdown = document.getElementById('userDropdown');
+      
+      if (userAvatar && userDropdown) {
+        userAvatar.addEventListener('click', function(e) {
+          e.stopPropagation();
+          userDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', function() {
+          userDropdown.classList.remove('show');
+        });
+      }
+
+      // Window resize
+      window.addEventListener('resize', function() {
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const membersSidebar = document.getElementById('membersSidebar');
+        
+        if (window.innerWidth <= 768) {
+          mobileMenuToggle.style.display = 'flex';
+          // Ensure members sidebar is properly positioned on mobile
+          if (!membersSidebar.classList.contains('active')) {
+            membersSidebar.style.right = '-100%';
+          }
+        } else {
+          mobileMenuToggle.style.display = 'none';
+          sidebar.classList.remove('active');
+          sidebarOverlay.classList.remove('active');
+          membersSidebar.classList.remove('active');
+          membersOverlay.classList.remove('active');
+          
+          // Reset members sidebar for desktop
+          membersSidebar.style.display = 'flex';
+          membersSidebar.style.right = '0';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

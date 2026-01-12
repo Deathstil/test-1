@@ -1,0 +1,3278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Dashboard — Guildite</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* ===== MOBILE-FIRST RESPONSIVE CSS FOR DELIVERY DASHBOARD ===== */
+:root {
+    --primary: #2563eb;
+    --success: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --light-bg: #f9fafb;
+    --dark-bg: #0f172a;
+    --card: #fff;
+    --card-dark: #1e293b;
+    --text-dark: #1e293b;
+    --text-light: #f8fafc;
+    --muted: #64748b;
+    --radius: 8px;
+    --trans: all 0.2s ease;
+    --excel-border: #c9d4e8;
+    --badge-bg: #ef4444;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Inter, Arial, sans-serif;
+    margin: 0;
+    background: var(--light-bg);
+    color: var(--text-dark);
+    padding: 12px;
+    transition: var(--trans);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+body.dark-mode {
+    background: var(--dark-bg);
+    color: var(--text-light);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ===== HEADER ===== */
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.title {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.title h1 {
+    font-size: 1.3rem;
+    margin: 0;
+    color: var(--primary);
+    line-height: 1.2;
+}
+
+.small-muted {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.3;
+}
+
+.user-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: inherit;
+    font-size: 0.9rem;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(0, 0, 0, 0.06);
+}
+
+.profile-dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 42px;
+    background: var(--card);
+    border-radius: 6px;
+    padding: 6px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: none;
+    min-width: 160px;
+    z-index: 100;
+}
+
+body.dark-mode .dropdown-menu {
+    background: var(--card-dark);
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 8px 12px;
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.dropdown-menu a:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+/* ===== CONTROLS ROW ===== */
+.controls-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    margin-bottom: 12px;
+}
+
+/* ===== SECTIONS & CARDS ===== */
+.section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: var(--trans);
+    overflow: hidden;
+}
+
+body.dark-mode .section {
+    background: var(--card-dark);
+}
+
+.section h2 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ===== BADGE FOR NEW DELIVERIES ===== */
+.section .new-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 6px;
+}
+
+.new-badge .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--badge-bg);
+    position: relative;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.new-badge .count {
+    background: var(--badge-bg);
+    color: #fff;
+    padding: 3px 6px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    min-width: 22px;
+    text-align: center;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+.new-badge .dot.pulse {
+    animation: pulse 1.6s infinite;
+}
+
+/* ===== TABLE (EXCEL-LIKE GRID) ===== */
+.table-wrap {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--excel-border);
+    border-radius: var(--radius);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+    background: transparent;
+    font-size: 0.85rem;
+}
+
+th, td {
+    padding: 8px 10px;
+    border: 1px solid var(--excel-border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+th {
+    background: #f3f7ff;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+body.dark-mode th, body.dark-mode td {
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+tr:hover td {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+.s-pending {
+    background: #fff7ed;
+    color: #92400e;
+}
+
+.s-accepted {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.s-processing {
+    background: #fff3bf;
+    color: #92400e;
+}
+
+.s-delivering {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.s-atdoor {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.s-delivered {
+    background: #dcfce7;
+    color: #065f46;
+}
+
+.s-rejected {
+    background: #fecaca;
+    color: #7f1d1d;
+}
+
+/* ===== ACTIONS ===== */
+.actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.btn-edit {
+    background: var(--primary);
+    color: #fff;
+}
+
+.btn-delete {
+    background: var(--danger);
+    color: #fff;
+}
+
+.btn-accept {
+    background: var(--success);
+    color: #fff;
+}
+
+.btn-warn {
+    background: var(--warn);
+    color: #fff;
+}
+
+.btn-muted {
+    background: transparent;
+    border: 1px solid #e6eefc;
+}
+
+/* ===== DELIVERY DETAILS EXPANDED PANE ===== */
+.order-details {
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 6px;
+    background: var(--light-bg);
+    display: none;
+    border: 1px solid var(--excel-border);
+    font-size: 0.85rem;
+}
+
+body.dark-mode .order-details {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.order-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.order-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.item-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #e6eefc;
+}
+
+/* ===== THUMBNAIL IN LIST ===== */
+.row-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    object-fit: cover;
+    border: 1px solid #e6eefc;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* ===== MODAL ===== */
+.modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 999;
+    padding: 12px;
+}
+
+.modal-card {
+    background: var(--card);
+    padding: 16px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+body.dark-mode .modal-card {
+    background: var(--card-dark);
+}
+
+.modal-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+}
+
+.input, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #e6eefc;
+    margin-top: 8px;
+    font-size: 0.9rem;
+}
+
+/* ===== TOAST ===== */
+#toastContainer {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+    max-width: calc(100vw - 24px);
+}
+
+.toast {
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: #fff;
+    min-width: 200px;
+    max-width: 280px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.toast-success {
+    background: var(--success);
+}
+
+.toast-error {
+    background: var(--danger);
+}
+
+.toast-warn {
+    background: var(--warn);
+}
+
+/* ===== MAP CONTAINER ===== */
+.map-container {
+    height: 180px;
+    background: #f1f5f9;
+    border-radius: var(--radius);
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 0 16px;
+}
+
+.map-container i {
+    font-size: 1.8rem;
+    margin-right: 10px;
+}
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.stat-card {
+    background: var(--light-bg);
+    padding: 12px;
+    border-radius: var(--radius);
+    text-align: center;
+}
+
+body.dark-mode .stat-card {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 8px 0;
+    color: var(--primary);
+}
+
+/* ===== DELIVERY CODE MODAL STYLES ===== */
+#lockScreen {
+    text-align: center;
+    padding: 16px;
+    background: #fef2f2;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+
+body.dark-mode #lockScreen {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+#lockScreen i {
+    font-size: 1.8rem;
+    color: var(--danger);
+    margin-bottom: 12px;
+}
+
+#lockScreen h4 {
+    margin: 0 0 8px 0;
+    color: var(--danger);
+}
+
+#countdownTimer {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--danger);
+}
+
+#attemptsCounter {
+    font-size: 0.8rem;
+    margin-top: 8px;
+    display: block;
+}
+
+/* ===== MEDIA QUERIES ===== */
+
+/* Small phones (up to 360px) */
+@media (max-width: 360px) {
+    body {
+        padding: 8px;
+        font-size: 13px;
+    }
+    
+    .section {
+        padding: 10px;
+    }
+    
+    .user-controls {
+        gap: 6px;
+    }
+    
+    .btn {
+        padding: 5px 7px;
+        font-size: 0.75rem;
+    }
+    
+    table {
+        min-width: 500px;
+        font-size: 0.8rem;
+    }
+    
+    th, td {
+        padding: 6px 8px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 8px;
+    }
+    
+    .stat-value {
+        font-size: 1.2rem;
+    }
+    
+    .map-container {
+        height: 150px;
+        font-size: 0.85rem;
+    }
+    
+    .map-container i {
+        font-size: 1.5rem;
+    }
+}
+
+/* Medium phones (361px to 480px) */
+@media (min-width: 361px) and (max-width: 480px) {
+    .user-controls {
+        justify-content: flex-start;
+    }
+    
+    .controls-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+/* Large phones (481px to 767px) */
+@media (min-width: 481px) {
+    .header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .controls-row {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .user-controls {
+        justify-content: flex-end;
+    }
+}
+
+/* Tablets and larger (768px+) */
+@media (min-width: 768px) {
+    body {
+        padding: 16px;
+        font-size: 14px;
+    }
+    
+    .section {
+        padding: 16px;
+    }
+    
+    .title h1 {
+        font-size: 1.5rem;
+    }
+    
+    .controls-row {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    table {
+        min-width: 680px;
+        font-size: 0.85rem;
+    }
+    
+    th, td {
+        padding: 10px 12px;
+    }
+    
+    .btn {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .map-container {
+        height: 200px;
+        font-size: 1rem;
+    }
+    
+    .map-container i {
+        font-size: 2rem;
+    }
+}
+
+/* Desktop (900px+) */
+@media (min-width: 900px) {
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.hidden { display: none; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-1 { gap: 8px; }
+.gap-2 { gap: 16px; }
+.w-full { width: 100%; }
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .new-badge .dot.pulse {
+        animation: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --primary: #0044cc;
+        --success: #006600;
+        --warn: #663300;
+        --danger: #990000;
+    }
+    
+    .status-badge {
+        border: 1px solid currentColor;
+    }
+}
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title">
+            <i class="fas fa-truck" style="font-size:1.4rem;color:var(--primary)"></i>
+            <div>
+                <h1>Delivery Workshop</h1>
+                <div class="small-muted" id="carrierGreeting">Guildite — Manage your deliveries</div>
+            </div>
+            
+        </div>
+
+        <div class="user-controls">
+            <button id="toggleTheme" class="icon-btn" title="Toggle theme"><i class="fas fa-moon"></i></button>
+            <div class="profile-dropdown">
+                <img id="userAvatar" class="avatar" src="../../images/no profile pic.jpg" alt="profile">
+                <div class="dropdown-menu" id="profileMenu">
+                    <a href="../profile/profile.html"><i class="fas fa-user"></i>Profile</a>
+                    <a href="../shopping/orders/orders.html"><i class="fas fa-box"></i>Orders</a>
+                    <a href="../shopping/cart/cart.html"><i class="fas fa-shopping-cart"></i>Cart</a>
+                    <a href="../shopping/wishlist/wishlist.html"><i class="fas fa-heart"></i>Wishlist</a>
+                    <a href="../seller/testsell.html"><i class="fas fa-plus-circle"></i>Seller Workshop</a>
+                    <a href="../community/community.html"><i class="fas fa-users"></i>Guild Hall</a>
+                    <a href="../market/market.html"><i class="fas fa-store"></i>Guild Forge</a>
+                    <a href="../map/map.html"><i class="fas fa-map-marker-alt"></i>Map</a>
+                    <div style="height:1px;background:#eee;margin:6px 0"></div>
+                    <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Leave Guild</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Stats -->
+    <section class="section" id="sectionStats">
+        <h2><i class="fas fa-chart-line"></i> Delivery Statistics</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="small-muted">Today's Deliveries</div>
+                <div class="stat-value" id="statToday">0</div>
+                <div class="small-muted">Completed: <span id="statCompleted">0</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="small-muted">Active Deliveries</div>
+                <div class="stat-value" id="statActive">0</div>
+                <div class="small-muted">In Progress: <span id="statProgress">0</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="small-muted">Weekly Earnings</div>
+                <div class="stat-value" id="statEarnings">GHC 0</div>
+                <div class="small-muted">Avg: GHC <span id="statAvg">0</span>/delivery</div>
+            </div>
+            <div class="stat-card">
+                <div class="small-muted">Performance</div>
+                <div class="stat-value" id="statRating">0%</div>
+                <div class="small-muted">On-time: <span id="statOnTime">0%</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Assigned Deliveries -->
+    <section class="section" id="sectionDeliveries">
+        <h2>
+            <i class="fas fa-shipping-fast"></i> Assigned Deliveries
+            <span class="new-badge" id="deliveriesBadge" title="New deliveries" style="display:none">
+                <span class="dot pulse" id="deliveriesDot"></span>
+                <span class="count" id="deliveriesCount">0</span>
+            </span>
+        </h2>
+        <div class="controls-row">
+            <input id="deliverySearch" class="input" placeholder="Search by customer or location..." style="max-width:320px">
+            <select id="deliveryFilterSelect" class="input" style="max-width:220px">
+                <option value="">All delivery status</option>
+                <option>Processing</option>
+                <option>Delivering</option>
+                <option>At Door</option>
+                <option>Delivered</option>
+            </select>
+        </div>
+
+        <div class="table-wrap">
+            <table id="deliveriesTable">
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Location</th>
+                    <th>Items</th>
+                    <th>Status</th>
+                    <th>Assigned</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Delivery History -->
+    <section class="section" id="sectionHistory">
+        <h2><i class="fas fa-history"></i> Delivery History</h2>
+        <div class="controls-row">
+            <input id="historySearch" class="input" placeholder="Search past deliveries..." style="max-width:320px">
+            <div style="margin-left:auto;display:flex;gap:8px">
+                <button id="exportCsv" class="btn btn-edit"><i class="fas fa-file-csv"></i>&nbsp;Export CSV</button>
+                <div id="dashboardControls" style="display:flex;gap:8px;align-items:center">
+              <button id="clearHistoryBtn" class="btn btn-warn">Clear History</button>
+            </div>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table id="completedTable">
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Location</th>
+                    <th>Items</th>
+                    <th>Delivered At</th>
+                    <th>Rating</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Delivery Map (Placeholder) -->
+    <section class="section" id="sectionMap">
+        <h2><i class="fas fa-map-marked-alt"></i> Delivery Map</h2>
+        <div class="map-container">
+            <i class="fas fa-map-marked-alt" style="font-size:2rem;margin-right:12px"></i>
+            <span>Interactive delivery map would be displayed here</span>
+        </div>
+    </section>
+</div>
+
+<!-- Delivery code modal with lock screen -->
+<div id="codeModal" class="modal" style="display:none">
+    <div class="modal-card">
+        <h3>Enter Delivery Code</h3>
+        <div class="small-muted">Ask the customer for the delivery code and enter it here to confirm delivery.</div>
+        
+        <!-- Lock screen state -->
+        <div id="lockScreen" style="display: none; text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px; margin: 12px 0;">
+            <i class="fas fa-lock" style="font-size: 2rem; color: var(--danger); margin-bottom: 12px;"></i>
+            <h4 style="margin: 0 0 8px 0; color: var(--danger);">Too Many Failed Attempts</h4>
+            <p class="small-muted" style="margin: 0 0 12px 0;">Please wait before trying again.</p>
+            <div id="countdownTimer" style="font-size: 1.2rem; font-weight: 700; color: var(--danger);"></div>
+        </div>
+        
+        <!-- Code input (hidden when locked) -->
+        <div id="codeInputSection">
+            <input id="deliveryCodeInput" class="input" placeholder="6-digit code" maxlength="6">
+            <div class="small-muted" style="margin-top: 8px;">
+                <span id="attemptsCounter">Attempts: 0/5</span>
+            </div>
+        </div>
+        
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+            <button id="cancelDelivery" class="btn btn-warn">Cancel</button>
+            <button id="confirmDelivery" class="btn btn-accept">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery Details Modal -->
+<div id="detailsModal" class="modal" style="display:none">
+    <div class="modal-card">
+        <h3>Delivery Details</h3>
+        <div id="deliveryDetailsContent"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button id="closeDetails" class="btn btn-warn">Close</button>
+            <button id="startNavigation" class="btn btn-edit"><i class="fas fa-route"></i> Start Navigation</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toasts -->
+<div id="toastContainer" aria-live="polite"></div>
+
+<script type="module">
+/* Delivery dashboard — updated with enhanced code verification */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,query,where,orderBy,limit,onSnapshot,serverTimestamp,arrayUnion,arrayRemove,writeBatch, Timestamp} from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBzPa671GH71UvTcZ3dECFPrW4xe1vS9ds",
+  authDomain: "marketplace-e0bff.firebaseapp.com",
+  projectId: "marketplace-e0bff",
+  storageBucket: "marketplace-e0bff.appspot.com",
+  messagingSenderId: "892936444768",
+  appId: "1:892936444768:web:f595b3a3e5d697988e1c05",
+  databaseURL: "https://marketplace-e0bff-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const auth = getAuth(app);
+const firestore = getFirestore(app); 
+
+/* ===== NAMESPACE / UID HELPERS ===== */
+function detectPageRole() { return 'delivery'; }
+function getUid() {
+  try { return sessionStorage.getItem('uid') || (auth.currentUser && auth.currentUser.uid) || null; }
+  catch (e) { return null; }
+}
+function nsKey(base, { role = null, uid = null } = {}) {
+  const r = role || detectPageRole();
+  const u = uid || getUid() || 'anon';
+  return `${String(base)}__${String(r)}__${String(u)}`;
+}
+function ordersKey() { return nsKey('orders'); }
+function completedOrdersKey() { return nsKey('completedOrders'); }
+function statsKey() { return nsKey('stats'); }
+function readJson(k, fallback = []) {
+  try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); }
+  catch { return fallback; }
+}
+function writeJson(k, data) {
+  try { localStorage.setItem(k, JSON.stringify(data || [])); }
+  catch (e) { console.warn('writeJson failed', e); }
+}
+
+// FIREBASE CLOUD STORAGE FOR DELIVERY REQUESTS
+async function getPublicDeliveryRequests() {
+  try {
+    const q = query(
+      collection(firestore, "deliveryRequests"),
+      where("status", "==", "open"),
+      where("expiresAt", ">", new Date())
+    );
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data(),
+      // Convert Firestore timestamps to ISO strings for compatibility
+      createdAt: doc.data().createdAt?.toDate().toISOString(),
+      expiresAt: doc.data().expiresAt?.toDate().toISOString()
+    }));
+  } catch (error) {
+    console.error("Error getting public delivery requests:", error);
+    return [];
+  }
+}
+
+async function savePublicDeliveryRequests(requests) {
+  // This function is now handled by Firestore real-time updates
+  // Remove the localStorage call
+}
+
+
+
+
+const ORDERS_GLOBAL = "orders_global";
+
+// --- ADD THESE MISSING FUNCTIONS ---
+async function getGlobalOrders() {
+  try {
+    if (!currentUID) return [];
+    
+    // Get orders where current user is involved (seller, buyer, or delivery)
+    const q = query(
+      collection(firestore, "orders"),
+      or(
+        where("sellerId", "==", currentUID),
+        where("buyerId", "==", currentUID),
+        where("assignedDeliveryId", "==", currentUID)
+      )
+    );
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      // Convert timestamps
+      createdAt: doc.data().createdAt?.toDate().toISOString(),
+      updatedAt: doc.data().updatedAt?.toDate().toISOString()
+    }));
+  } catch(e) {
+    console.error('Error getting global orders:', e);
+    return [];
+  }
+}
+
+// NEW: Sync order to global orders collection
+async function syncOrderToGlobalOrders(order) {
+  try {
+    const orderId = order.id || order.orderId;
+    if (!orderId) return false;
+    
+    const orderRef = doc(firestore, "orders", orderId);
+    
+    const orderData = {
+      ...order,
+      id: orderId,
+      updatedAt: serverTimestamp()
+    };
+    
+    // Add createdAt if this is a new order
+    if (!order.createdAt) {
+      orderData.createdAt = serverTimestamp();
+    }
+    
+    await setDoc(orderRef, orderData, { merge: true });
+    return true;
+  } catch (error) {
+    console.error("Error syncing order to global:", error);
+    return false;
+  }
+}
+
+/**
+ * Sync delivery status updates to global orders
+ */
+function syncDeliveryStatusToGlobal(orderId, newStatus, deliveryOrder) {
+  try {
+    const globalOrders = getGlobalOrders();
+    const globalIdx = globalOrders.findIndex(o => 
+      String(o.id) === String(orderId) || String(o.orderId) === String(orderId)
+    );
+    
+    if (globalIdx === -1) {
+      console.warn('Order not found in global storage:', orderId);
+      return false;
+    }
+
+    // Update global order with delivery status
+    globalOrders[globalIdx] = {
+      ...globalOrders[globalIdx],
+      status: newStatus,
+      progressStep: deliveryOrder.progressStep,
+      statusUpdatedAt: deliveryOrder.statusUpdatedAt,
+      startedAt: deliveryOrder.startedAt,
+      atDoorAt: deliveryOrder.atDoorAt,
+      deliveredAt: deliveryOrder.deliveredAt,
+      deliveryPerson: deliveryOrder.deliveryPerson || globalOrders[globalIdx].deliveryPerson,
+      assignedTo: deliveryOrder.assignedTo || globalOrders[globalIdx].assignedTo,
+      assignedDeliveryId: deliveryOrder.assignedDeliveryId || globalOrders[globalIdx].assignedDeliveryId,
+      history: [
+        ...(globalOrders[globalIdx].history || []),
+        ...(deliveryOrder.history || [])
+      ]
+    };
+
+    saveGlobalOrders(globalOrders);
+    
+    // Notify seller and buyer
+    notifySellerAndBuyer(orderId, newStatus);
+    
+    console.log('✅ Delivery status synced to global:', orderId, newStatus);
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to sync delivery status to global:', error);
+    return false;
+  }
+}
+
+/**
+ * Notify seller and buyer about delivery status changes
+ */
+function notifySellerAndBuyer(orderId, newStatus) {
+  try {
+    const globalOrders = getGlobalOrders();
+    const order = globalOrders.find(o => 
+      String(o.id) === String(orderId) || String(o.orderId) === String(orderId)
+    );
+    
+    if (!order) return;
+
+    // Notify seller
+    const sellerUid = order.sellerId || order.sellerUID;
+    if (sellerUid) {
+      localStorage.setItem(`orders_ping__seller__${sellerUid}`, Date.now().toString());
+    }
+
+    // Notify buyer  
+    const buyerUid = order.buyer?.uid || order.buyerId;
+    if (buyerUid) {
+      localStorage.setItem(`orders_ping__buyer__${buyerUid}`, Date.now().toString());
+    }
+
+    console.log('📢 Notified seller and buyer about delivery update');
+  } catch (error) {
+    console.warn('Failed to notify seller/buyer:', error);
+  }
+}
+
+/* ===== DOM refs ===== */
+const avatarEl = document.getElementById('userAvatar');
+const logoutBtn = document.getElementById('logoutBtn');
+const deliveriesTbody = document.querySelector('#deliveriesTable tbody');
+const completedTbody = document.querySelector('#completedTable tbody');
+const deliverySearch = document.getElementById('deliverySearch');
+const deliveryFilter = document.getElementById('deliveryFilterSelect');
+const historySearch = document.getElementById('historySearch');
+const deliveriesBadge = document.getElementById('deliveriesBadge');
+const deliveriesCountEl = document.getElementById('deliveriesCount');
+const deliveriesDot = document.getElementById('deliveriesDot');
+const toastContainer = document.getElementById('toastContainer');
+const profileMenu = document.getElementById('profileMenu');
+const toggleThemeBtn = document.getElementById('toggleTheme');
+const resetDataBtn = document.getElementById('resetDataBtn');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+/* ===== small utils ===== */
+const nowISO = () => new Date().toISOString();
+function fmtDate(iso){ if(!iso) return ''; try{ return new Date(Number(iso) || iso).toLocaleString() }catch(e){return iso;} }
+function timeAgo(iso){
+  if(!iso) return '';
+  const d = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(d/60000);
+  if(m<1) return 'just now';
+  if(m<60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if(h<24) return `${h}h ago`;
+  const days = Math.floor(h/24);
+  if(days<30) return `${days}d ago`;
+  const months = Math.floor(days/30);
+  if(months<12) return `${months}mo ago`;
+  return `${Math.floor(months/12)}y ago`;
+}
+function showToast(msg, type='success'){
+  if(!toastContainer) return console.log(type,msg);
+  try {
+    const t = document.createElement('div');
+    t.className = 'toast ' + (type==='error' ? 'toast-error' : type==='warn' ? 'toast-warn' : 'toast-success');
+    t.textContent = msg;
+    toastContainer.appendChild(t);
+    setTimeout(()=> { try{ t.remove(); } catch(e){} }, 3500);
+  } catch(e) { console.log(type,msg); }
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"'`=\/]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[ch]); }
+function sanitizeId(s){ return String(s||'').replace(/[^\w\-]/g,'_'); }
+function debounce(fn, wait=250){ let t; return (...a) => { clearTimeout(t); t = setTimeout(()=> fn(...a), wait); }; }
+
+/* ===== core state ===== */
+let openRequests = [];
+let assignedOrders = [];
+let completedOrders = [];
+let pollingIntervalId = null;
+let currentUID = null;
+const userCache = new Map();
+const prevBidState = new Map();
+let _sanitizingCancelledOrders = false;
+let ordersChannel = null;
+try { const ordersChannel = new BroadcastChannel(`orders_channel_${getUid()}`); ordersChannel.onmessage = (ev) => { if(ev?.data === 'orders_updated') refreshOrdersFromLocal(); }; } catch(e){ ordersChannel = null; }
+
+/* ===== Code Verification State ===== */
+let _confirmCurrentLocalOrder = null;
+let _failedAttempts = 0;
+let _lockUntil = 0;
+const MAX_ATTEMPTS = 5;
+const LOCK_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+// 🔥 FIX: Store lock state per order to prevent reset when seller posts new requests
+function getOrderLockState(orderId) {
+  try {
+    const lockKey = `delivery_lock__${currentUID}__${orderId}`;
+    const state = JSON.parse(localStorage.getItem(lockKey) || '{}');
+    return {
+      failedAttempts: state.failedAttempts || 0,
+      lockUntil: state.lockUntil || 0
+    };
+  } catch (e) {
+    return { failedAttempts: 0, lockUntil: 0 };
+  }
+}
+
+function saveOrderLockState(orderId, state) {
+  try {
+    const lockKey = `delivery_lock__${currentUID}__${orderId}`;
+    localStorage.setItem(lockKey, JSON.stringify(state));
+  } catch (e) {
+    console.warn('Failed to save lock state:', e);
+  }
+}
+
+function clearOrderLockState(orderId) {
+  try {
+    const lockKey = `delivery_lock__${currentUID}__${orderId}`;
+    localStorage.removeItem(lockKey);
+  } catch (e) {
+    console.warn('Failed to clear lock state:', e);
+  }
+}
+
+/* ===== firebase user fetch ===== */
+async function getUserProfile(uid){
+  if(!uid) return null;
+  if (userCache.has(uid)) return userCache.get(uid);
+  try {
+    const snap = await get(ref(database, `users/${uid}`));
+    const data = snap.exists() ? snap.val() : null;
+    userCache.set(uid, data);
+    return data;
+  } catch (err) {
+    console.warn('getUserProfile err', err);
+    userCache.set(uid, null);
+    return null;
+  }
+}
+
+/* ===== auth handling ===== */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "../../index.html";
+    return;
+  }
+
+  sessionStorage.setItem('uid', user.uid);
+
+  if (!localStorage.getItem(ordersKey())) localStorage.setItem(ordersKey(), JSON.stringify([]));
+  if (!localStorage.getItem(completedOrdersKey())) localStorage.setItem(completedOrdersKey(), JSON.stringify([]));
+
+  currentUID = user.uid;
+  try {
+    const me = await getUserProfile(currentUID);
+    if (avatarEl) {
+      avatarEl.src = (me && me.profilePictureUrl) ? me.profilePictureUrl : '../../images/no profile pic.jpg';
+      avatarEl.alt = (me && me.name) ? me.name : 'User';
+    }
+  } catch(e){ console.warn('avatar set error', e); }
+  initDashboard();
+});
+if (logoutBtn){
+  logoutBtn.addEventListener('click', async (e) => { e.preventDefault(); try{ await signOut(auth); }catch(e){} window.location.href='../../index.html'; });
+}
+
+async function loadOrdersFromLocal(){
+  try {
+    if (!currentUID) return [];
+    
+    // Get orders assigned to this delivery person
+    const q = query(
+      collection(firestore, "deliveryOrders"),
+      where("assignedDeliveryId", "==", currentUID),
+      where("status", "not-in", ["delivered", "rejected"])
+    );
+    
+    const snapshot = await getDocs(q);
+    const orders = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        orderId: doc.id, // For compatibility
+        ...data,
+        // Convert Firestore timestamps
+        assignedAt: data.assignedAt?.toDate().toISOString(),
+        createdAt: data.createdAt?.toDate().toISOString(),
+        updatedAt: data.updatedAt?.toDate().toISOString()
+      };
+    });
+    
+    return orders;
+  } catch (err) { 
+    console.error('loadOrdersFromLocal Firestore error', err); 
+    return []; 
+  }
+}
+
+async function saveOrdersToLocal(orders){
+  // This function is now obsolete for saving arrays
+  // We'll update individual orders instead
+}
+
+// NEW: Save a single order to Firestore
+async function saveOrderToFirestore(order) {
+  try {
+    if (!order.id && !order.orderId) {
+      console.error("Order has no ID");
+      return false;
+    }
+    
+    const orderId = order.id || order.orderId;
+    const docRef = doc(firestore, "deliveryOrders", orderId);
+    
+    // Prepare order data for Firestore
+    const firestoreOrder = {
+      ...order,
+      id: orderId,
+      assignedDeliveryId: currentUID,
+      updatedAt: serverTimestamp()
+    };
+    
+    // Remove Firestore-incompatible fields
+    delete firestoreOrder.createdAt; // Let Firestore handle this
+    delete firestoreOrder.updatedAt; // Let Firestore handle this
+    
+    await setDoc(docRef, firestoreOrder, { merge: true });
+    
+    // Also sync to global orders collection
+    await syncOrderToGlobalOrders(order);
+    
+    return true;
+  } catch (error) {
+    console.error("Error saving order to Firestore:", error);
+    return false;
+  }
+}
+
+/* ===== normalize order shape ===== */
+function normalizeOrder(o){
+  if(!o) return {};
+  if (!Array.isArray(o.bids) && Array.isArray(o.bidders)) {
+    o.bids = o.bidders.map(b => ({
+      bidderId: b.id || b.uid || b.bidderId || '',
+      bidderName: b.name || b.bidderName || '',
+      bidderAvatar: b.profilePictureUrl || b.photoURL || '',
+      bidderPhone: b.phone || '',
+      bidderEmail: b.email || '',
+      bidderIndex: b.index || '',
+      bidderProgram: b.program || '',
+      bidderRoom: b.room || '',
+      amount: typeof b.amount !== 'undefined' ? Number(b.amount) : (b.bidAmount || null),
+      eta: b.eta || null,
+      placedAt: b.requestedAt || b.placedAt || nowISO()
+    }));
+  } else {
+    o.bids = Array.isArray(o.bids) ? o.bids : [];
+  }
+  o.bidders = Array.isArray(o.bidders) ? o.bidders : [];
+  o.requestActive = !!o.requestActive;
+  o.deliveryRequestExpiry = o.deliveryRequestExpiry ? Number(o.deliveryRequestExpiry) : null;
+  return o;
+}
+
+function setupFirestoreListeners() {
+  if (!currentUID) return;
+  
+  // 1. Listen for public delivery requests
+  const publicRequestsQuery = query(
+    collection(firestore, "deliveryRequests"),
+    where("status", "==", "open")
+  );
+  
+  const publicRequestsUnsub = onSnapshot(publicRequestsQuery, (snapshot) => {
+    openRequests = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate().toISOString(),
+        expiresAt: data.expiresAt?.toDate().toISOString()
+      };
+    });
+    renderOpenRequests();
+  });
+  
+  // 2. Listen for assigned orders
+  const assignedOrdersQuery = query(
+    collection(firestore, "deliveryOrders"),
+    where("assignedDeliveryId", "==", currentUID),
+    where("status", "not-in", ["delivered", "rejected"])
+  );
+  
+  const assignedOrdersUnsub = onSnapshot(assignedOrdersQuery, (snapshot) => {
+    assignedOrders = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        orderId: doc.id,
+        ...data,
+        assignedAt: data.assignedAt?.toDate().toISOString(),
+        createdAt: data.createdAt?.toDate().toISOString(),
+        updatedAt: data.updatedAt?.toDate().toISOString()
+      };
+    });
+    renderAssignedDeliveries();
+    updateStatsFromMemory();
+  });
+  
+  // 3. Listen for completed orders
+  const completedOrdersQuery = query(
+    collection(firestore, "deliveryOrders"),
+    where("assignedDeliveryId", "==", currentUID),
+    where("status", "in", ["delivered", "rejected"])
+  );
+  
+  const completedOrdersUnsub = onSnapshot(completedOrdersQuery, (snapshot) => {
+    completedOrders = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        orderId: doc.id,
+        ...data,
+        deliveredAt: data.deliveredAt?.toDate().toISOString(),
+        rejectedAt: data.rejectedAt?.toDate().toISOString(),
+        createdAt: data.createdAt?.toDate().toISOString(),
+        updatedAt: data.updatedAt?.toDate().toISOString()
+      };
+    });
+    renderDeliveryHistoryFromState();
+    updateStatsFromMemory();
+  });
+  
+  // Store unsubscribe functions to clean up later
+  window.firestoreUnsubscribers = {
+    publicRequests: publicRequestsUnsub,
+    assignedOrders: assignedOrdersUnsub,
+    completedOrders: completedOrdersUnsub
+  };
+  
+  // Clean up on logout
+  window.addEventListener('beforeunload', () => {
+    if (window.firestoreUnsubscribers) {
+      window.firestoreUnsubscribers.publicRequests();
+      window.firestoreUnsubscribers.assignedOrders();
+      window.firestoreUnsubscribers.completedOrders();
+    }
+  });
+}
+
+
+/* ===== init wiring ===== */
+function initDashboard(){
+  setupEventListeners();
+}
+
+/* ===== listen for changes ===== */
+function attachLocalOrdersListener(){
+  refreshOrdersFromLocal();
+  window.addEventListener('storage', (e) => {
+    if (e.key === ordersKey() || e.key === completedOrdersKey() || e.key === null){
+      refreshOrdersFromLocal();
+    }
+    if (e.key && e.key.startsWith(`orders_ping__delivery__${currentUID}`)) {
+      refreshOrdersFromLocal();
+    }
+  });
+  window.addEventListener('localOrdersUpdated', refreshOrdersFromLocal);
+  window.addEventListener('ordersRefreshed', refreshOrdersFromLocal);
+  window.addEventListener('orderDelivered', (e) => refreshOrdersFromLocal());
+  window.addEventListener('orderUpdated', (e) => refreshOrdersFromLocal());
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') refreshOrdersFromLocal(); });
+  
+}
+
+// Listen for public delivery request updates
+window.addEventListener('publicDeliveryRequestsUpdated', () => {
+  if (typeof refreshOrdersFromLocal === 'function') refreshOrdersFromLocal();
+  if (typeof renderOrders === 'function') renderOrders();
+});
+
+/* ===== refresh arrays and render ===== */
+/* ===== refresh arrays and render ===== */
+/* ===== refresh arrays and render ===== */
+function refreshOrdersFromLocal() {
+  const publicRequests = getPublicDeliveryRequests();
+  const now = Date.now();
+  
+  // Filter expired public requests
+  const validPublicRequests = publicRequests.filter(req => {
+    if (!req || req.status !== 'open') return false;
+    if (!req.expiresAt) return true;
+    try {
+      const expires = new Date(req.expiresAt).getTime();
+      if (!Number.isFinite(expires)) return true;
+      return expires > Date.now();
+    } catch (e) { return true; }
+  });
+
+  openRequests = validPublicRequests;
+
+  const personalOrders = loadOrdersFromLocal();
+  
+  // Initialize arrays
+  assignedOrders = [];
+  completedOrders = [];
+  
+  // Process each order
+  personalOrders.forEach(o => {
+    const assignedId = String(o.assignedDeliveryId || o.assignedTo || o.deliveryPersonId || '');
+    if (!assignedId || !currentUID || assignedId !== String(currentUID)) return;
+    
+    const status = (o.status || '').toLowerCase();
+    const orderId = o.id || o.orderId || '';
+    
+    // Check if this order already exists in completed
+    const alreadyInCompleted = completedOrders.some(co => 
+      String(co.id || co.orderId) === String(orderId)
+    );
+    
+    // If not already in completed and has a completed status, add it
+    if (!alreadyInCompleted && (status === 'rejected' || status === 'delivered' || status === 'picked up')) {
+      // Ensure delivered orders have all necessary fields
+      if (status === 'delivered') {
+        completedOrders.push({
+          ...o,
+          deliveredAt: o.deliveredAt || nowISO(),
+          status: 'Delivered'
+        });
+      } else {
+        completedOrders.push(o);
+      }
+    } 
+    // If not completed, add to assigned
+    else if (!alreadyInCompleted) {
+      assignedOrders.push(o);
+    }
+  });
+  
+  // Also load from completed orders storage to catch any missed ones
+  try {
+    const storedCompleted = JSON.parse(localStorage.getItem(completedOrdersKey()) || '[]');
+    storedCompleted.forEach(co => {
+      const coId = co.id || co.orderId || '';
+      const assignedId = String(co.assignedDeliveryId || co.assignedTo || co.deliveryPersonId || '');
+      
+      // Only add if assigned to current user and not already in array
+      if (assignedId && String(currentUID) === assignedId) {
+        const alreadyExists = completedOrders.some(existing => 
+          String(existing.id || existing.orderId) === String(coId)
+        );
+        
+        if (!alreadyExists) {
+          completedOrders.push(co);
+        }
+      }
+    });
+  } catch (e) {
+    console.warn('Error loading stored completed orders:', e);
+  }
+  
+  // Sort arrays
+  assignedOrders.sort((a,b) => new Date(b.assignedAt||b.appearedAt||0) - new Date(a.assignedAt||a.appearedAt||0));
+  completedOrders.sort((a,b) => {
+    const aTime = new Date(a.deliveredAt || a.pickedUpAt || a.rejectedAt || a.completedAt || 0);
+    const bTime = new Date(b.deliveredAt || b.pickedUpAt || b.rejectedAt || b.completedAt || 0);
+    return bTime - aTime;
+  });
+  
+  // Remove duplicates from completedOrders (just to be safe)
+  completedOrders = completedOrders.filter((order, index, self) =>
+    index === self.findIndex(o => 
+      String(o.id || o.orderId) === String(order.id || order.orderId)
+    )
+  );
+  
+  // Force re-render
+  if (deliveriesTbody) deliveriesTbody.innerHTML = '';
+  if (completedTbody) completedTbody.innerHTML = '';
+  
+  renderOpenRequests();
+  renderAssignedDeliveries();
+  renderDeliveryHistoryFromState();
+  updateStatsFromMemory();
+}
+/* ===== FIXED: Render Open Requests ===== */
+/* ===== FIXED: Render Open Requests ===== */
+async function renderOpenRequests(){
+  if (!deliveriesTbody) return;
+  try {
+    deliveriesTbody.innerHTML = '';
+    const sTerm = (deliverySearch?.value || '').toLowerCase();
+    const filtered = openRequests.filter(o => {
+      if (sTerm) {
+        const combined = `${o.id||''} ${o.customer||o.buyerName||''} ${o.location||o.address||''} ${JSON.stringify(o.items||o.product||'')}`.toLowerCase();
+        return combined.includes(sTerm);
+      }
+      return true;
+    });
+
+    if (!filtered.length){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="7" style="text-align:center;color:var(--muted)">No delivery requests available</td>`;
+      deliveriesTbody.appendChild(tr);
+      updateDeliveriesBadge(0);
+      return;
+    }
+
+    for (const deliveryRequest of filtered){
+      const tr = document.createElement('tr');
+      const ttlId = `ttl_${sanitizeId(deliveryRequest.id)}`;
+      const bidsId = `bids_${sanitizeId(deliveryRequest.id)}`;
+
+      // Get item thumbnail and summary
+      let thumb = '';
+      let itemsSummary = '';
+      if (Array.isArray(deliveryRequest.items) && deliveryRequest.items.length) {
+        thumb = deliveryRequest.items[0].image || deliveryRequest.items[0].img || deliveryRequest.items[0].thumbnail || '';
+        itemsSummary = deliveryRequest.items.map(i => i.name || i.title).join(', ');
+      } else {
+        itemsSummary = deliveryRequest.product || deliveryRequest.items || '-';
+      }
+
+      // Get customer info
+      const customerObj = deliveryRequest.customer || {};
+      const customerName = escapeHtml(customerObj.name || deliveryRequest.customerName || 'Unknown');
+      const customerAvatar = customerObj.profilePictureUrl || '';
+      const customerPhone = customerObj.phone || '';
+
+      const bidsCount = (deliveryRequest.bids || []).length || 0;
+      
+      tr.innerHTML = `
+        <td>${escapeHtml(deliveryRequest.id)}</td>
+        <td style="display:flex;align-items:center;gap:8px">
+          ${customerAvatar ? `<img src="${escapeHtml(customerAvatar)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover" onerror="this.onerror=null;this.src='/images/no profile pic.jpg'">` : ''}
+          <div>
+            <div style="font-weight:700">${customerName}</div>
+            ${customerPhone ? `<div class="small-muted">📞 ${escapeHtml(customerPhone)}</div>` : ''}
+          </div>
+        </td>
+        <td>${escapeHtml(deliveryRequest.location || deliveryRequest.address || '—')}</td>
+        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center">
+          ${thumb ? `<img src="${escapeHtml(thumb)}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:8px;vertical-align:middle">` : ''}
+          <div style="min-width:0">
+            <div style="font-weight:700">${escapeHtml(itemsSummary)}</div>
+          </div>
+        </td>
+        <td><span class="small-muted" id="${ttlId}">${deliveryRequest.deliveryRequestExpiry ? fmtDate(deliveryRequest.deliveryRequestExpiry) : ''}</span></td>
+        <td><span class="small-muted" id="${bidsId}">${bidsCount} bid${bidsCount===1?'':'s'}</span></td>
+        <td class="actions"></td>
+      `;
+      deliveriesTbody.appendChild(tr);
+      const actionsTd = tr.querySelector('.actions');
+
+      if (deliveryRequest.sellerId) {
+        (async ()=>{
+          try {
+            const u = await getUserProfile(deliveryRequest.sellerId);
+            const sellerCell = document.getElementById(`sellercell_${sanitizeId(deliveryRequest.id)}`);
+            if (sellerCell) sellerCell.innerHTML = u ? `${escapeHtml(u.name || u.displayName || 'Seller')}` : escapeHtml('Seller');
+          } catch(e){}
+        })();
+      }
+
+      const youBid = (deliveryRequest.bids || []).find(b => String(b.bidderId) === String(currentUID));
+      
+      const bidBtn = document.createElement('button');
+      bidBtn.className = 'btn btn-accept';
+      bidBtn.textContent = youBid ? 'Edit Bid' : 'Place Bid';
+      bidBtn.disabled = (!deliveryRequest.requestActive || (deliveryRequest.deliveryRequestExpiry && Date.now() > deliveryRequest.deliveryRequestExpiry) || deliveryRequest.assignedTo || deliveryRequest.ownerIsDelivering) ? true : false;
+
+      bidBtn.addEventListener('click', (e) => { e.stopPropagation(); openBidPrompt(deliveryRequest); });
+      actionsTd.appendChild(bidBtn);
+
+      // ADD REMOVE BID BUTTON IF USER HAS BID
+      if (youBid) {
+        const removeBidBtn = document.createElement('button');
+        removeBidBtn.className = 'btn btn-warn';
+        removeBidBtn.textContent = 'Remove Bid';
+        removeBidBtn.style.marginLeft = '8px';
+        removeBidBtn.addEventListener('click', (e) => { 
+          e.stopPropagation(); 
+          if (confirm('Are you sure you want to remove your bid?')) {
+            const removed = removeBidLocal(deliveryRequest.id, currentUID);
+            if (removed) {
+              showToast('Your bid has been removed', 'success');
+              refreshOrdersFromLocal();
+            }
+          }
+        });
+        actionsTd.appendChild(removeBidBtn);
+      }
+
+      const detailsBtn = document.createElement('button');
+      detailsBtn.className = 'btn btn-muted';
+      detailsBtn.textContent = 'Details';
+      detailsBtn.addEventListener('click', (e) => { e.stopPropagation(); showDeliveryDetailsLocal(deliveryRequest); });
+      actionsTd.appendChild(detailsBtn);
+
+      const ttlEl = document.getElementById(ttlId); if (ttlEl) ttlEl.textContent = deliveryRequest.deliveryRequestExpiry ? fmtDate(deliveryRequest.deliveryRequestExpiry) : '';
+      const bidsEl = document.getElementById(bidsId); if (bidsEl) bidsEl.textContent = `${(deliveryRequest.bids||[]).length || 0} bid${((deliveryRequest.bids||[]).length===1?'':'s')}`;
+    }
+
+    updateDeliveriesBadge(filtered.length);
+  } catch (err) {
+    console.warn('renderOpenRequests err', err);
+  }
+}
+/* ===== FIXED: Bid flows ===== */
+async function openBidPrompt(deliveryRequest){
+  if (!currentUID) return showToast('Sign in to place a bid','warn');
+
+  // Check if request is still active
+  if (!deliveryRequest.requestActive || deliveryRequest.status !== 'open') {
+    showToast('This request is no longer available','warn'); 
+    refreshOrdersFromLocal(); 
+    return;
+  }
+
+  const existing = (deliveryRequest.bids || []).find(b => String(b.bidderId) === String(currentUID));
+  
+  const baseDeliveryFee = Number(deliveryRequest.deliveryFee || deliveryRequest.delivery || deliveryRequest.fee || 0);
+  
+  if (existing) {
+    const choice = prompt(`You already placed a bid for Order ${deliveryRequest.orderId}\nYour bid: GHC ${existing.amount||0} • ETA ${existing.eta||'n/a'}min\nType "edit" to change, "cancel" to remove, or leave blank to abort.`, 'edit');
+    if (choice === null) return;
+    if (choice.toLowerCase() === 'cancel') {
+      const removed = removeBidLocal(deliveryRequest.id, currentUID);
+      if (removed) showToast('Bid cancelled','success');
+      return;
+    }
+    if (choice.toLowerCase() === 'edit') {
+      const newAmount = prompt(`Enter new bid amount (GHC):\nDelivery Fee: GHC ${baseDeliveryFee.toFixed(2)}`, String(existing.amount || ''));
+      if (newAmount === null) return;
+      const aNum = Number(String(newAmount).trim());
+      
+      // Validate for positive numbers AND not exceeding delivery fee
+      if (isNaN(aNum) || aNum <= 0) { 
+        showToast('Enter a valid positive amount','error'); 
+        return; 
+      }
+      if (aNum > baseDeliveryFee) {
+        showToast(`Bid cannot exceed delivery fee of GHC ${baseDeliveryFee.toFixed(2)}`,'error');
+        return;
+      }
+      
+      const newEta = prompt('Estimate delivery time in minutes:', String(existing.eta || 30));
+      if (newEta === null) return;
+      const etaNum = isNaN(Number(newEta)) ? existing.eta : Number(newEta);
+      
+      // Only validate for positive numbers
+      if (etaNum <= 0) {
+        showToast('ETA must be a positive number','error');
+        return;
+      }
+      
+      updateBidLocal(deliveryRequest.id, currentUID, { amount: aNum, eta: etaNum });
+      showToast('Bid updated','success');
+      return;
+    }
+    return;
+  }
+
+  const amount = prompt(`Placing bid for Order ${deliveryRequest.orderId}\nEnter your bid amount (GHC):\nDelivery Fee: GHC ${baseDeliveryFee.toFixed(2)}`, String(baseDeliveryFee));
+  if (amount === null) return;
+  const amountNum = Number(String(amount).trim());
+  
+  // Validate for positive numbers AND not exceeding delivery fee
+  if (isNaN(amountNum) || amountNum <= 0) { 
+    showToast('Enter a valid positive amount','error'); 
+    return; 
+  }
+  if (amountNum > baseDeliveryFee) {
+    showToast(`Bid cannot exceed delivery fee of GHC ${baseDeliveryFee.toFixed(2)}`,'error');
+    return;
+  }
+  
+  const eta = prompt('Estimate delivery time in minutes:', '30');
+  if (eta === null) return;
+  const etaNum = isNaN(Number(eta)) ? null : Number(eta);
+  
+  // Only validate for positive numbers
+  if (etaNum <= 0) {
+    showToast('ETA must be a positive number','error');
+    return;
+  }
+
+  let me = null;
+  try { me = await getUserProfile(currentUID); } catch(e){ me = null; }
+  const bidderObj = {
+    bidderId: currentUID,
+    bidderName: (me && (me.name || me.displayName)) ? (me.name || me.displayName) : (me && me.email ? me.email.split('@')[0] : currentUID),
+    bidderAvatar: (me && me.profilePictureUrl) ? me.profilePictureUrl : '',
+    bidderPhone: (me && (me.phone || me.mobile)) ? (me.phone || me.mobile) : '',
+    bidderEmail: (me && me.email) ? me.email : '',
+    bidderIndex: (me && (me.index || me.studentIndex)) ? (me.index || me.studentIndex) : '',
+    bidderProgram: (me && me.program) ? me.program : '',
+    bidderRoom: (me && (me.roomnumber || me.room)) ? (me.roomnumber || me.room) : '',
+    amount: Number(amountNum),
+    eta: etaNum,
+    placedAt: nowISO()
+  };
+
+  const added = addBidLocal(deliveryRequest.id, bidderObj);
+  if (added) showToast('Bid placed!', 'success');
+  else showToast('Could not place bid (maybe already placed or expired)', 'error');
+}
+
+function addBidLocal(deliveryRequestId, bidderObj) {
+  // Get the delivery request to check delivery fee
+  const publicRequests = getPublicDeliveryRequests();
+  const request = publicRequests.find(req => req.id === deliveryRequestId);
+  const baseDeliveryFee = request ? Number(request.deliveryFee || request.delivery || request.fee || 0) : 0;
+
+  // Validate for positive numbers AND not exceeding delivery fee
+  if (bidderObj.amount <= 0) {
+    showToast('Bid amount must be a positive number', 'error');
+    return false;
+  }
+  
+  if (bidderObj.amount > baseDeliveryFee) {
+    showToast(`Bid cannot exceed delivery fee of GHC ${baseDeliveryFee.toFixed(2)}`, 'error');
+    return false;
+  }
+  
+  if (bidderObj.eta !== null && bidderObj.eta <= 0) {
+    showToast('ETA must be a positive number', 'error');
+    return false;
+  }
+
+  const requestIdx = publicRequests.findIndex(req => req.id === deliveryRequestId);
+  if (requestIdx === -1) return false;
+
+  const updatedRequest = publicRequests[requestIdx];
+  updatedRequest.bids = updatedRequest.bids || [];
+  
+  const existingBidIndex = updatedRequest.bids.findIndex(b => String(b.bidderId) === String(bidderObj.bidderId));
+  
+  if (existingBidIndex !== -1) {
+    updatedRequest.bids[existingBidIndex] = {
+      ...updatedRequest.bids[existingBidIndex],
+      amount: Number(bidderObj.amount),
+      eta: bidderObj.eta || null,
+      updatedAt: nowISO()
+    };
+  } else {
+    updatedRequest.bids.push({
+      bidderId: bidderObj.bidderId,
+      bidderName: bidderObj.bidderName,
+      bidderAvatar: bidderObj.bidderAvatar || '',
+      bidderPhone: bidderObj.bidderPhone || '',
+      bidderEmail: bidderObj.bidderEmail || '',
+      bidderIndex: bidderObj.bidderIndex || '',
+      bidderProgram: bidderObj.bidderProgram || '',
+      bidderRoom: bidderObj.bidderRoom || '',
+      amount: Number(bidderObj.amount),
+      eta: bidderObj.eta || null,
+      placedAt: nowISO()
+    });
+  }
+
+  publicRequests[requestIdx] = updatedRequest;
+  savePublicDeliveryRequests(publicRequests);
+  return true;
+}
+
+function updateBidLocal(deliveryRequestId, bidderId, changes){
+  // Get the delivery request to check delivery fee
+  const publicRequests = getPublicDeliveryRequests();
+  const request = publicRequests.find(req => req.id === deliveryRequestId);
+  const baseDeliveryFee = request ? Number(request.deliveryFee || request.delivery || request.fee || 0) : 0;
+
+  // Validate inputs for positive numbers only AND not exceeding delivery fee
+  if (changes.amount !== undefined) {
+    if (changes.amount <= 0) {
+      showToast('Bid amount must be a positive number', 'error');
+      return false;
+    }
+    if (changes.amount > baseDeliveryFee) {
+      showToast(`Bid cannot exceed delivery fee of GHC ${baseDeliveryFee.toFixed(2)}`, 'error');
+      return false;
+    }
+  }
+  
+  if (changes.eta !== undefined && changes.eta <= 0) {
+    showToast('ETA must be a positive number', 'error');
+    return false;
+  }
+
+  const requestIdx = publicRequests.findIndex(req => req.id === deliveryRequestId);
+  if (requestIdx === -1) return false;
+
+  const updatedRequest = publicRequests[requestIdx];
+  updatedRequest.bids = updatedRequest.bids || [];
+  const bidx = updatedRequest.bids.findIndex(b => String(b.bidderId) === String(bidderId));
+  if (bidx === -1) return false;
+
+  updatedRequest.bids[bidx] = { ...updatedRequest.bids[bidx], ...changes, updatedAt: nowISO() };
+  publicRequests[requestIdx] = updatedRequest;
+  savePublicDeliveryRequests(publicRequests);
+  return true;
+}
+
+function removeBidLocal(deliveryRequestId, bidderId){
+  const publicRequests = getPublicDeliveryRequests();
+  const requestIdx = publicRequests.findIndex(req => req.id === deliveryRequestId);
+  if (requestIdx === -1) return false;
+
+  const request = publicRequests[requestIdx];
+  const prevLen = (request.bids || []).length;
+  request.bids = (request.bids || []).filter(b => String(b.bidderId) !== String(bidderId));
+  
+  if ((request.bids || []).length !== prevLen) {
+    publicRequests[requestIdx] = request;
+    savePublicDeliveryRequests(publicRequests);
+    return true;
+  }
+  return false;
+}
+
+/* ===== Assigned deliveries rendering ===== */
+/* ===== Assigned deliveries rendering ===== */
+function renderAssignedDeliveries(){
+  if (!deliveriesTbody) return;
+  try {
+    if (openRequests.length && assignedOrders.length) {
+      const sep = document.createElement('tr');
+      sep.innerHTML = `<td colspan="7" style="text-align:center;color:var(--muted);font-weight:600">Assigned to you</td>`;
+      deliveriesTbody.appendChild(sep);
+    }
+
+    for (const oRaw of assignedOrders){
+      const o = normalizeOrder(oRaw);
+      // 🚨 REMOVE THIS CHECK - Don't skip rejected orders
+      // if (o.status === 'Rejected') {
+      //   continue; // Skip this order - it will appear in completed/history
+      // }
+      
+      const tr = document.createElement('tr');
+      const assignedAtIso = o.assignedAt || o.appearedAt || o.createdAt || nowISO();
+      const assignedAgo = assignedAtIso ? `${timeAgo(assignedAtIso)} (${fmtDate(assignedAtIso)})` : '';
+
+      // Get item thumbnail and summary
+      let thumb = '';
+      let itemsSummary = '';
+      if (Array.isArray(o.items) && o.items.length) {
+        thumb = o.items[0].image || o.items[0].img || '';
+        itemsSummary = o.items.map(i => i.name || i.title).join(', ');
+      } else {
+        itemsSummary = o.product || o.items || '-';
+      }
+
+      // Get customer info
+      const customerObj = o.buyer || o.customer || {};
+      const customerName = escapeHtml(customerObj.name || o.customerName || o.buyerName || o.buyer || o.customer || 'Unknown');
+      const customerAvatar = customerObj.profilePictureUrl || o.buyerAvatar || o.customerAvatar || '';
+      const customerPhone = customerObj.phone || '';
+
+      // 🎯 UPDATE: Show earnings even for rejected orders
+      const earningsInfo = (o.courierEarnings || o.assignedBidAmount) ? `Earn: GHC ${Number(o.courierEarnings ?? o.assignedBidAmount).toFixed(2)}` : '';
+      
+      // 🎯 ADD: Show special badge for rejected orders
+      const isRejected = o.status === 'Rejected';
+      const statusBadge = isRejected 
+        ? `<span class="status-badge s-rejected">REJECTED (Paid)</span>` 
+        : `<span class="status-badge ${statusClass(o.status)}">${escapeHtml(o.status || 'Pending')}</span>`;
+
+      tr.innerHTML = `
+        <td>${escapeHtml(String(o.id||o.orderId||''))}</td>
+        <td style="display:flex;align-items:center;gap:8px">
+          ${customerAvatar ? `<img src="${escapeHtml(customerAvatar)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover" onerror="this.onerror=null;this.src='/images/no profile pic.jpg'">` : ''}
+          <div>
+            <div style="font-weight:700">${customerName}</div>
+            ${customerPhone ? `<div class="small-muted">📞 ${escapeHtml(customerPhone)}</div>` : ''}
+            ${isRejected ? '<div class="small-muted" style="color:var(--danger);font-size:0.75rem">❌ Seller rejected - you still get paid</div>' : ''}
+          </div>
+        </td>
+        <td>${escapeHtml(o.location || o.address || '—')}</td>
+        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center">
+          ${thumb ? `<img src="${escapeHtml(thumb)}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:8px;vertical-align:middle">` : ''}
+          <div style="min-width:0">
+            <div style="font-weight:700">${escapeHtml(itemsSummary)}</div>
+          </div>
+        </td>
+        <td>
+          ${statusBadge}<br>
+          <span class="small-muted">${escapeHtml(earningsInfo)}</span>
+          ${isRejected && o.rejectedAt ? `<br><span class="small-muted" style="font-size:0.75rem">Rejected: ${fmtDate(o.rejectedAt)}</span>` : ''}
+        </td>
+        <td title="${assignedAtIso ? fmtDate(assignedAtIso) : ''}">${assignedAgo}</td>
+        <td class="actions"></td>
+      `;
+      deliveriesTbody.appendChild(tr);
+
+      const actionsTd = tr.querySelector('.actions');
+      const st = (o.status || 'Pending').toLowerCase();
+      const assignedId = String(o.assignedDeliveryId || o.assignedTo || o.deliveryPersonId || '');
+      const isAssignedToMe = assignedId && String(assignedId) === String(currentUID);
+      const isRejectedOrder = st === 'rejected';
+
+      if (isAssignedToMe && !isRejectedOrder) {
+        // Only show delivery buttons if NOT rejected
+        if (st === 'processing' || st === 'assigned' || st === 'accepted') {
+          const startBtn = document.createElement('button'); 
+          startBtn.className='btn btn-edit'; 
+          startBtn.textContent='Start Delivery';
+          startBtn.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            changeStatusLocal(o, 'Delivering');
+          });
+          actionsTd.appendChild(startBtn);
+        }
+
+        if (st === 'delivering' || st === 'processing') {
+          const atDoorBtn = document.createElement('button'); atDoorBtn.className='btn btn-accept'; atDoorBtn.textContent='Arrived (At Door)';
+          atDoorBtn.addEventListener('click', (e) => { e.stopPropagation(); changeStatusLocal(o, 'At Door'); });
+          actionsTd.appendChild(atDoorBtn);
+        }
+
+        if (st === 'at door') {
+          const confirmBtn = document.createElement('button'); confirmBtn.className='btn btn-accept'; confirmBtn.textContent='Confirm Delivery';
+          confirmBtn.addEventListener('click', (e) => { e.stopPropagation(); openConfirmCodeModalLocal(o); });
+          actionsTd.appendChild(confirmBtn);
+        }
+      }
+      
+      // Always show details button
+      actionsTd.appendChild(actionBtn('Details','btn-muted', ()=> showDeliveryDetailsLocal(o)));
+      
+      // 🎯 ADD: Show "View Payment" button for rejected orders
+      if (isRejectedOrder) {
+        const paymentBtn = document.createElement('button');
+        paymentBtn.className = 'btn btn-accept';
+        paymentBtn.textContent = 'View Payment';
+        paymentBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showRejectedOrderPaymentDetails(o);
+        });
+        actionsTd.appendChild(paymentBtn);
+      }
+    }
+
+    updateDeliveriesBadge(openRequests.length + assignedOrders.length);
+  } catch(err) {
+    console.warn('renderAssignedDeliveries err', err);
+  }
+}
+
+/* ===== Show Rejected Order Payment Details ===== */
+async function showRejectedOrderPaymentDetails(order) {
+  try {
+    // Create or get payment details modal
+    let paymentModal = document.getElementById('rejectedPaymentModal');
+    if (!paymentModal) {
+      paymentModal = document.createElement('div');
+      paymentModal.id = 'rejectedPaymentModal';
+      paymentModal.className = 'modal';
+      paymentModal.innerHTML = `
+        <div class="modal-card" role="dialog" aria-modal="true">
+          <h3>Payment Details for Rejected Order</h3>
+          <div id="rejectedPaymentContent" style="max-height:400px;overflow:auto"></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button id="closePaymentModal" class="btn btn-warn">Close</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(paymentModal);
+      
+      paymentModal.querySelector('#closePaymentModal').addEventListener('click', () => {
+        paymentModal.style.display = 'none';
+      });
+    }
+
+    const contentEl = paymentModal.querySelector('#rejectedPaymentContent');
+    
+    // Calculate earnings from different possible sources
+    const yourBid = (order.bids || []).find(b => String(b.bidderId) === String(currentUID));
+    const earnings = Number(order.courierEarnings || order.assignedBidAmount || (yourBid ? yourBid.amount : 0));
+    const baseDeliveryFee = Number(order.delivery || order.deliveryFee || 0);
+    
+    // Get customer info
+    const customerObj = order.buyer || order.customer || {};
+    const customerName = escapeHtml(customerObj.name || order.customerName || order.buyerName || order.buyer || order.customer || 'Unknown');
+    
+    // Get seller info
+    let sellerName = 'Unknown Seller';
+    const sellerId = order.sellerId || order.sellerUID;
+    if (sellerId) {
+      try {
+        const sellerProfile = await getUserProfile(sellerId);
+        sellerName = sellerProfile?.name || sellerProfile?.displayName || sellerId;
+      } catch(e) { /* ignore */ }
+    }
+
+    contentEl.innerHTML = `
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:3rem;color:var(--danger);margin-bottom:12px">❌</div>
+        <h3 style="color:var(--danger);margin:0">Order Rejected by Seller</h3>
+        <div class="small-muted">Order ID: ${escapeHtml(order.id || order.orderId || '')}</div>
+      </div>
+
+      <div style="background:#fef2f2;padding:16px;border-radius:8px;border-left:4px solid var(--danger);margin-bottom:16px">
+        <strong style="color:var(--danger)">Important:</strong>
+        <div class="small-muted" style="margin-top:8px">
+          The seller rejected this order, but you still get paid for your bid because:
+          <ul style="margin:8px 0;padding-left:20px">
+            <li>You were assigned and prepared to deliver</li>
+            <li>The rejection was not your fault</li>
+            <li>Your time and effort should be compensated</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Payment Breakdown -->
+      <div style="margin-bottom:16px;padding:16px;background:#ecfdf5;border-radius:8px;border-left:4px solid #10b981">
+        <strong style="color:#065f46;display:block;margin-bottom:12px">💰 Payment Breakdown</strong>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div style="text-align:center;padding:10px;background:white;border-radius:6px">
+            <div class="small-muted" style="font-size:12px">Original Delivery Fee</div>
+            <div style="font-weight:700;color:#1e40af;font-size:1.1rem">GHC ${baseDeliveryFee.toFixed(2)}</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:white;border-radius:6px">
+            <div class="small-muted" style="font-size:12px">Your Bid Amount</div>
+            <div style="font-weight:700;color:#10b981;font-size:1.1rem">GHC ${earnings.toFixed(2)}</div>
+          </div>
+        </div>
+        
+        <div style="text-align:center;padding:12px;background:#d1fae5;border-radius:6px;margin-top:12px">
+          <div class="small-muted" style="font-size:14px;color:#065f46">✅ Your payment is guaranteed</div>
+          <div style="font-weight:800;color:#065f46;font-size:1.2rem;margin-top:4px">You Earn: GHC ${earnings.toFixed(2)}</div>
+        </div>
+      </div>
+
+      <!-- Order Details -->
+      <div style="margin-bottom:16px">
+        <strong>Order Information:</strong>
+        <div style="margin-top:8px">
+          <div class="small-muted">Customer: ${customerName}</div>
+          <div class="small-muted">Seller: ${escapeHtml(sellerName)}</div>
+          <div class="small-muted">Assigned: ${fmtDate(order.assignedAt || order.appearedAt)}</div>
+          <div class="small-muted">Rejected: ${fmtDate(order.rejectedAt)}</div>
+        </div>
+      </div>
+
+      <!-- Bid Details -->
+      ${yourBid ? `
+        <div style="margin-bottom:16px">
+          <strong>Your Bid Details:</strong>
+          <div style="margin-top:8px;padding:12px;background:#f8fafc;border-radius:8px">
+            <div class="small-muted">Amount: GHC ${Number(yourBid.amount || 0).toFixed(2)}</div>
+            ${yourBid.eta ? `<div class="small-muted">Promised ETA: ${yourBid.eta} minutes</div>` : ''}
+            <div class="small-muted">Bid Placed: ${fmtDate(yourBid.placedAt)}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Payment Status -->
+      <div style="background:#f0f9ff;padding:12px;border-radius:8px;border-left:4px solid #2563eb">
+        <strong>Payment Status:</strong>
+        <div style="margin-top:4px">
+          <div class="small-muted">
+            ${order.paymentProcessed 
+              ? `✅ Payment processed on ${fmtDate(order.paymentProcessedAt || order.rejectedAt)}`
+              : `🔄 Payment will be processed within 24 hours`}
+          </div>
+        </div>
+      </div>
+    `;
+
+    paymentModal.style.display = 'flex';
+  } catch (error) {
+    console.error('Error showing rejected payment details:', error);
+    showToast('Error loading payment details', 'error');
+  }
+}
+
+/* ===== acceptAssignmentLocal ===== */
+function acceptAssignmentLocal(orderObj) {
+  const all = loadOrdersFromLocal();
+  const idx = all.findIndex(o => String(o.id||o.orderId||'') === String(orderObj.id||orderObj.orderId||''));
+  if (idx === -1) return showToast('Order not found','error');
+
+  const assignedId = String(all[idx].assignedDeliveryId || all[idx].assignedTo || '');
+  if (assignedId && String(assignedId) !== String(currentUID)) {
+    return showToast('This assignment is not for you','error');
+  }
+
+  all[idx].status = 'Accepted';
+  all[idx].acceptedAt = nowISO();
+  all[idx].statusUpdatedAt = nowISO();
+  all[idx].assignedAt = all[idx].assignedAt || nowISO();
+  all[idx].assignedDeliveryId = String(currentUID);
+  all[idx].assignedTo = String(currentUID);
+  const me = userCache.get(currentUID) || null;
+  all[idx].deliveryPerson = all[idx].deliveryPerson || (me ? (me.name || '') : '');
+
+  const order = normalizeOrder(all[idx]);
+  let winner = null;
+  if (Array.isArray(order.bids) && order.bids.length) {
+    winner = order.bids.find(b => b.winner || b.accepted || b.isWinner);
+    if (!winner && (order.assignedTo || order.assignedDeliveryId)) {
+      const aid = String(order.assignedTo || order.assignedDeliveryId || '');
+      winner = order.bids.find(b => String(b.bidderId) === String(aid));
+    }
+    if (!winner && String(currentUID)) {
+      winner = order.bids.find(b => String(b.bidderId) === String(currentUID));
+    }
+  }
+
+  if (winner) {
+    all[idx].assignedBidAmount = Number(winner.amount || 0);
+    all[idx].assignedBidEta = winner.eta || null;
+    all[idx].courierEarnings = Number(winner.amount || 0);
+    all[idx].bidAcceptedAt = all[idx].bidAcceptedAt || nowISO();
+    order.bids = order.bids.map(b => ({ ...b, winner: (String(b.bidderId) === String(winner.bidderId)) || !!b.winner }));
+    all[idx].bids = order.bids;
+  }
+
+  all[idx].history = all[idx].history || [];
+  all[idx].history.push({ actorId: currentUID, actorType: 'courier', action: 'accepted_assignment', note:'Courier accepted assignment', timestamp: nowISO() });
+
+  saveOrdersToLocal(all);
+  
+  // 🔥 SYNC TO GLOBAL ORDERS
+  syncDeliveryStatusToGlobal(orderObj.id || orderObj.orderId, 'Accepted', all[idx]);
+  
+  try { window.dispatchEvent(new CustomEvent('orderUpdated', { detail: { orderId: all[idx].id || all[idx].orderId } })); } catch(e){}
+  showToast('You accepted the assignment','success');
+  refreshOrdersFromLocal();
+}
+
+/* ===== CROSS-PLATFORM SYNC FUNCTIONS ===== */
+
+/**
+ * Sync order status to seller and buyer
+ */
+function syncOrderToSellerAndBuyer(order, updateType = 'status_update') {
+  const orderId = order.id || order.orderId;
+  
+  if (!orderId) {
+    console.warn('Cannot sync: missing order ID');
+    return;
+  }
+
+  // 1. Sync to Seller
+  syncToSeller(order);
+  
+  // 2. Sync to Buyer  
+  syncToBuyer(order);
+  
+  // 3. Update public delivery requests if needed
+  if (updateType === 'delivered') {
+    removeFromPublicRequests(orderId);
+  }
+  
+  console.log(`✅ Synced order ${orderId} to seller and buyer`);
+}
+
+/**
+ * Sync order to seller's storage
+ */
+function syncToSeller(order) {
+  try {
+    // Try to find seller UID from different possible locations
+    let sellerUid = order.sellerId || order.sellerUID || order.seller;
+    
+    // If not found in order, try to extract from public delivery requests
+    if (!sellerUid) {
+      const publicRequests = getPublicDeliveryRequests();
+      const deliveryRequest = publicRequests.find(req => 
+        req.orderId === order.id || req.orderId === order.orderId
+      );
+      if (deliveryRequest) {
+        sellerUid = deliveryRequest.sellerId;
+      }
+    }
+    
+    if (!sellerUid) {
+      console.warn('Cannot sync to seller: seller UID not found for order', order.id);
+      return;
+    }
+
+    const sellerOrdersKey = `orders__seller__${sellerUid}`;
+    let sellerOrders = JSON.parse(localStorage.getItem(sellerOrdersKey) || '[]');
+    
+    const existingIndex = sellerOrders.findIndex(o => 
+      String(o.id) === String(order.id) || String(o.orderId) === String(order.orderId)
+    );
+    
+    if (existingIndex !== -1) {
+      // Update existing seller order
+      sellerOrders[existingIndex] = {
+        ...sellerOrders[existingIndex],
+        status: order.status,
+        progressStep: order.progressStep,
+        statusUpdatedAt: order.statusUpdatedAt,
+        startedAt: order.startedAt,
+        atDoorAt: order.atDoorAt,
+        deliveredAt: order.deliveredAt,
+        history: [...(sellerOrders[existingIndex].history || []), ...(order.history || [])]
+      };
+    } else {
+      // Add new order to seller (shouldn't happen but safe fallback)
+      sellerOrders.unshift(order);
+    }
+    
+    localStorage.setItem(sellerOrdersKey, JSON.stringify(sellerOrders));
+    
+    // Notify seller page to refresh
+    localStorage.setItem(`orders_ping__seller__${sellerUid}`, Date.now().toString());
+    
+  } catch (error) {
+    console.error('Error syncing to seller:', error);
+  }
+}
+
+/**
+ * Sync order to buyer's storage
+ */
+function syncToBuyer(order) {
+  try {
+    // Try to find buyer UID from different possible locations
+    let buyerUid = null;
+    
+    // Check buyer object
+    if (order.buyer && typeof order.buyer === 'object') {
+      buyerUid = order.buyer.uid || order.buyer.id;
+    }
+    
+    // Check direct fields
+    if (!buyerUid) {
+      buyerUid = order.buyerId || order.buyerUID;
+    }
+    
+    if (!buyerUid) {
+      console.warn('Cannot sync to buyer: buyer UID not found for order', order.id);
+      return;
+    }
+
+    const buyerOrdersKey = `orders__buyer__${buyerUid}`;
+    let buyerOrders = JSON.parse(localStorage.getItem(buyerOrdersKey) || '[]');
+    
+    const existingIndex = buyerOrders.findIndex(o => 
+      String(o.id) === String(order.id) || String(o.orderId) === String(order.orderId)
+    );
+    
+    if (existingIndex !== -1) {
+      // Update existing buyer order
+      buyerOrders[existingIndex] = {
+        ...buyerOrders[existingIndex],
+        status: order.status,
+        progressStep: order.progressStep,
+        statusUpdatedAt: order.statusUpdatedAt,
+        startedAt: order.startedAt,
+        atDoorAt: order.atDoorAt,
+        deliveredAt: order.deliveredAt,
+        deliveryPerson: order.deliveryPerson,
+        history: [...(buyerOrders[existingIndex].history || []), ...(order.history || [])]
+      };
+    } else {
+      // Add new order to buyer (shouldn't happen but safe fallback)
+      buyerOrders.unshift(order);
+    }
+    
+    localStorage.setItem(buyerOrdersKey, JSON.stringify(buyerOrders));
+    
+    // Notify buyer page to refresh
+    localStorage.setItem(`orders_ping__buyer__${buyerUid}`, Date.now().toString());
+    
+  } catch (error) {
+    console.error('Error syncing to buyer:', error);
+  }
+}
+
+/**
+ * Remove delivered orders from public delivery requests
+ */
+function removeFromPublicRequests(orderId) {
+  try {
+    const publicRequests = getPublicDeliveryRequests();
+    const updatedRequests = publicRequests.filter(req => 
+      req.orderId !== orderId && req.id !== orderId
+    );
+    
+    if (updatedRequests.length !== publicRequests.length) {
+      savePublicDeliveryRequests(updatedRequests);
+    }
+  } catch (error) {
+    console.warn('Error removing from public requests:', error);
+  }
+}
+
+/* ===== changeStatusLocal ===== */
+function calculateCourierPerformance(promisedETA, actualDeliveryTime) {
+  // "Your word is your bond" - zero tolerance for bad data
+  if (!promisedETA || promisedETA <= 0 || !actualDeliveryTime || actualDeliveryTime <= 0) {
+    return 0.5; // Automatic fail for bad data
+  }
+  
+  // Simple brutal ratio: promised / actual
+  let performance = Number(promisedETA) / Number(actualDeliveryTime);
+  
+  // 🔥 100% CAP - Your bond is your exact word!
+  // If you're faster than promised, you still only get 100%
+  if (performance > 1.0) {
+    performance = 1.0;
+  }
+  
+  return performance; // No need for Math.min since we cap at 1.0
+}
+
+// Add this new function for performance ratings
+function getPerformanceRating(performanceScore) {
+  if (performanceScore === 1.0) return "PERFECT_TIMING"; // Exactly on time
+  if (performanceScore >= 0.9) return "SLIGHTLY_LATE"; 
+  if (performanceScore >= 0.7) return "LATE";
+  if (performanceScore >= 0.5) return "VERY_LATE";
+  return "UNACCEPTABLY_LATE";
+}
+
+async function changeStatusLocal(orderObj, newStatus) {
+  try {
+    const orderId = orderObj.id || orderObj.orderId;
+    if (!orderId) {
+      showToast('Order ID missing', 'error');
+      return;
+    }
+    
+    const orderRef = doc(firestore, "deliveryOrders", orderId);
+    const orderSnap = await getDoc(orderRef);
+    
+    if (!orderSnap.exists()) {
+      showToast('Order not found in Firestore', 'error');
+      return;
+    }
+    
+    const currentData = orderSnap.data();
+    
+    // Check if assigned to current user
+    if (currentData.assignedDeliveryId !== currentUID) {
+      showToast('This order is not assigned to you', 'error');
+      return;
+    }
+    
+    const updateData = {
+      status: newStatus,
+      statusUpdatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    
+    // Add timestamp for specific statuses
+    if (newStatus === 'Delivering') {
+      updateData.startedAt = serverTimestamp();
+      updateData.progressStep = 4;
+    }
+    
+    if (newStatus === 'At Door') {
+      updateData.atDoorAt = serverTimestamp();
+      updateData.progressStep = 5;
+    }
+    
+    if (newStatus === 'Delivered') {
+      updateData.deliveredAt = serverTimestamp();
+      updateData.progressStep = 6;
+      
+      // Calculate performance
+      const yourBid = (currentData.bids || []).find(b => b.bidderId === currentUID);
+      const promisedETA = Number(currentData.assignedBidEta ?? (yourBid ? yourBid.eta : 30));
+      const startTimeIso = currentData.acceptedAt || currentData.assignedAt;
+      
+      if (startTimeIso && promisedETA > 0) {
+        const startTime = new Date(startTimeIso?.toDate?.() || startTimeIso);
+        const endTime = new Date();
+        const actualMinutes = Math.max(1, Math.round((endTime - startTime) / (1000 * 60)));
+        
+        const perf = calculateCourierPerformance(promisedETA, actualMinutes);
+        updateData.performance = perf;
+        updateData.actualDeliveryTime = actualMinutes;
+        updateData.promisedDeliveryTime = promisedETA;
+        updateData.onTime = perf >= 1.0;
+        updateData.performanceRating = getPerformanceRating(perf);
+      }
+      
+      // Calculate earnings
+      const baseFee = Number(currentData.delivery || currentData.deliveryFee || 0);
+      const courierEarnings = Number(currentData.courierEarnings ?? currentData.assignedBidAmount ?? (yourBid ? yourBid.amount : 0));
+      updateData.courierEarnings = courierEarnings;
+      updateData.platformFee = Number(baseFee) - Number(courierEarnings);
+    }
+    
+    // Add to history
+    const newHistoryEntry = {
+      actorId: currentUID,
+      actorType: 'courier',
+      action: `status_${newStatus.toLowerCase().replace(/\s+/g, '_')}`,
+      note: `Courier set status ${newStatus}`,
+      timestamp: new Date().toISOString()
+    };
+    
+    updateData.history = arrayUnion(newHistoryEntry);
+    
+    // Update in Firestore
+    await updateDoc(orderRef, updateData);
+    
+    // Also update the global orders collection
+    await syncOrderStatusToGlobal(orderId, newStatus, updateData);
+    
+    showToast(`Order ${orderId} → ${newStatus}`, 'success');
+    
+  } catch (error) {
+    console.error('Error changing status:', error);
+    showToast('Failed to update status', 'error');
+  }
+}
+
+/* ===== Confirm-by-code flow (courier) with lock screen ===== */
+async function confirmDeliveryWithCode(orderId, enteredCode) {
+  try {
+    // 1. Get order from Firestore
+    const orderRef = doc(firestore, "orders", orderId);
+    const orderSnap = await getDoc(orderRef);
+    
+    if (!orderSnap.exists()) {
+      showToast('Order not found', 'error');
+      return false;
+    }
+    
+    const orderData = orderSnap.data();
+    const expectedCode = orderData.deliveryCode;
+    
+    // 2. Verify code
+    if (enteredCode !== expectedCode) {
+      // Track failed attempts in Firestore
+      await updateDoc(orderRef, {
+        failedAttempts: (orderData.failedAttempts || 0) + 1,
+        updatedAt: serverTimestamp()
+      });
+      
+      return false;
+    }
+    
+    // 3. Code is correct - mark as delivered
+    await updateDoc(orderRef, {
+      status: 'Delivered',
+      deliveredAt: serverTimestamp(),
+      statusUpdatedAt: serverTimestamp(),
+      progressStep: 6,
+      updatedAt: serverTimestamp()
+    });
+    
+    // 4. Also update deliveryOrders collection
+    const deliveryOrderRef = doc(firestore, "deliveryOrders", orderId);
+    await updateDoc(deliveryOrderRef, {
+      status: 'Delivered',
+      deliveredAt: serverTimestamp(),
+      statusUpdatedAt: serverTimestamp(),
+      progressStep: 6,
+      updatedAt: serverTimestamp()
+    });
+    
+    // 5. Notify seller and buyer
+    await notifySellerAndBuyerFirestore(orderId, 'Delivered');
+    
+    return true;
+    
+  } catch (error) {
+    console.error('Error confirming delivery:', error);
+    return false;
+  }
+}
+/* ===== Lock Screen Functions ===== */
+function showLockScreen() {
+    const lockScreen = document.getElementById('lockScreen');
+    const codeInputSection = document.getElementById('codeInputSection');
+    const confirmBtn = document.getElementById('confirmDelivery');
+    
+    if (lockScreen) lockScreen.style.display = 'block';
+    if (codeInputSection) codeInputSection.style.display = 'none';
+    if (confirmBtn) confirmBtn.disabled = true;
+    
+    startCountdown();
+}
+
+function showCodeInput() {
+    const lockScreen = document.getElementById('lockScreen');
+    const codeInputSection = document.getElementById('codeInputSection');
+    const confirmBtn = document.getElementById('confirmDelivery');
+    const codeInput = document.getElementById('deliveryCodeInput');
+    
+    if (lockScreen) lockScreen.style.display = 'none';
+    if (codeInputSection) codeInputSection.style.display = 'block';
+    if (confirmBtn) confirmBtn.disabled = false;
+    if (codeInput) codeInput.disabled = false;
+}
+
+function updateAttemptsCounter() {
+    const attemptsCounter = document.getElementById('attemptsCounter');
+    if (attemptsCounter) {
+        attemptsCounter.textContent = `Attempts: ${_failedAttempts}/${MAX_ATTEMPTS}`;
+        
+        // Change color based on attempts
+        if (_failedAttempts >= MAX_ATTEMPTS - 1) {
+            attemptsCounter.style.color = 'var(--danger)';
+            attemptsCounter.style.fontWeight = 'bold';
+        } else if (_failedAttempts >= MAX_ATTEMPTS - 2) {
+            attemptsCounter.style.color = 'var(--warn)';
+        } else {
+            attemptsCounter.style.color = 'var(--muted)';
+        }
+    }
+}
+
+function startCountdown() {
+    const countdownTimer = document.getElementById('countdownTimer');
+    if (!countdownTimer) return;
+    
+    function updateTimer() {
+        const now = Date.now();
+        const timeLeft = _lockUntil - now;
+        
+        if (timeLeft <= 0) {
+            // Lock has expired
+            _failedAttempts = 0;
+            _lockUntil = 0;
+            showCodeInput();
+            updateAttemptsCounter();
+            countdownTimer.textContent = '';
+            return;
+        }
+        
+        // Calculate minutes and seconds
+        const minutes = Math.floor(timeLeft / 60000);
+        const seconds = Math.floor((timeLeft % 60000) / 1000);
+        
+        // Format as MM:SS
+        countdownTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Continue countdown
+        setTimeout(updateTimer, 1000);
+    }
+    
+    updateTimer();
+}
+
+/* ===== showDeliveryDetailsLocal ===== */
+async function showDeliveryDetailsLocal(orderObj){
+  if(!orderObj) return;
+  try {
+    const all = loadOrdersFromLocal();
+    const idx = all.findIndex(o => String(o.id||o.orderId||'') === String(orderObj.id||orderObj.orderId||''));
+    const o = idx===-1 ? orderObj : all[idx];
+
+    const detailsModal = document.getElementById('detailsModal');
+    const detailsContent = document.getElementById('deliveryDetailsContent');
+    if(!detailsModal || !detailsContent) return;
+
+    const items = Array.isArray(o.items) ? o.items : (o.product ? [{name:o.product, price:o.price||0, quantity:o.quantity||1, image:o.productImage||''}] : []);
+    const itemsHtml = items.map(it => `
+      <li style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+        <img src="${escapeHtml(it.image||it.img||'')}" onerror="this.onerror=null;this.src='../../images/default-product.jpg'" style="width:56px;height:56px;object-fit:cover;border-radius:6px">
+        <div>
+          <div style="font-weight:700">${escapeHtml(it.name||it.title||'')}</div>
+          <div class="small-muted">GHC ${(Number(it.price)||0).toFixed(2)} • Qty: ${it.quantity||1}</div>
+        </div>
+      </li>`).join('');
+
+    const buyerObj = (o.buyer && typeof o.buyer === 'object') ? o.buyer
+                   : (o.customer && typeof o.customer === 'object') ? o.customer
+                   : null;
+
+    let buyerAvatar = '';
+    if (buyerObj && buyerObj.profilePictureUrl) buyerAvatar = buyerObj.profilePictureUrl;
+    else if (o.buyerAvatar) buyerAvatar = o.buyerAvatar || '';
+    else if (o.customerAvatar) buyerAvatar = o.customerAvatar || '';
+    else buyerAvatar = '';
+
+    const buyerName = buyerObj?.name || o.customerName || o.buyerName || o.customer || o.buyer || 'Unknown';
+    const buyerEmail = buyerObj?.email || o.customerEmail || o.buyerEmail || '';
+    const buyerPhone = buyerObj?.phone || buyerObj?.contact || o.customerPhone || o.phone || '';
+    const buyerLocation = o.deliveryLocation || buyerObj?.address || o.location || o.address || '';
+    const buyerIndex = buyerObj?.index || o.customerIndex || o.buyerIndex || '';
+    const buyerProgram = buyerObj?.program || o.customerProgram || o.buyerProgram || '';
+
+    const deliveryFeeValue = Number(o.delivery || o.deliveryFee || o.deliveryAmount || o.fee || 0);
+
+    let sellerId = o.sellerId || o.sellerUID || o.seller || o.shopId || null;
+    if (!sellerId && items.length) {
+      const first = items[0];
+      if (first.sellerId) sellerId = first.sellerId;
+      else {
+        const productsLocal = (() => { try { return JSON.parse(localStorage.getItem('products__seller__' + getUid())||'[]') || []; } catch(e){ return []; } })();
+        let found = null;
+        if (first.productId) found = productsLocal.find(p => String(p.id) === String(first.productId));
+        if (!found && first.id) found = productsLocal.find(p => String(p.id) === String(first.id));
+        if (!found && first.name) found = productsLocal.find(p => (p.name||'').toLowerCase() === String(first.name||'').toLowerCase());
+        if (found && found.sellerId) sellerId = found.sellerId;
+      }
+    }
+
+    let sellerHtml = '';
+    if (sellerId) {
+      try {
+        const sellerProfile = await getUserProfile(sellerId);
+        const sName = sellerProfile?.name || sellerProfile?.displayName || (o.sellerName || 'Seller');
+        const sAvatar = sellerProfile?.profilePictureUrl || (o.sellerAvatar || '../../images/no profile pic.jpg');
+        const sEmail = sellerProfile?.email || o.sellerEmail || '';
+        const sPhone = sellerProfile?.phone || o.sellerPhone || '';
+        const sIndex = sellerProfile?.index || sellerProfile?.studentIndex || o.sellerIndex || '';
+        const sProgram = sellerProfile?.program || o.sellerProgram || '';
+        const sRoom = sellerProfile?.room || sellerProfile?.roomnumber || sellerProfile?.roomNumber || o.sellerRoom || '';
+
+        sellerHtml = `
+          <div style="display:flex;gap:12px;align-items:center;margin-top:8px;padding:10px;border-radius:8px;background:rgba(0,0,0,0.03)">
+            <img src="${escapeHtml(sAvatar)}" onerror="this.onerror=null;this.src='../../images/no profile pic.jpg'" style="width:72px;height:72px;border-radius:8px;object-fit:cover">
+            <div style="flex:1">
+              <div style="font-weight:800">${escapeHtml(sName)}</div>
+              ${sEmail ? `<div class="small-muted">✉️ ${escapeHtml(sEmail)}</div>` : ''}
+              ${sPhone ? `<div class="small-muted">📞 ${escapeHtml(sPhone)}</div>` : ''}
+              ${sIndex ? `<div class="small-muted">Index: ${escapeHtml(sIndex)}</div>` : ''}
+              ${sProgram ? `<div class="small-muted">Program: ${escapeHtml(sProgram)}</div>` : ''}
+              ${sRoom ? `<div class="small-muted">Room: ${escapeHtml(sRoom)}</div>` : ''}
+              <div class="small-muted" style="margin-top:6px">UID: ${escapeHtml(sellerId)}</div>
+            </div>
+          </div>
+        `;
+      } catch(err) {
+        sellerHtml = `<div class="small-muted">Seller: ${escapeHtml(o.sellerName || sellerId || 'Unknown')}</div>`;
+      }
+    } else {
+      const inlineName = o.sellerName || o.sellerNameDisplay || o.seller || '';
+      const inlineEmail = o.sellerEmail || '';
+      const inlinePhone = o.sellerPhone || '';
+      if (inlineName || inlineEmail || inlinePhone) {
+        sellerHtml = `<div style="margin-top:8px;padding:8px;border-radius:6px;background:rgba(0,0,0,0.03)">
+                        ${ inlineName ? `<div style="font-weight:700">${escapeHtml(inlineName)}</div>` : '' }
+                        ${ inlineEmail ? `<div class="small-muted">✉️ ${escapeHtml(inlineEmail)}</div>` : '' }
+                        ${ inlinePhone ? `<div class="small-muted">📞 ${escapeHtml(inlinePhone)}</div>` : '' }
+                      </div>`;
+      } else {
+        sellerHtml = `<div class="small-muted">Seller: Unknown</div>`;
+      }
+    }
+
+    // Get bids from public delivery requests
+    const publicRequests = getPublicDeliveryRequests();
+    const deliveryRequest = publicRequests.find(req => 
+      req.orderId === o.id || req.orderId === o.orderId || req.id === o.id
+    );
+    
+    const bids = deliveryRequest ? (deliveryRequest.bids || []) : [];
+    let bidsHtml = '<div class="small-muted">No bids yet.</div>';
+    if (bids.length) {
+      bidsHtml = bids.map(bid => {
+        const isMine = currentUID && String(bid.bidderId) === String(currentUID);
+        const mineControls = isMine ? 
+          `<button class="btn btn-warn remove-bid-details" 
+                  data-request-id="${escapeHtml(deliveryRequest?.id || '')}" 
+                  data-bidder-id="${escapeHtml(bid.bidderId || '')}"
+                  style="margin-top:8px">
+            Remove My Bid
+          </button>` : '';
+        
+        return `
+          <div style="border:1px solid #eee;padding:12px;border-radius:8px;margin-bottom:12px">
+            <div style="display:flex;align-items:flex-start;gap:12px">
+              <img src="${escapeHtml(bid.bidderAvatar || '../../images/no profile pic.jpg')}" style="width:56px;height:56px;border-radius:8px;object-fit:cover" onerror="this.onerror=null;this.src='../../images/no profile pic.jpg'">
+              <div style="flex:1">
+                <div style="font-weight:700">${escapeHtml(bid.bidderName || bid.bidderId || 'Courier')}</div>
+                <div class="small-muted">UID: ${escapeHtml(bid.bidderId || '')}</div>
+                <div class="small-muted">Bid: GHC ${Number(bid.amount || 0).toFixed(2)} • ETA: ${escapeHtml(bid.eta || 'n/a')} min</div>
+                <div class="small-muted">Placed: ${fmtDate(bid.placedAt)}</div>
+                ${mineControls}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      bidsHtml = `<div style="margin-top:16px"><h4>Current Bids (${bids.length})</h4>${bidsHtml}</div>`;
+    }
+
+    const subtotal = items.reduce((s, it) => s + ((Number(it.price) || 0) * (Number(it.quantity) || 1)), 0);
+    const totalValue = Number(o.total || o.totalPrice || subtotal + deliveryFeeValue || subtotal || 0);
+
+    detailsContent.innerHTML = `
+      <div style="margin-bottom:12px;display:flex;justify-content:space-between;gap:12px">
+        <div style="flex:1">
+          <div><strong>Order ID:</strong> ${escapeHtml(o.orderId || o.id || o.deliveryRequestId || '')}</div>
+          <div style="margin-top:6px"><strong>Customer:</strong> ${escapeHtml(buyerName)}</div>
+          ${buyerAvatar ? `<div style="margin-top:8px"><img src="${escapeHtml(buyerAvatar)}" style="width:72px;height:72px;border-radius:8px;object-fit:cover"></div>` : ''}
+          ${buyerEmail ? `<div style="margin-top:6px"><strong>Email:</strong> ${escapeHtml(buyerEmail)}</div>` : ''}
+          <div style="margin-top:6px"><strong>Phone:</strong> ${escapeHtml(buyerPhone)}</div>
+          <div style="margin-top:6px"><strong>Delivery Location:</strong> ${escapeHtml(o.deliveryLocation || buyerLocation || o.location || o.address || '')}</div>
+          ${buyerIndex ? `<div style="margin-top:6px"><strong>Index:</strong> ${escapeHtml(buyerIndex)}</div>` : ''}
+          ${buyerProgram ? `<div style="margin-top:6px"><strong>Program:</strong> ${escapeHtml(buyerProgram)}</div>` : ''}
+          ${o.assignedTo ? `<div style="margin-top:6px"><strong>Assigned To:</strong> ${escapeHtml(o.assignedTo)} ${o.deliveryPerson ? `(${escapeHtml(o.deliveryPerson)})` : ''}</div>` : ''}
+        </div>
+
+        <div style="text-align:right">
+          <div class="small-muted">Status:</div>
+          <div style="margin-top:6px"><span class="status-badge ${statusClass(o.status)}">${escapeHtml(o.status || '')}</span></div>
+          <div style="margin-top:12px;font-weight:800">Delivery Fee:</div>
+          <div style="font-size:1.05rem;margin-top:6px">GHC ${Number(deliveryFeeValue).toFixed(2)}</div>
+          ${ (o.courierEarnings || o.assignedBidAmount) ? `<div class="small-muted" style="margin-top:6px">Courier locked earnings: GHC ${Number(o.courierEarnings ?? o.assignedBidAmount).toFixed(2)}</div>` : '' }
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div><strong>Seller</strong></div>
+        ${sellerHtml}
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div><strong>Items:</strong></div>
+        <ul style="margin:8px 0;padding-left:20px">${itemsHtml}</ul>
+        <div><strong>Subtotal:</strong> GHC ${Number(subtotal).toFixed(2)}</div>
+        <div><strong>Total:</strong> GHC ${Number(totalValue).toFixed(2)}</div>
+      </div>
+
+      <div><strong>Instructions:</strong> ${escapeHtml(o.instructions || o.note || '')}</div>
+
+      <div style="margin-top:12px">${bidsHtml}</div>
+    `;
+
+    detailsModal.style.display = 'flex';
+    const closeBtn = document.getElementById('closeDetails');
+    if (closeBtn) closeBtn.onclick = () => { detailsModal.style.display = 'none'; };
+    const navBtn = document.getElementById('startNavigation');
+    if (navBtn) navBtn.onclick = () => { alert('Starting navigation to: ' + (o.deliveryLocation || buyerLocation || o.location || o.address || 'unknown')); detailsModal.style.display = 'none'; };
+  } catch (err) {
+    console.error('showDeliveryDetailsLocal err', err);
+    showToast('Failed to load delivery details','error');
+  }
+}
+
+/* ===== renderDeliveryHistoryFromState ===== */
+/* ===== renderDeliveryHistoryFromState ===== */
+/* ===== renderDeliveryHistoryFromState ===== */
+function renderDeliveryHistoryFromState(){
+  if(!completedTbody) return;
+  try {
+    completedTbody.innerHTML = '';
+    const search = (historySearch?.value||'').toLowerCase();
+    
+    // 🎯 Combine both delivered AND rejected orders in history
+    const list = completedOrders.filter(o => {
+      const combined = `${o.id||''} ${o.customer||o.buyerName||''} ${o.location||''} ${o.status||''}`.toLowerCase();
+      if (search && !combined.includes(search)) return false;
+      return true;
+    });
+    
+    if (!list.length) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="8" style="text-align:center;color:var(--muted)">No delivery history</td>`;
+      completedTbody.appendChild(tr);
+      return;
+    }
+    
+    list.forEach(d => {
+      const tr = document.createElement('tr');
+      const isRejected = d.status === 'Rejected';
+      const deliveredAtIso = isRejected ? d.rejectedAt : (d.deliveredAt || d.completedAt || d.updatedAt || '');
+      
+      // 🎯 Calculate earnings - should work even for rejected orders
+      const yourBid = (d.bids || []).find(b => String(b.bidderId) === String(currentUID));
+      const earnings = Number(d.courierEarnings || d.assignedBidAmount || (yourBid ? yourBid.amount : 0));
+      
+      // Get item thumbnail for history items
+      let historyThumb = '';
+      let historyItemsSummary = '';
+
+      if (Array.isArray(d.items) && d.items.length) {
+        historyThumb = d.items[0].image || d.items[0].img || d.items[0].thumbnail || '';
+        historyItemsSummary = d.items.map(i => i.name || i.title).join(', ');
+      } else {
+        historyItemsSummary = d.items || d.product || '-';
+        if (d.productImage) historyThumb = d.productImage;
+      }
+
+      // Get customer info for history
+      const customerObj = d.buyer || d.customer || {};
+      const customerName = escapeHtml(customerObj.name || d.customerName || d.buyerName || d.buyer || d.customer || 'Unknown');
+      const customerAvatar = customerObj.profilePictureUrl || d.buyerAvatar || d.customerAvatar || '';
+      const customerPhone = customerObj.phone || '';
+
+      // 🎯 Different display for rejected vs delivered orders
+      let statusCell = '';
+      let performanceCell = '';
+      
+      if (isRejected) {
+        // REJECTED ORDER
+        statusCell = `
+          <span class="small-muted" style="color:var(--danger);font-weight:600">❌ REJECTED</span>
+          <br>
+          <span class="small-muted">Paid: GHC ${earnings.toFixed(2)}</span>
+        `;
+        
+        performanceCell = `
+          <span class="small-muted" style="color:var(--muted)">N/A</span>
+          <br>
+          <span class="small-muted" style="font-size:0.75rem;color:var(--danger)">
+            Seller rejected
+          </span>
+        `;
+      } else {
+        // DELIVERED ORDER
+        statusCell = `
+          <span class="small-muted">✅ DELIVERED</span>
+          <br>
+          <span class="small-muted">Earned: GHC ${earnings.toFixed(2)}</span>
+        `;
+        
+        performanceCell = `
+          <span class="small-muted" style="color: ${d.onTime ? 'var(--success)' : 'var(--danger)'}">
+            ${d.performance ? `${(d.performance * 100).toFixed(0)}%` : '—'}
+          </span>
+          <br>
+          <span class="small-muted" style="font-size:0.75rem">
+            ${d.performanceRating || '—'}
+          </span>
+        `;
+      }
+
+      tr.innerHTML = `
+        <td>${escapeHtml(String(d.id||''))}</td>
+        <td style="display:flex;align-items:center;gap:8px">
+          ${customerAvatar ? `<img src="${escapeHtml(customerAvatar)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover" onerror="this.onerror=null;this.src='/images/no profile pic.jpg'">` : ''}
+          <div>
+            <div style="font-weight:700">${customerName}</div>
+            ${customerPhone ? `<div class="small-muted">📞 ${escapeHtml(customerPhone)}</div>` : ''}
+          </div>
+        </td>
+        <td>${escapeHtml(d.location || d.address || '—')}</td>
+        <td style="display:flex;align-items:center;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${historyThumb ? `<img src="${escapeHtml(historyThumb)}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:8px;vertical-align:middle">` : ''}
+          <div style="min-width:0">
+            <div style="font-weight:700">${escapeHtml(historyItemsSummary)}</div>
+          </div>
+        </td>
+        <td>
+          ${deliveredAtIso ? fmtDate(deliveredAtIso) : ''}
+          <br>
+          <span class="small-muted" style="font-size:0.75rem">
+            ${isRejected ? 'Rejected' : 'Delivered'}
+          </span>
+        </td>
+        <td>${statusCell}</td>
+        <td>${performanceCell}</td>
+        <td class="actions"></td>
+      `;
+      
+      const actionsTd = tr.querySelector('.actions');
+      const detailsBtn = actionBtn('Details','btn-muted', ()=> showDeliveryDetailsLocal(d));
+      actionsTd.appendChild(detailsBtn);
+      
+      completedTbody.appendChild(tr);
+    });
+  } catch(e){ console.warn('renderDeliveryHistoryFromState err', e); }
+}
+
+/* ===== Stats ===== */
+function updateStatsFromMemory(){
+  try {
+    completedOrders = Array.isArray(completedOrders) ? completedOrders : (JSON.parse(localStorage.getItem(completedOrdersKey())||'[]') || []);
+    assignedOrders = Array.isArray(assignedOrders) ? assignedOrders : [];
+    openRequests = Array.isArray(openRequests) ? openRequests : [];
+
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const deliveriesToday = completedOrders.filter(o => new Date(o.deliveredAt || o.completedAt || 0) >= todayStart).length;
+    const completedCount = completedOrders.length;
+    const activeCount = (assignedOrders.length || 0) + (openRequests.length || 0);
+    const inProgress = (assignedOrders || []).filter(o => {
+      const st = (o.status||'').toLowerCase();
+      return (st === 'delivering' || st === 'processing') && st !== 'rejected';
+    }).length;
+
+    let earnings = 0;
+    let rejectedEarnings = 0;
+    let deliveredEarnings = 0;
+    
+    for (const c of completedOrders) {
+      const e = Number(c.courierEarnings ?? ((c.bids||[]).find(b => String(b.bidderId) === String(currentUID))?.amount ?? 0));
+      if (!isNaN(e)) {
+        earnings += e;
+        
+        if (c.status === 'Rejected') {
+          rejectedEarnings += e;
+        } else {
+          deliveredEarnings += e;
+        }
+      }
+    }
+
+    const elToday = document.getElementById('statToday'); if(elToday) elToday.textContent = String(deliveriesToday);
+    const elCompleted = document.getElementById('statCompleted'); if(elCompleted) elCompleted.textContent = String(completedCount);
+    const elActive = document.getElementById('statActive'); if(elActive) elActive.textContent = String(activeCount);
+    const elProgress = document.getElementById('statProgress'); if(elProgress) elProgress.textContent = String(inProgress);
+    
+    // 🎯 Update earnings display to include both delivered and rejected
+    const elEarnings = document.getElementById('statEarnings'); 
+    if(elEarnings) elEarnings.innerHTML = `
+      GHC ${Number(earnings||0).toFixed(2)}
+      <br>
+      <span class="small-muted" style="font-size:0.75rem">
+        (${deliveredEarnings > 0 ? `Delivered: GHC ${deliveredEarnings.toFixed(2)}` : ''}
+        ${rejectedEarnings > 0 ? `<br>Rejected: GHC ${rejectedEarnings.toFixed(2)}` : ''})
+      </span>
+    `;
+
+    const avgEarnings = completedCount > 0 ? (earnings / completedCount) : 0;
+    const elAvg = document.getElementById('statAvg'); if(elAvg) elAvg.textContent = avgEarnings.toFixed(2);
+
+    // 🎯 Only calculate on-time rate for delivered orders (not rejected)
+    const deliveredOrders = completedOrders.filter(o => o.status !== 'Rejected');
+    const onTimeDeliveries = deliveredOrders.filter(o => o.onTime === true).length;
+    const totalRatedDeliveries = deliveredOrders.filter(o => typeof o.onTime !== 'undefined').length;
+
+    const onTimeRate = totalRatedDeliveries > 0 ? (onTimeDeliveries / totalRatedDeliveries) * 100 : 0;
+
+    const elRating = document.getElementById('statRating');
+    if (elRating) elRating.textContent = `${Math.round(onTimeRate)}%`;
+
+    const elOnTime = document.getElementById('statOnTime'); 
+    if(elOnTime) elOnTime.textContent = `${onTimeDeliveries}/${totalRatedDeliveries}`;
+
+    // 🎯 Add rejected count display
+    const rejectedCount = completedOrders.filter(o => o.status === 'Rejected').length;
+    const elRejected = document.getElementById('statRejected');
+    if (elRejected) {
+      elRejected.textContent = String(rejectedCount);
+    } else {
+      // Create rejected stat if it doesn't exist
+      const statsGrid = document.querySelector('.analytics-grid');
+      if (statsGrid && !document.getElementById('statRejected')) {
+        const rejectedStat = document.createElement('div');
+        rejectedStat.id = 'statRejected';
+        rejectedStat.innerHTML = `
+          <strong>Rejected Orders</strong>
+          <div class="small-muted" style="color:var(--danger)">${rejectedCount}</div>
+        `;
+        statsGrid.appendChild(rejectedStat);
+      }
+    }
+
+  } catch(e){ console.warn('updateStatsFromMemory', e); }
+}
+
+/* update badge */
+function updateDeliveriesBadge(count){
+  if(!deliveriesBadge) return;
+  if(count > 0){
+    deliveriesBadge.style.display = 'inline-flex';
+    if (deliveriesCountEl) deliveriesCountEl.textContent = String(count);
+    if (deliveriesDot && deliveriesDot.classList) deliveriesDot.classList.add('pulse');
+  } else {
+    deliveriesBadge.style.display = 'none';
+    if (deliveriesDot && deliveriesDot.classList) deliveriesDot.classList.remove('pulse');
+  }
+}
+
+/* ===== SIMPLE CLEAR HISTORY FOR DELIVERY GUY ===== */
+/* ===== FIXED: Clear Delivery History ===== */
+function clearDeliveryHistory() {
+  if (!confirm('Clear your delivery history? This will remove all your completed and rejected orders from your view.')) return;
+  
+  try {
+    // 1. Clear the storage key
+    localStorage.setItem(completedOrdersKey(), '[]');
+    
+    // 2. Set a flag that we're clearing history
+    localStorage.setItem(`delivery_${currentUID}_history_cleared`, Date.now().toString());
+    
+    // 3. Clear the in-memory arrays COMPLETELY
+    completedOrders = [];
+    
+    // 4. Also filter assignedOrders to remove completed/rejected orders
+    assignedOrders = assignedOrders.filter(order => {
+      const status = (order.status || '').toLowerCase();
+      return !(status === 'rejected' || status === 'delivered' || status === 'picked up');
+    });
+    
+    // 5. Save the filtered assignedOrders back to storage
+    saveOrdersToLocal(assignedOrders);
+    
+    // 6. Force UI update
+    if (completedTbody) {
+      completedTbody.innerHTML = '';
+      const emptyRow = document.createElement('tr');
+      emptyRow.innerHTML = `
+        <td colspan="8" style="text-align:center;color:var(--muted);padding:40px">
+          <div style="margin-bottom:12px">
+            <i class="fas fa-check-circle" style="font-size:2rem;opacity:0.5"></i>
+          </div>
+          <div>No delivery history</div>
+          <div class="small-muted" style="margin-top:8px;font-size:0.85rem">
+            History has been cleared
+          </div>
+        </td>
+      `;
+      completedTbody.appendChild(emptyRow);
+    }
+    
+    // 7. Update stats
+    updateStatsFromMemory();
+    
+    // 8. Force stop any polling/reloading for 5 seconds
+    stopPolling();
+    showToast('History cleared successfully!', 'success');
+    
+    // Restart polling after 5 seconds
+    setTimeout(() => {
+      startPolling();
+    }, 5000);
+    
+  } catch (error) {
+    console.error('Clear history error:', error);
+    showToast('Error clearing history', 'error');
+  }
+}
+/* ===== subscriptions / event wiring ===== */
+function setupEventListeners(){
+  // If event listeners are already set up, don't set them up again
+  if (window.eventListenersSetup) return;
+  window.eventListenersSetup = true;
+  
+  if(toggleThemeBtn){ toggleThemeBtn.addEventListener('click', toggleTheme); }
+  if (avatarEl) {
+    avatarEl.tabIndex = 0;
+    avatarEl.addEventListener('click', toggleProfileMenu);
+    avatarEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') toggleProfileMenu(e); });
+  }
+  document.addEventListener('click', (e)=> { if(!profileMenu) return; if(e.target === profileMenu || profileMenu.contains(e.target) || e.target === avatarEl) return; setProfileMenuOpen(false); });
+  document.addEventListener('keydown', (e)=> { if(e.key === 'Escape') setProfileMenuOpen(false); });
+
+  if(deliverySearch) deliverySearch.addEventListener('input', debounce(() => refreshOrdersFromLocal(), 300));
+  if(deliveryFilter) deliveryFilter.addEventListener('change', debounce(() => refreshOrdersFromLocal(), 200));
+  if(historySearch) historySearch.addEventListener('input', debounce(() => refreshOrdersFromLocal(), 300));
+
+  const exportCsvBtn = document.getElementById('exportCsv');
+  if (exportCsvBtn) exportCsvBtn.addEventListener('click', exportCompletedCSV);
+
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', (e) => { 
+      e.preventDefault(); 
+      clearDeliveryHistory(); 
+    });
+  }
+
+  // Handle Remove Bid buttons in details modal
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-bid-details')) {
+      const btn = e.target;
+      const requestId = btn.getAttribute('data-request-id');
+      const bidderId = btn.getAttribute('data-bidder-id');
+      
+      if (!requestId || !bidderId) return;
+      
+      if (confirm('Are you sure you want to remove your bid?')) {
+        const removed = removeBidLocal(requestId, bidderId);
+        if (removed) {
+          showToast('Your bid has been removed', 'success');
+          const detailsModal = document.getElementById('detailsModal');
+          if (detailsModal) {
+            detailsModal.style.display = 'none';
+          }
+          refreshOrdersFromLocal();
+        } else {
+          showToast('Failed to remove bid', 'error');
+        }
+      }
+    }
+  });
+}
+
+/* ===== CSV export ===== */
+function exportCompletedCSV(){
+  try { 
+    completedOrders = JSON.parse(localStorage.getItem(completedOrdersKey()) || '[]') || completedOrders || []; 
+  } catch(e) { 
+    completedOrders = completedOrders || []; 
+  }
+  
+  if(!completedOrders.length) { 
+    showToast('No completed deliveries to export','warn'); 
+    return; 
+  }
+  
+  const rows = [
+    ['Order ID','Customer','Location','Items','Status','Completed/Rejected At','Earnings','Base Fee','Your Bid','Performance','Notes']
+  ];
+  
+  completedOrders.forEach(o => {
+    const items = Array.isArray(o.items) ? o.items.map(i => i.name).join('; ') : (o.items || o.product || '');
+    const yourBid = (o.bids || []).find(b => String(b.bidderId) === String(currentUID));
+    const earnings = Number(o.courierEarnings || (yourBid ? yourBid.amount : 0));
+    const baseFee = Number(o.delivery || o.deliveryFee || o.deliveryAmount || o.fee || 0);
+    const yourBidAmount = yourBid ? yourBid.amount : (o.assignedBidAmount || 0);
+    const isRejected = o.status === 'Rejected';
+    const completedAt = isRejected ? o.rejectedAt : (o.deliveredAt || o.completedAt || '');
+    const performance = isRejected ? 'N/A (Rejected)' : (o.performance ? `${(o.performance * 100).toFixed(0)}%` : '—');
+    const notes = isRejected ? 'Seller rejected order - courier still paid' : (o.performanceRating || '');
+    
+    rows.push([ 
+      String(o.id || ''), 
+      String(o.customer || o.buyerName || ''), 
+      String(o.location || ''), 
+      items, 
+      isRejected ? 'REJECTED' : 'DELIVERED',
+      String(completedAt || ''), 
+      Number(earnings).toFixed(2),
+      Number(baseFee).toFixed(2),
+      Number(yourBidAmount).toFixed(2),
+      performance,
+      notes
+    ]);
+  });
+  
+  const csv = rows.map(r => r.map(cell => {
+    const c = (cell === null || typeof cell === 'undefined') ? '' : String(cell);
+    if(/[",\n]/.test(c)) return `"${c.replace(/"/g,'""')}"`;
+    return c;
+  }).join(',')).join('\n');
+
+  try {
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `deliveries-${(new Date()).toISOString().replace(/[:.]/g,'-')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('CSV export started','success');
+  } catch(e){
+    console.warn('CSV export failed', e);
+    showToast('CSV export failed','error');
+  }
+}
+
+/* ===== polling fallback ===== */
+function startPolling(){
+  if(pollingIntervalId) return;
+  pollingIntervalId = setInterval(()=> {
+    try {
+      if (document.visibilityState === 'hidden') return;
+      refreshOrdersFromLocal();
+      try { completedOrders = JSON.parse(localStorage.getItem(completedOrdersKey()) || '[]') || []; } catch(e){}
+    } catch (err) { console.warn('poll error', err); }
+  }, 3000);
+}
+function stopPolling(){ if(pollingIntervalId){ clearInterval(pollingIntervalId); pollingIntervalId = null; } }
+
+/* ===== small helpers ===== */
+function statusClass(status){
+  const s = (status||'').toLowerCase();
+  if (s === 'processing') return 's-processing';
+  if (s === 'delivering') return 's-delivering';
+  if (s === 'at door') return 's-atdoor';
+  if (s === 'delivered') return 's-delivered';
+  if (s === 'accepted' || s === 'assigned') return 's-accepted';
+  if (s === 'rejected') return 's-rejected'; // 🔥 ADD THIS LINE
+
+  return 's-pending';
+}
+function actionBtn(label, cls, cb){
+  const b = document.createElement('button'); b.className = 'btn ' + (cls||'btn-muted'); b.textContent = label;
+  b.addEventListener('click', e => { e.stopPropagation(); cb && cb(); });
+  return b;
+}
+function toggleProfileMenu(e){ if(!profileMenu || !avatarEl) return; const isOpen = profileMenu.style.display === 'block'; setProfileMenuOpen(!isOpen); e && e.stopPropagation(); }
+function setProfileMenuOpen(open){ if(!profileMenu || !avatarEl) return; profileMenu.style.display = open ? 'block' : 'none'; profileMenu.setAttribute('aria-hidden', (!open).toString()); avatarEl.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+function toggleTheme(){ document.body.classList.toggle('dark-mode'); const enabled = document.body.classList.contains('dark-mode'); localStorage.setItem('darkMode', enabled ? 'enabled' : 'disabled'); if(toggleThemeBtn) toggleThemeBtn.innerHTML = enabled ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>'; }
+
+/* ===== boot ===== */
+(function boot(){
+  setupEventListeners();
+})();
+</script>
+</body>
+</html>
