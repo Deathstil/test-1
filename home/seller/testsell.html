@@ -1099,15 +1099,15 @@ function scheduleSync() {
     
     
     // 🔥 ADD THIS RIGHT AFTER getSellerInfo function
-function cleanFirestoreData(data) {
-  const cleaned = { ...data };
-  Object.keys(cleaned).forEach(key => {
-    if (cleaned[key] === undefined) {
-      delete cleaned[key];
+    function cleanFirestoreData(data) {
+      const cleaned = { ...data };
+      Object.keys(cleaned).forEach(key => {
+        if (cleaned[key] === undefined) {
+          delete cleaned[key];
+        }
+      });
+      return cleaned;
     }
-  });
-  return cleaned;
-}
 
     const ORDERS_GLOBAL = "orders_global";
 
@@ -1129,56 +1129,167 @@ function cleanFirestoreData(data) {
     }
     // --- END OF ADDED FUNCTIONS ---
 
+    // ✅ ADD THIS FUNCTION: Sync seller orders FROM Firestore
+async function syncSellerOrdersFromFirestore() {
+  try {
+    const uid = getUid();
+    if (!uid || uid === 'anon') {
+      console.log('⚠️ Not logged in - skipping Firestore sync');
+      return [];
+    }
+    
+    console.log('🔄 Syncing seller orders from Firestore...');
+    
+    // OPTION A: Get from seller's orders subcollection
+    const sellerOrdersCollection = collection(firestore, `users/${uid}/orders`);
+    const querySnapshot = await getDocs(sellerOrdersCollection);
+    
+    const firestoreOrders = [];
+    querySnapshot.forEach((doc) => {
+      const orderData = doc.data();
+      firestoreOrders.push({
+        id: doc.id,
+        ...orderData
+      });
+    });
+    
+    console.log(`✅ Loaded ${firestoreOrders.length} orders from Firestore for seller`);
+    
+    // OPTION B: Also query main orders collection where sellerId matches
+    try {
+      const mainOrdersQuery = query(
+        collection(firestore, "orders"),
+        where("sellerId", "==", uid)
+      );
+      const mainSnapshot = await getDocs(mainOrdersQuery);
+      
+      mainSnapshot.forEach((doc) => {
+        const orderData = doc.data();
+        // Avoid duplicates
+        const exists = firestoreOrders.some(o => o.id === doc.id);
+        if (!exists) {
+          firestoreOrders.push({
+            id: doc.id,
+            ...orderData
+          });
+        }
+      });
+    } catch (queryError) {
+      console.warn('Could not query main orders collection:', queryError);
+    }
+    
+    // ✅ Save to localStorage for caching
+    const sellerOrdersKey = ordersKey();
+    localStorage.setItem(sellerOrdersKey, JSON.stringify(firestoreOrders));
+    
+    // ✅ Also save to global orders (for backup)
+    const globalOrders = JSON.parse(localStorage.getItem(ORDERS_GLOBAL) || '[]');
+    const combinedGlobal = [...globalOrders];
+    
+    // Add Firestore orders to global if not already there
+    firestoreOrders.forEach(fsOrder => {
+      const exists = combinedGlobal.some(gOrder => 
+        gOrder && (gOrder.id === fsOrder.id || gOrder.orderId === fsOrder.orderId)
+      );
+      if (!exists) {
+        combinedGlobal.push(fsOrder);
+      }
+    });
+    
+    localStorage.setItem(ORDERS_GLOBAL, JSON.stringify(combinedGlobal));
+    
+    console.log(`✅ Total orders after Firestore sync: ${firestoreOrders.length}`);
+    return firestoreOrders;
+    
+  } catch (error) {
+    console.error('❌ Error syncing seller orders from Firestore:', error);
+    
+    // Fallback to localStorage
+    const sellerOrdersKey = ordersKey();
+    return JSON.parse(localStorage.getItem(sellerOrdersKey) || '[]');
+  }
+}
+    
 
     // --- DOM ---
     const avatarEl = document.getElementById('userAvatar');
     const logoutBtn = document.getElementById('logoutBtn');
 
     // --- Auth Handling ---
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "../../index.html";
-        return;
+    // --- Auth Handling ---
+let authInitialized = false;
+onAuthStateChanged(auth, async (user) => {
+  console.log('🔄 Auth state changed:', user ? 'Logged in' : 'Logged out');
+  
+  // Prevent multiple initializations
+  if (authInitialized && user) return;
+  
+  if (!user) {
+    // Only redirect if we're not already on auth pages
+    const currentPath = window.location.pathname;
+    if (!currentPath.includes('index.html') && 
+        !currentPath.includes('declined.html') && 
+        !currentPath.includes('banned.html')) {
+      console.log('⚠️ No user, redirecting to login');
+      window.location.href = "../../index.html";
+    }
+    return;
+  }
+  
+  // Mark as initialized to prevent re-runs
+  authInitialized = true;
+  
+  // Store uid once
+  try {
+    sessionStorage.setItem('uid', user.uid);
+  } catch (e) {
+    console.warn('Could not store uid:', e);
+  }
+
+  // Initialize storage only once
+  try {
+    const keys = [productsKey(), ordersKey(), completedOrdersKey(), cartKey(), wishlistKey()];
+    keys.forEach(key => {
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, JSON.stringify([]));
       }
-
-      // ensure per-seller storage keys exist
-      const uid = user.uid;
-      try {
-        if (!localStorage.getItem(productsKey())) localStorage.setItem(productsKey(), JSON.stringify([]));
-        if (!localStorage.getItem(ordersKey())) localStorage.setItem(ordersKey(), JSON.stringify([]));
-        if (!localStorage.getItem(completedOrdersKey())) localStorage.setItem(completedOrdersKey(), JSON.stringify([]));
-        if (!localStorage.getItem(cartKey())) localStorage.setItem(cartKey(), JSON.stringify([]));
-        if (!localStorage.getItem(wishlistKey())) localStorage.setItem(wishlistKey(), JSON.stringify([]));
-      } catch (e) { console.warn('init seller boxes failed', e); }
-
-      const userRef = ref(database, `users/${user.uid}`);
-      const snapshot = await get(userRef);
-
-      if (!snapshot.exists()) {
-        window.location.href = "../../index.html";
-        return;
-      }
-
-      const userData = snapshot.val();
-
-      // Security checks
-      if (userData.declined) {
-        window.location.href = "../../adminlogic/declined/declined.html";
-        return;
-      }
-      if (userData.banned) {
-        window.location.href = "../../adminlogic/banned/banned.html";
-        return;
-      }
-
-      // ✅ Update avatar (seller dashboard)
-      if (avatarEl) {
-        avatarEl.src = userData.profilePictureUrl || "../../images/no profile pic.jpg";
-        avatarEl.alt = (userData.name || "User") + "'s profile picture";
-      }
-
-      
     });
+  } catch (e) {
+    console.warn('Storage init failed:', e);
+  }
+
+  // Load user data
+  try {
+    const userRef = ref(database, `users/${user.uid}`);
+    const snapshot = await get(userRef);
+
+    if (!snapshot.exists()) {
+      window.location.href = "../../index.html";
+      return;
+    }
+
+    const userData = snapshot.val();
+
+    // Security checks
+    if (userData.declined) {
+      window.location.href = "../../adminlogic/declined/declined.html";
+      return;
+    }
+    if (userData.banned) {
+      window.location.href = "../../adminlogic/banned/banned.html";
+      return;
+    }
+
+    // Update avatar once
+    if (avatarEl) {
+      avatarEl.src = userData.profilePictureUrl || "../../images/no profile pic.jpg";
+      avatarEl.alt = (userData.name || "User") + "'s profile picture";
+    }
+    
+  } catch (error) {
+    console.error('User data error:', error);
+  }
+});
 
     // --- Logout ---
     if (logoutBtn) {
@@ -1497,11 +1608,22 @@ async function savePublicDeliveryRequests(requests) {
 
     // 🔥 COMPLETELY REWRITTEN renderOrders - PREVENTS DUPLICATES
 async function renderOrders(notifyNew = false) {
+  // 🚨🚨🚨 BABY STEP FIX 1: STOP MULTIPLE RENDERS 🚨🚨🚨
+  if (window.isRenderingOrders) {
+    console.log('⏸️ Already rendering, skipping');
+    return;
+  }
+  
+  // 🚨🚨🚨 BABY STEP FIX 2: BLOCK OTHER RENDERS 🚨🚨🚨
+  window.isRenderingOrders = true;
+  
   try {
-    console.log('🔄 renderOrders started');
+    console.log('🔄 renderOrders started (SAFE VERSION)');
     
     if (!ordersTbody) return;
     
+    // ✅ CRITICAL FIX: Sync from Firestore FIRST
+    await syncSellerOrdersFromFirestore();
     syncSellerOrdersFromGlobal();
     
     // 🎯 STEP 1: Look only in YOUR orders box
@@ -1885,13 +2007,51 @@ async function renderOrders(notifyNew = false) {
     renderAnalytics();
     lastOrdersJson = localStorage.getItem(ordersKey()) || '[]';
     
-    console.log('✅ renderOrders completed successfully');
+      console.log('✅ renderOrders completed successfully');
   } catch (err) {
     console.error('❌ renderOrders failed:', err);
+  } finally {
+    // 🚨🚨🚨 BABY STEP FIX 3: UNLOCK AFTER RENDER 🚨🚨🚨
+    setTimeout(() => {
+      window.isRenderingOrders = false;
+    }, 300);
   }
 }
 
-    function reconcileSellerOrders() {
+// ✅ Add this function to listen for new orders in real-time
+function setupSellerOrderListener() {
+  const uid = getUid();
+  if (!uid || uid === 'anon') return;
+  
+  console.log('👂 Setting up real-time order listener for seller:', uid);
+  
+  // Listen to seller's orders subcollection
+  const sellerOrdersCollection = collection(firestore, `users/${uid}/orders`);
+  
+  return onSnapshot(sellerOrdersCollection, (snapshot) => {
+    console.log('📢 Real-time order update received!');
+    
+    const firestoreOrders = [];
+    snapshot.forEach((doc) => {
+      const orderData = doc.data();
+      firestoreOrders.push({
+        id: doc.id,
+        ...orderData
+      });
+    });
+    
+    // Update localStorage
+    const sellerOrdersKey = ordersKey();
+    localStorage.setItem(sellerOrdersKey, JSON.stringify(firestoreOrders));
+    
+    // Trigger UI refresh
+    setTimeout(() => renderOrders(), 100);
+    showToast('New order received!', 'success');
+  });
+}
+
+
+function reconcileSellerOrders() {
       try {
         const key = ordersKey(); // existing helper in your seller page
         const compKey = (typeof completedOrdersKey === 'function') ? completedOrdersKey() : (`completedOrders__seller__${sessionStorage.getItem('uid')}`);
@@ -3185,7 +3345,7 @@ async function askForDelivery(orderId, windowSeconds = 300) {
 
     // Restore button state and show success
     setTimeout(() => {
-      renderOrders();
+      setTimeout(() => renderOrders(), 100);
       showToast('🎉 Delivery request posted! Couriers can now bid on your order', 'success');
 
       // Auto-open the bidders modal after a short delay
@@ -3206,7 +3366,7 @@ async function askForDelivery(orderId, windowSeconds = 300) {
     showToast('Failed to post delivery request. Please try again.', 'error');
 
     // Restore button state on error
-    renderOrders();
+    setTimeout(() => renderOrders(), 100);
   }
 }
 
@@ -3289,7 +3449,7 @@ async function askForDelivery(orderId, windowSeconds = 300) {
 
         // Force refresh and show confirmation
         window.dispatchEvent(new Event('publicDeliveryRequestsUpdated'));
-        renderOrders();
+        setTimeout(() => renderOrders(), 100);
 
         if (bidderCount > 0) {
           showToast(`Delivery request cancelled. ${bidderCount} bidder(s) were removed.`, 'success');
@@ -3314,7 +3474,7 @@ async function askForDelivery(orderId, windowSeconds = 300) {
         refreshOrdersFromLocal();
       }
       if (typeof renderOrders === 'function') {
-        renderOrders();
+        setTimeout(() => renderOrders(), 100);
       }
     });
 
@@ -3347,7 +3507,7 @@ async function askForDelivery(orderId, windowSeconds = 300) {
         localStorage.setItem(ordersKey(), JSON.stringify(orders));
         localStorage._lastOrdersJson = localStorage.getItem(ordersKey()) || '[]';
         // notify UI
-        renderOrders();
+        setTimeout(() => renderOrders(), 100);
         return true;
       }
       return false;
@@ -3388,7 +3548,7 @@ async function askForDelivery(orderId, windowSeconds = 300) {
         orders[idx] = order;
         localStorage.setItem(ordersKey(), JSON.stringify(orders));
         localStorage._lastOrdersJson = localStorage.getItem(ordersKey()) || '[]';
-        renderOrders();
+        setTimeout(() => renderOrders(), 100);
         return true;
       }
       return false;
@@ -3582,7 +3742,7 @@ async function askForDelivery(orderId, windowSeconds = 300) {
       window.dispatchEvent(new Event('publicDeliveryRequestsUpdated'));
       window.dispatchEvent(new Event('localOrdersUpdated'));
 
-      renderOrders();
+      setTimeout(() => renderOrders(), 100);
 
       console.log('🎉 Assignment completed with data:', {
         bidAmount: order.assignedBidAmount,
@@ -3597,8 +3757,10 @@ async function askForDelivery(orderId, windowSeconds = 300) {
 // ✅ FIXED: Setup real-time Firestore listeners
 // ✅ FIXED: Setup real-time Firestore listeners
 // ✅ FIXED: Setup real-time Firestore listeners for delivery requests
+// Modified function with debouncing
 let deliveryListenerUnsubscribe = null;
-// Modified function
+let firestoreUpdateDebounce = null;
+
 function setupDeliveryRequestListeners() {
   try {
     // Clean up any existing listener first
@@ -3622,37 +3784,36 @@ function setupDeliveryRequestListeners() {
       where("status", "in", ["open", "assigned"])
     );
     
-    // Set up real-time listener
+    // Set up real-time listener with debouncing
     const unsubscribe = onSnapshot(q, 
       (snapshot) => {
         console.log('📢 Delivery request updated in Firestore');
         
-        // Update localStorage cache
-        const requests = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          requests.push({ 
-            id: doc.id, 
-            ...data,
-            // Handle Firestore timestamps
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
-            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
-            expiresAt: data.expiresAt?.toDate ? data.expiresAt.toDate().toISOString() : data.expiresAt
+        // DEBOUNCE: Wait 300ms before processing
+        if (firestoreUpdateDebounce) clearTimeout(firestoreUpdateDebounce);
+        
+        firestoreUpdateDebounce = setTimeout(() => {
+          // Update localStorage cache
+          const requests = [];
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            requests.push({ 
+              id: doc.id, 
+              ...data
+            });
           });
-        });
-        
-        localStorage.setItem(publicDeliveryRequestsKey(), JSON.stringify(requests));
-        
-        // Refresh UI
-        window.dispatchEvent(new Event('publicDeliveryRequestsUpdated'));
-        
-        // Force refresh orders display
-        if (typeof renderOrders === 'function') {
-          console.log('🔄 Triggering renderOrders from listener');
-          setTimeout(() => {
-            renderOrders();
-          }, 500);
-        }
+          
+          localStorage.setItem(publicDeliveryRequestsKey(), JSON.stringify(requests));
+          
+          // Only trigger UI update if really needed
+          window.dispatchEvent(new Event('publicDeliveryRequestsUpdated'));
+          
+          // Debounced render
+          if (typeof renderOrders === 'function') {
+            console.log('🔄 Triggering debounced renderOrders');
+            setTimeout(() => renderOrders(), 100);
+          }
+        }, 300); // 300ms debounce
       }, 
       (error) => {
         console.error('❌ Delivery request listener error:', error);
@@ -4585,7 +4746,7 @@ onAuthStateChanged(auth, (user) => {
         if (pickupModal) pickupModal.style.display = 'none';
 
         // Refresh UI
-        renderOrders();
+        setTimeout(() => renderOrders(), 100);
         renderCompletedOrders();
         renderAnalytics();
 
@@ -4696,7 +4857,7 @@ onAuthStateChanged(auth, (user) => {
     }
 
     // Only render after all sync operations are complete
-    renderOrders();
+    setTimeout(() => renderOrders(), 100);
     showToast(`Order → ${newStatus}`, 'success');
 
     console.log('🎉 changeOrderStatus completed successfully');
@@ -4949,7 +5110,7 @@ function returnsPromise(fn) {
         }
 
         // 5. REFRESH UI
-        renderOrders();
+        setTimeout(() => renderOrders(), 100);
         if (typeof renderCompletedOrders === 'function') renderCompletedOrders();
         if (typeof renderAnalytics === 'function') renderAnalytics();
 
@@ -4986,7 +5147,7 @@ function returnsPromise(fn) {
       lastOrdersJson = localStorage.getItem(ordersKey()) || '[]';
       localStorage._lastCompletedJson = localStorage.getItem(completedOrdersKey()) || '[]';
 
-      renderOrders();
+      setTimeout(() => renderOrders(), 100);
       renderProducts();
       renderCompletedOrders();
       renderAnalytics();
@@ -5501,76 +5662,126 @@ function returnsPromise(fn) {
         const prevLen = Array.isArray(prev) ? prev.length : 0;
         const curLen = Array.isArray(cur) ? cur.length : 0;
         lastOrdersJson = localStorage.getItem(ordersKey()) || '[]';
-        renderOrders(curLen > prevLen);
+        setTimeout(() => renderOrders(curLen > prevLen), 100);
       } else if (e.key === productsKey()) {
         products = JSON.parse(localStorage.getItem(productsKey()) || '[]');
         renderProducts(); renderAnalytics();
       } else if (e.key === completedOrdersKey()) {
         renderCompletedOrders(); renderAnalytics();
-        renderOrders();
+        setTimeout(() => renderOrders(), 100);
       }
     });
     // When global orders change, refresh the page
     // When global orders change, refresh the page
-    window.addEventListener('storage', (e) => {
-      if (e.key === ORDERS_GLOBAL) {
-        console.log('🔄 Global orders updated - syncing to seller');
-        syncSellerOrdersFromGlobal();
-        renderOrders(); // Refresh the display
-        showToast('Order status updated from delivery!', 'success');
-      }
-    });
+   // 🚨🚨🚨 BABY STEP FIX 4: SINGLE STORAGE LISTENER 🚨🚨🚨
+let storageDebounceTimer = null;
+window.addEventListener('storage', (e) => {
+  console.log('📦 Storage event:', e.key);
+  
+  // STOP if we're already rendering
+  if (window.isRenderingOrders) {
+    console.log('⏸️ Skipping storage event - busy rendering');
+    return;
+  }
+  
+  // Wait 1 second before doing anything
+  if (storageDebounceTimer) clearTimeout(storageDebounceTimer);
+  
+  storageDebounceTimer = setTimeout(() => {
+    console.log('🔄 Processing storage event after delay');
+    
+    if (e.key === ordersKey()) {
+      console.log('📦 Orders updated - refreshing');
+      setTimeout(() => renderOrders(), 100);
+    } else if (e.key === productsKey()) {
+      console.log('🛒 Products updated');
+      products = JSON.parse(localStorage.getItem(productsKey()) || '[]');
+      renderProducts();
+      renderAnalytics();
+    } else if (e.key === completedOrdersKey()) {
+      console.log('📋 Completed orders updated');
+      renderCompletedOrders();
+      renderAnalytics();
+    } else if (e.key === ORDERS_GLOBAL) {
+      console.log('🌐 Global orders updated');
+      syncSellerOrdersFromGlobal();
+      setTimeout(() => renderOrders(), 100);
+    }
+  }, 1000); // Wait 1 full second
+});
+// When global orders change, refresh the page
+window.addEventListener('storage', (e) => {
+  if (e.key === ORDERS_GLOBAL) {
+    console.log('🔄 Global orders updated');
+    // Debounce this too
+    if (window.globalOrdersDebounce) clearTimeout(window.globalOrdersDebounce);
+    window.globalOrdersDebounce = setTimeout(() => {
+      syncSellerOrdersFromGlobal();
+      setTimeout(() => renderOrders(), 100);
+    }, 500);
+  }
+});
 
     // React to events dispatched by delivery page (immediate sync)
-    window.addEventListener('localOrdersUpdated', () => { renderOrders(); renderCompletedOrders(); renderAnalytics(); });
+    window.addEventListener('localOrdersUpdated', () => { setTimeout(() => renderOrders(), 100); renderCompletedOrders(); renderAnalytics(); });
     window.addEventListener('orderDelivered', (e) => {
-      renderOrders(); renderCompletedOrders(); renderAnalytics();
+      setTimeout(() => renderOrders(), 100); renderCompletedOrders(); renderAnalytics();
       // small toast referencing delivered orderId if present
       try { const id = e?.detail?.orderId; if (id) showToast(`Order ${id} delivered`, 'success'); } catch (e) { }
     });
 
     /* ---------- Polling fallback ---------- */
-    (function startPollingFallback() {
-      setInterval(() => {
-        try {
-          const curOrdersJson = localStorage.getItem(ordersKey()) || '[]';
-          if (curOrdersJson !== lastOrdersJson) {
-            const prev = JSON.parse(lastOrdersJson || '[]');
-            const cur = JSON.parse(curOrdersJson || '[]');
-            const prevLen = Array.isArray(prev) ? prev.length : 0;
-            const curLen = Array.isArray(cur) ? cur.length : 0;
-            lastOrdersJson = curOrdersJson;
-            renderOrders(curLen > prevLen);
-          }
-          const curCompleted = localStorage.getItem(completedOrdersKey()) || '[]';
-          if (curCompleted !== (localStorage._lastCompletedJson || '[]')) {
-            localStorage._lastCompletedJson = curCompleted;
-            renderCompletedOrders();
-            renderAnalytics();
-            renderOrders();
-          }
-          const curProducts = localStorage.getItem(productsKey()) || '[]';
-          if (curProducts !== (localStorage._lastProductsJson || '[]')) {
-            localStorage._lastProductsJson = curProducts;
-            products = JSON.parse(curProducts || '[]');
-            renderProducts();
-            renderAnalytics();
-          }
-        } catch (err) {
-          console.warn('poll error', err);
-        }
-      }, 1000);
-    })();
+    /* ---------- Polling fallback ---------- */
+// (function startPollingFallback() {
+//   // Only start if not already running
+//   if (window.pollingInterval) return;
+  
+//   window.pollingInterval = setInterval(() => {
+//     try {
+//       const curOrdersJson = localStorage.getItem(ordersKey()) || '[]';
+//       if (curOrdersJson !== lastOrdersJson) {
+//         const prev = JSON.parse(lastOrdersJson || '[]');
+//         const cur = JSON.parse(curOrdersJson || '[]');
+//         const prevLen = Array.isArray(prev) ? prev.length : 0;
+//         const curLen = Array.isArray(cur) ? cur.length : 0;
+//         lastOrdersJson = curOrdersJson;
+//         setTimeout(() => renderOrders(curLen > prevLen), 100);
+//       }
+      
+//       const curCompleted = localStorage.getItem(completedOrdersKey()) || '[]';
+//       if (curCompleted !== (localStorage._lastCompletedJson || '[]')) {
+//         localStorage._lastCompletedJson = curCompleted;
+//         renderCompletedOrders();
+//         renderAnalytics();
+//         setTimeout(() => renderOrders(), 100);
+//       }
+      
+//       const curProducts = localStorage.getItem(productsKey()) || '[]';
+//       if (curProducts !== (localStorage._lastProductsJson || '[]')) {
+//         localStorage._lastProductsJson = curProducts;
+//         products = JSON.parse(curProducts || '[]');
+//         renderProducts();
+//         renderAnalytics();
+//       }
+//     } catch (err) {
+//       console.warn('poll error', err);
+//     }
+//   }, 5000); // Changed from 1000ms to 5000ms (5 seconds)
+// })();
 
     /* ---------- Init ---------- */
     /* ---------- Init ---------- */
+/* ---------- Init ---------- */
 async function init() {
   console.log('🚀 Initializing seller dashboard...');
   
-   // ✅ Setup delivery request listeners
+  // ✅ Setup delivery request listeners
   setTimeout(() => {
     setupDeliveryRequestListeners();
   }, 2000);
+  
+  // ✅ Setup real-time order listener
+  setupSellerOrderListener(); // ← ADD THIS
   
   // ✅ CRITICAL: Always load from Firestore first
   await loadProductsFromFirestore();
@@ -5606,20 +5817,100 @@ async function init() {
 
   // Render everything
   renderProducts();
-  renderOrders();
+  setTimeout(() => renderOrders(), 100);
   renderCompletedOrders();
   renderAnalytics();
   
   console.log('✅ Dashboard initialized');
 }
 
-// ✅ STEP 5: Auto-refresh products from Firestore every 30 seconds
-setInterval(async () => {
-  console.log('🔄 Auto-refreshing products from Firestore...');
-  await loadProductsFromFirestore();
-  renderProducts();
-  renderAnalytics();
-}, 30000); // Every 30 seconds
+// Remove the second init() declaration entirely (around line 3041)
+
+
+// ✅ STEP 6: Sync when page becomes visible again
+document.addEventListener('visibilitychange', async () => {
+  if (!document.hidden) {
+    console.log('👀 Page visible - refreshing from Firestore...');
+    await loadProductsFromFirestore();
+    renderProducts();
+    renderAnalytics();
+  }
+});
+
+// ✅ STEP 7: Listen for storage events from other tabs
+window.addEventListener('storage', async (e) => {
+  if (e.key === productsKey()) {
+    console.log('📢 Products updated in another tab - syncing to Firestore...');
+    scheduleSync(); // Auto-sync changes to Firestore
+    
+    // Also refresh from Firestore to get latest
+    await loadProductsFromFirestore();
+    renderProducts();
+    renderAnalytics();
+  }
+});
+
+init();
+
+/* ---------- Consolidated Interval Manager ---------- */
+(function setupIntervals() {
+  // Clear any existing intervals first
+  if (window.appIntervals) {
+    window.appIntervals.forEach(id => clearInterval(id));
+  }
+  
+  window.appIntervals = [];
+  
+  // Only start intervals after auth is complete
+  const startAllIntervals = () => {
+    console.log('⏰ Setting up application intervals');
+    
+    // 1. Polling fallback (every 10 seconds, not 1 second)
+    const pollId = setInterval(() => {
+      try {
+        const curOrdersJson = localStorage.getItem(ordersKey()) || '[]';
+        if (curOrdersJson !== lastOrdersJson) {
+          lastOrdersJson = curOrdersJson;
+          setTimeout(() => renderOrders(), 100);
+        }
+      } catch (err) {
+        console.warn('Poll error:', err);
+      }
+    }, 10000); // 10 seconds
+    
+    window.appIntervals.push(pollId);
+    
+    // 2. Firestore sync (every 2 minutes, not 30 seconds)
+    const syncId = setInterval(async () => {
+      try {
+        await loadProductsFromFirestore();
+        renderProducts();
+        renderAnalytics();
+      } catch (error) {
+        console.warn('Sync error:', error);
+      }
+    }, 120000); // 2 minutes
+    
+    window.appIntervals.push(syncId);
+    
+    // 3. Storage cleanup (every 5 minutes)
+    const cleanupId = setInterval(() => {
+      optimizeStorageAndCleanup();
+    }, 300000); // 5 minutes
+    
+    window.appIntervals.push(cleanupId);
+    
+    console.log('✅ Intervals setup complete');
+  };
+  
+  // Wait for auth to complete before starting intervals
+  const checkAuthAndStart = setInterval(() => {
+    if (authInitialized && auth.currentUser) {
+      clearInterval(checkAuthAndStart);
+      startAllIntervals();
+    }
+  }, 1000);
+})();
 
 // ✅ STEP 6: Sync when page becomes visible again
 document.addEventListener('visibilitychange', async () => {
@@ -5710,15 +6001,42 @@ window.addEventListener('storage', async (e) => {
     // ✅ FIXED: AUTOMATIC STORAGE CLEANUP
     // ============================================
 
-    // Automatic storage cleanup every 30 seconds
-    setInterval(() => {
-      optimizeStorageAndCleanup();
-    }, 30000); // Runs every 30 seconds
-
     // Run cleanup 5 seconds after page loads
     setTimeout(() => {
       optimizeStorageAndCleanup();
     }, 5000);
+
+    // Cleanup everything on page unload
+window.addEventListener('beforeunload', () => {
+  console.log('🧹 Cleaning up before page unload');
+  
+  // Clear all intervals
+  if (window.appIntervals) {
+    window.appIntervals.forEach(id => clearInterval(id));
+    window.appIntervals = [];
+  }
+  
+  // Clear all timeouts
+  if (window.storageDebounce) clearTimeout(window.storageDebounce);
+  if (window.globalOrdersDebounce) clearTimeout(window.globalOrdersDebounce);
+  if (firestoreUpdateDebounce) clearTimeout(firestoreUpdateDebounce);
+  if (syncTimeout) clearTimeout(syncTimeout);
+  
+  // Unsubscribe Firestore listeners
+  if (deliveryListenerUnsubscribe) {
+    deliveryListenerUnsubscribe();
+    deliveryListenerUnsubscribe = null;
+  }
+  
+  // Clear auth flag
+  authInitialized = false;
+});
+
+// Also add this to prevent memory leaks
+window.addEventListener('pagehide', () => {
+  console.log('📄 Page hiding - performing cleanup');
+  // Same cleanup as beforeunload
+});
 
   </script>
 
