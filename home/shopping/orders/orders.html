@@ -1010,163 +1010,118 @@ const ORDERS_KEY = () => nsKey('orders');
 const CART_KEY = () => nsKey('cart');
 const PRODUCTS_KEY = () => 'products'; // global shared catalog
 
+// 🔥 MISSING FUNCTION: Merge buyer local with global
+function mergeBuyerLocalWithGlobal() {
+  try {
+    const localKey = ORDERS_KEY();
+    const local = readJsonKey(localKey, []);
+    const global = JSON.parse(localStorage.getItem(ORDERS_GLOBAL) || '[]');
+    
+    // Start with global (truth)
+    const merged = [...global];
+    
+    // Add any local orders not in global
+    local.forEach(localOrder => {
+      const exists = merged.some(g => 
+        g && localOrder && (String(g.id) === String(localOrder.id) || String(g.orderId) === String(localOrder.orderId))
+      );
+      if (!exists && localOrder) {
+        merged.push(localOrder);
+      }
+    });
+    
+    // Ensure status is preserved
+    const result = merged.map(order => {
+      if (!order) return null;
+      
+      const status = order.status || 'Pending';
+      return {
+        ...order,
+        status: status,
+        progressStep: mapStatusToStep(status)
+      };
+    }).filter(order => order !== null);
+    
+    return result;
+  } catch (e) {
+    console.warn('mergeBuyerLocalWithGlobal failed:', e);
+    return readJsonKey(ORDERS_KEY(), []);
+  }
+}
+
 // --- GLOBAL TRUTH KEY ---
 const ORDERS_GLOBAL = "orders_global";
 
 // 🔥 Sync buyer local storage with global orders (FIXED VERSION)
-async function syncBuyerLocalWithGlobal() {
-  try {
-    const buyerUid = getUid();
-    console.log('🔄 Syncing buyer local with global orders for user:', buyerUid);
-    
-    const globalOrders = await getGlobalOrders();
-    const buyerOrdersKey = ORDERS_KEY();
-    let buyerOrders = readJsonKey(buyerOrdersKey, []);
-    
-    // Ensure both are arrays
-    if (!Array.isArray(globalOrders)) {
-      console.warn('Global orders is not an array, resetting');
-      return;
-    }
-    
-    if (!Array.isArray(buyerOrders)) {
-      buyerOrders = [];
-    }
-    
-    let changed = false;
-    let added = 0;
-    let updated = 0;
-    
-    // Get orders for this buyer from global
-    const buyersGlobalOrders = globalOrders.filter(order => 
-      order && (
-        order.buyer?.uid === buyerUid || 
-        order.buyerId === buyerUid ||
-        order.buyerUid === buyerUid ||
-        (order.buyer && order.buyer.id === buyerUid)
-      )
-    );
-    
-    console.log(`📊 Found ${buyersGlobalOrders.length} buyer orders in global storage`);
-    
-    // Update buyer orders with global data
-    buyersGlobalOrders.forEach(globalOrder => {
-      if (!globalOrder || !globalOrder.id) return;
-      
-      const existingIndex = buyerOrders.findIndex(bo => 
-        bo && (String(bo.id) === String(globalOrder.id) || 
-        String(bo.orderId) === String(globalOrder.orderId))
-      );
-      
-      if (existingIndex === -1) {
-        // Add new order
-        buyerOrders.unshift(globalOrder);
-        changed = true;
-        added++;
-        console.log('➕ Added new order:', globalOrder.id);
-      } else {
-        // Update existing order - prefer global data
-        const existingOrder = buyerOrders[existingIndex];
-        
-        // Check if anything changed
-        const needsUpdate = 
-          existingOrder.status !== globalOrder.status ||
-          existingOrder.progressStep !== globalOrder.progressStep ||
-          JSON.stringify(existingOrder.items) !== JSON.stringify(globalOrder.items);
-        
-        if (needsUpdate) {
-          // Merge: keep buyer-specific data, update from global
-          buyerOrders[existingIndex] = {
-            ...existingOrder,
-            ...globalOrder,
-            // Don't overwrite buyer-specific fields
-            buyer: existingOrder.buyer || globalOrder.buyer,
-            buyerId: existingOrder.buyerId || globalOrder.buyerId
-          };
-          changed = true;
-          updated++;
-          console.log('✏️ Updated order:', globalOrder.id);
-        }
-      }
-    });
-    
-    // Also remove orders from buyer local that don't belong to them
-    const initialLength = buyerOrders.length;
-    buyerOrders = buyerOrders.filter(order => {
-      if (!order) return false;
-      
-      // Check if this order belongs to current buyer
-      const isBuyerOrder = 
-        (order.buyer && order.buyer.uid === buyerUid) ||
-        order.buyerId === buyerUid ||
-        (order.buyer && order.buyer.id === buyerUid);
-      
-      return isBuyerOrder;
-    });
-    
-    if (buyerOrders.length !== initialLength) {
-      changed = true;
-      console.log(`🗑️ Removed ${initialLength - buyerOrders.length} non-buyer orders`);
-    }
-    
-    if (changed) {
-      writeJsonKey(buyerOrdersKey, buyerOrders);
-      console.log(`✅ Sync complete: Added ${added}, Updated ${updated}, Total: ${buyerOrders.length}`);
-    } else {
-      console.log('✅ No changes needed');
-    }
-    
-    return buyerOrders;
-    
-  } catch (error) {
-    console.error('❌ Error in syncBuyerLocalWithGlobal:', error);
-    return readJsonKey(ORDERS_KEY(), []);
-  }
-}
+
 // ----------------- Sync orders with Firestore -----------------
 // ----------------- Firestore Orders Integration -----------------
+/* ---------- Sync Orders with Firestore (SIMPLIFIED) ---------- */
 async function syncOrdersWithFirestore() {
   const uid = getUid();
-  if (!uid || uid === 'anon') return readJsonKey(ORDERS_KEY(), []);
+  if (!uid || uid === 'anon') {
+    return readJsonKey(ORDERS_KEY(), []);
+  }
   
   try {
+    console.log('🔄 Syncing orders from Firestore...');
+    
+    let orders = [];
+    
+    // 🔥 Get from user document (where seller updates go)
     const userDocRef = doc(firestore, "users", uid);
     const userDoc = await getDoc(userDocRef);
     
     if (userDoc.exists()) {
       const userData = userDoc.data();
-      const firestoreOrders = userData.orders || [];
+      orders = userData.orders || [];
       
-      // ✅ Use Firestore as source of truth
-      writeJsonKey(ORDERS_KEY(), firestoreOrders);
-      console.log('✅ Orders synced from Firestore:', firestoreOrders.length, 'orders');
+      console.log(`✅ Synced ${orders.length} orders from user document`);
       
-      // ✅ ALSO update localStorage global backup
-      const currentGlobal = JSON.parse(localStorage.getItem(ORDERS_GLOBAL) || '[]');
-      const combinedGlobal = [...currentGlobal];
-      
-      // Add Firestore orders to global if not already there
-      firestoreOrders.forEach(fsOrder => {
-        const exists = combinedGlobal.some(gOrder => 
-          gOrder && (gOrder.id === fsOrder.id || gOrder.orderId === fsOrder.orderId)
-        );
-        if (!exists) {
-          combinedGlobal.push(fsOrder);
-        }
-      });
-      
-      saveGlobalOrders(combinedGlobal);
-      
-      return firestoreOrders;
-    } else {
-      console.log('⚠️ No user document in Firestore for orders');
-      return readJsonKey(ORDERS_KEY(), []);
+      // Preserve statuses
+      orders = orders.map(order => ({
+        ...order,
+        status: order.status || 'Pending',
+        progressStep: mapStatusToStep(order.status || 'Pending')
+      }));
     }
+    
+    // Save to localStorage
+    writeJsonKey(ORDERS_KEY(), orders);
+    
+    return orders;
+    
   } catch (error) {
-    console.error('❌ Error syncing orders with Firestore:', error);
+    console.error('❌ Error syncing orders:', error);
     return readJsonKey(ORDERS_KEY(), []);
   }
 }
+
+// 🔥 PREVENT STATUS RESET ON PAGE LOAD
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const ordersKey = ORDERS_KEY();
+    let localOrders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
+    
+    let changed = false;
+    localOrders = localOrders.map(order => {
+      if (order && order.status === '0') {
+        changed = true;
+        return {
+          ...order,
+          status: 'Pending',
+          progressStep: 1
+        };
+      }
+      return order;
+    });
+    
+    if (changed) {
+      localStorage.setItem(ordersKey, JSON.stringify(localOrders));
+      console.log('🔥 Fixed orders with status "0"');
+    }
+  }, 500);
+});
 
 // ----------------- Load Products from Firestore -----------------
 async function loadProductsFromFirestore() {
@@ -1232,104 +1187,121 @@ function setupProductSync() {
   }
 }
 
+// 🔥 ADD THIS: Listen for real-time order updates
+function setupOrderUpdateListener() {
+  const uid = getUid();
+  if (!uid || uid === 'anon') {
+    console.log('⚠️ Not logged in - skipping order listener');
+    return null;
+  }
+  
+  console.log('👂 Setting up real-time order listener for buyer:', uid);
+  
+  try {
+    // Listen to user's document for order updates
+    const userDocRef = doc(firestore, "users", uid);
+    
+    return onSnapshot(userDocRef, (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        const firestoreOrders = userData.orders || [];
+        
+        console.log('📢 Buyer: Real-time order update received!');
+        
+        // Update localStorage
+        writeJsonKey(ORDERS_KEY(), firestoreOrders);
+        
+        // Update global orders too
+        localStorage.setItem(ORDERS_GLOBAL, JSON.stringify(firestoreOrders));
+        
+        // Re-render after a short delay
+        setTimeout(() => {
+          renderOrders();
+          showToast('Order status updated!', 'success');
+        }, 300);
+      }
+    }, (error) => {
+      console.error('❌ Order listener error:', error);
+    });
+    
+  } catch (error) {
+    console.error('❌ Failed to setup order listener:', error);
+    return null;
+  }
+}
+
 // ----------------- Load Orders from ALL Sources -----------------
+/* ---------- Load Orders from Firestore (SIMPLIFIED) ---------- */
 async function loadOrdersFromAllSources() {
   const uid = getUid();
+  console.log('📦 Loading orders for user:', uid);
+  
   let allOrders = [];
   
-  // 1. FIRST: Get from Firestore (Primary source)
-  try {
-    if (uid && uid !== 'anon') {
-      // Get from user's orders array in Firestore
+  // 🎯 1. ALWAYS TRY FIRESTORE USER DOCUMENT FIRST
+  if (uid && uid !== 'anon') {
+    try {
       const userDocRef = doc(firestore, "users", uid);
       const userDoc = await getDoc(userDocRef);
       
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        const firestoreOrders = userData.orders || [];
+        const userOrders = userData.orders || [];
         
-        if (firestoreOrders.length > 0) {
-          allOrders = [...firestoreOrders];
-          console.log('✅ Loaded', firestoreOrders.length, 'orders from Firestore user profile');
-        }
+        console.log(`📥 Found ${userOrders.length} orders in user document`);
         
-        // ALSO check main orders collection for additional orders
-        const ordersQuery = query(
-          collection(firestore, "orders"),
-          where("buyerId", "==", uid)
-        );
-        const querySnapshot = await getDocs(ordersQuery);
-        
-        querySnapshot.forEach(docSnap => {
-          const orderData = docSnap.data();
-          const orderExists = allOrders.some(o => 
-            o.id === orderData.id || o.orderId === orderData.orderId
-          );
-          if (!orderExists) {
-            allOrders.push(orderData);
+        userOrders.forEach(order => {
+          if (order && order.id) {
+            // 🔥 CRITICAL: Preserve ACTUAL status from Firestore
+            const status = order.status || 'Pending';
+            allOrders.push({
+              ...order,
+              status: status,
+              progressStep: mapStatusToStep(status)
+            });
           }
         });
-        
-        console.log('✅ Total orders after Firestore query:', allOrders.length);
       }
+    } catch (error) {
+      console.error('❌ User document error:', error);
     }
-  } catch (firestoreError) {
-    console.error('❌ Error loading from Firestore:', firestoreError);
   }
   
-  // 2. SECOND: Get from localStorage global backup
+  // 🎯 2. FALLBACK TO LOCALSTORAGE
   if (allOrders.length === 0) {
-    const globalOrders = JSON.parse(localStorage.getItem(ORDERS_GLOBAL) || '[]');
-    if (Array.isArray(globalOrders) && globalOrders.length > 0) {
-      // Filter by current user
-      allOrders = globalOrders.filter(order => 
-        order && (order.buyer?.uid === uid || order.buyerId === uid || order.buyerUid === uid)
-      );
-      console.log('✅ Loaded', allOrders.length, 'orders from localStorage global');
-    }
+    console.log('📂 Falling back to localStorage...');
+    allOrders = readJsonKey(ORDERS_KEY(), []);
   }
   
-  // 3. THIRD: Get from namespaced buyer storage
-  const buyerLocalOrders = readJsonKey(ORDERS_KEY(), []);
-  if (buyerLocalOrders.length > 0) {
-    // Merge with existing, avoiding duplicates
-    buyerLocalOrders.forEach(localOrder => {
-      const exists = allOrders.some(o => 
-        o && (o.id === localOrder.id || o.orderId === localOrder.orderId)
-      );
-      if (!exists) {
-        allOrders.push(localOrder);
-      }
-    });
-    console.log('✅ Added', buyerLocalOrders.length, 'orders from local storage');
-  }
+  // 🎯 3. ENSURE NO STATUS RESETS
+  allOrders = allOrders.map(order => {
+    if (!order) return null;
+    
+    const currentStatus = order.status || 'Pending';
+    
+    return {
+      // Default values only if missing
+      status: currentStatus,
+      progressStep: mapStatusToStep(currentStatus),
+      deliveryCode: order.deliveryCode || Math.floor(100000 + Math.random() * 900000).toString(),
+      date: order.date || new Date().toLocaleDateString('en-GB', { month: 'long', day: 'numeric', year: 'numeric' }),
+      createdAt: order.createdAt || new Date().toISOString(),
+      updatedAt: order.updatedAt || new Date().toISOString(),
+      // Keep ALL original data
+      ...order,
+      // 🔥 CRITICAL: NEVER override existing status with defaults
+      status: currentStatus,
+      progressStep: mapStatusToStep(currentStatus)
+    };
+  }).filter(order => order !== null);
   
-  // Ensure all orders have required fields
-  allOrders = allOrders.map(order => ({
-    // Default values
-    status: 'Pending',
-    progressStep: 1,
-    deliveryCode: Math.floor(100000 + Math.random() * 900000).toString(),
-    date: new Date().toLocaleDateString('en-GB', { month: 'long', day: 'numeric', year: 'numeric' }),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    // Override with actual data
-    ...order,
-    // Ensure progressStep matches status
-    progressStep: mapStatusToStep(order.status || 'Pending')
-  }));
+  // 🎯 4. SAVE BACK TO LOCALSTORAGE (with correct status)
+  writeJsonKey(ORDERS_KEY(), allOrders);
   
-  // Sort by date (newest first)
-  allOrders.sort((a, b) => {
-    const dateA = new Date(a.createdAt || a.date || 0);
-    const dateB = new Date(b.createdAt || b.date || 0);
-    return dateB - dateA;
-  });
+  console.log(`📊 FINAL: Loaded ${allOrders.length} orders with preserved statuses`);
   
-  console.log('📦 FINAL: Loaded', allOrders.length, 'total orders');
   return allOrders;
 }
-
 // ----------------- Update Firestore Order -----------------
 async function updateOrderInFirestore(orderId, updates) {
   const uid = getUid();
@@ -1521,93 +1493,39 @@ async function getGlobalOrders() {
     const uid = getUid();
     let orders = [];
     
-    // 🔥 ALWAYS try Firestore first for logged-in users
+    // 🔥 Get from user's Firestore document (not main collection)
     if (uid && uid !== 'anon') {
       try {
-        console.log('📦 Fetching orders from Firestore for user:', uid);
-        
-        // OPTION A: Get from user's orders array in Firestore
         const userDocRef = doc(firestore, "users", uid);
         const userDoc = await getDoc(userDocRef);
         
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          const firestoreOrders = userData.orders || [];
-          
-          if (firestoreOrders.length > 0) {
-            orders = firestoreOrders;
-            console.log('✅ Loaded', orders.length, 'orders from Firestore user profile');
-          }
-          
-          // OPTION B: Also query main orders collection
-          try {
-            const ordersQuery = query(
-              collection(firestore, "orders"),
-              where("buyerId", "==", uid)
-            );
-            const querySnapshot = await getDocs(ordersQuery);
-            
-            querySnapshot.forEach(docSnap => {
-              const orderData = docSnap.data();
-              // Check if this order already exists in our array
-              const exists = orders.some(o => 
-                o && (o.id === orderData.id || o.orderId === orderData.orderId)
-              );
-              if (!exists) {
-                orders.push(orderData);
-              }
-            });
-            
-            console.log('✅ After querying orders collection, total:', orders.length);
-          } catch (queryError) {
-            console.warn('Could not query orders collection:', queryError);
-          }
-        } else {
-          console.log('⚠️ No user document found in Firestore');
+          orders = userData.orders || [];
+          console.log('✅ Loaded', orders.length, 'orders from user Firestore document');
         }
-      } catch (firestoreError) {
-        console.error('❌ Firestore error:', firestoreError);
+      } catch (error) {
+        console.error('❌ Firestore user doc error:', error);
       }
     }
     
-    // 🔥 If no Firestore orders or not logged in, use localStorage
-    if (orders.length === 0) {
-      const localOrders = JSON.parse(localStorage.getItem(ORDERS_GLOBAL) || '[]');
-      orders = Array.isArray(localOrders) ? localOrders : [];
-      console.log('📦 Using localStorage backup:', orders.length, 'orders');
-    }
-    
-    // 🔥 Ensure all orders have basic structure
+    // Ensure status preservation
     orders = orders.map(order => {
       if (!order) return null;
       
+      const status = order.status || 'Pending';
       return {
-        // Default values
-        status: 'Pending',
-        progressStep: 1,
-        deliveryCode: Math.floor(100000 + Math.random() * 900000).toString(),
-        date: new Date().toLocaleDateString('en-GB', { month: 'long', day: 'numeric', year: 'numeric' }),
-        createdAt: new Date().toISOString(),
-        // Override with actual data
         ...order,
-        // Ensure progressStep matches status
-        progressStep: mapStatusToStep(order.status || 'Pending')
+        status: status,
+        progressStep: mapStatusToStep(status)
       };
-    }).filter(order => order !== null); // Remove any null entries
+    }).filter(order => order !== null);
     
-    // Sort by date (newest first)
-    orders.sort((a, b) => {
-      const dateA = new Date(a.createdAt || a.date || 0);
-      const dateB = new Date(b.createdAt || b.date || 0);
-      return dateB - dateA;
-    });
-    
-    console.log('📦 FINAL: Returning', orders.length, 'orders from getGlobalOrders');
     return orders;
     
   } catch (error) {
-    console.error('❌ Critical error in getGlobalOrders:', error);
-    return []; // Always return an array
+    console.error('❌ Error in getGlobalOrders:', error);
+    return [];
   }
 }
 
@@ -1664,13 +1582,10 @@ async function saveGlobalOrders(data) {
 
 // ----------------- Update loadOrders function -----------------
 async function loadOrders() {
-  console.log('🚀 Loading orders from all sources...');
+  console.log('🚀 Loading orders...');
   
-  // 🔥 Sync from Firestore first
-  await syncOrdersWithFirestore();
-  
-  // 🔥 Then get merged view
-  orders = await mergeBuyerLocalWithGlobal();
+  // Load directly from all sources (which includes Firestore sync)
+  orders = await loadOrdersFromAllSources();
   
   console.log('📦 Orders loaded:', orders.length);
   
@@ -1688,18 +1603,17 @@ document.addEventListener('visibilitychange', async () => {
     console.log('🔄 Page became visible, syncing with Firestore...');
     
     try {
-      // Sync everything fresh
-      await Promise.all([
-        syncOrdersWithFirestore(),
-        syncCartWithFirestore()
-      ]);
+      // Sync from Firestore
+      await syncOrdersWithFirestore();
       
-      // Reload and render orders
-      orders = await mergeBuyerLocalWithGlobal();
+      // Load fresh orders
+      orders = await loadOrdersFromAllSources(); // ← FIXED
+      
+      // Re-render
       await renderOrders();
       updateCartCount();
       
-      console.log('✅ Synced with Firestore on visibility change');
+      console.log('✅ Synced on visibility change');
     } catch (error) {
       console.error('❌ Sync on visibility change failed:', error);
     }
@@ -1858,20 +1772,32 @@ async function removeFromGlobal(orderId) {
 
 // ----------------- Merge local buyer orders + global truth -----------------
 function mapStatusToStep(status) {
-  switch ((status || '').toLowerCase()) {
+  if (!status) return 1; // Default to step 1 if no status
+  
+  const s = String(status).toLowerCase().trim();
+  
+  switch (s) {
     case 'pending': return 1;
     case 'accepted': return 2;
     case 'processing': return 3;
-    case 'assigned': return 3;  // 🎯 ADD THIS - Same as Processing!
+    case 'assigned': return 3;
     case 'delivering': return 4;
     case 'at door': return 5;
     case 'delivered': return 6;
     case 'ready for pickup': return 4;
     case 'picked up': return 5;
-    case 'completed': return 5;
+    case 'completed': return 6;
     case 'rejected': return 0;
     case 'cancelled': return 0;
-    default: return 1;
+    // 🔥 ADD THESE: Handle numeric statuses
+    case '0': return 0;
+    case '1': return 1;
+    case '2': return 2;
+    case '3': return 3;
+    case '4': return 4;
+    case '5': return 5;
+    case '6': return 6;
+    default: return 1; // Default to pending
   }
 }
 
@@ -1968,99 +1894,6 @@ function getCartKey(){
 
 
 
-async function mergeBuyerLocalWithGlobal() {
-  console.log('🔄 Merging buyer local with global orders...');
-  
-  try {
-    // ✅ Sync from Firestore first
-    await syncOrdersWithFirestore();
-    
-    // Get buyer local orders
-    const buyerLocal = readJsonKey(ORDERS_KEY(), []) || [];
-    const global = await getGlobalOrders();
-    const buyerUid = getUid();
-    
-    // ✅ Use a Map to prevent duplicates
-    const orderMap = new Map();
-    
-    // Combine all orders
-    const allOrders = [...buyerLocal, ...global];
-    
-    // Add all orders to Map (newer versions override older ones)
-    allOrders.forEach(order => {
-      if (!order || !order.id) return;
-      
-      const orderId = order.id || order.orderId;
-      const existing = orderMap.get(orderId);
-      
-      // Keep the newer order (based on updatedAt)
-      if (!existing || 
-          (order.updatedAt && existing.updatedAt && 
-           new Date(order.updatedAt) > new Date(existing.updatedAt))) {
-        
-        // Only keep orders that belong to current buyer
-        const isBuyerOrder = 
-          (order.buyer && order.buyer.uid === buyerUid) ||
-          order.buyerId === buyerUid ||
-          order.buyerUid === buyerUid ||
-          (order.buyer && order.buyer.id === buyerUid);
-        
-        if (isBuyerOrder) {
-          orderMap.set(orderId, order);
-        }
-      }
-    });
-    
-    // Convert Map back to array
-    let merged = Array.from(orderMap.values());
-    
-    // Ensure all orders have required fields
-    merged = merged.map(order => {
-      if (!order) return null;
-      
-      const status = order.status || 'Pending';
-      const progressStep = mapStatusToStep(status);
-      
-      return {
-        id: order.id || order.orderId || `order-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        orderId: order.orderId || order.id,
-        status: status,
-        progressStep: progressStep,
-        deliveryCode: order.deliveryCode || Math.floor(100000 + Math.random() * 900000).toString(),
-        date: order.date || new Date().toLocaleDateString('en-GB', { 
-          month: 'long', 
-          day: 'numeric', 
-          year: 'numeric' 
-        }),
-        createdAt: order.createdAt || new Date().toISOString(),
-        items: order.items || [],
-        deliveryType: order.deliveryType || 'delivery',
-        deliveryFee: order.deliveryFee || 0,
-        subtotal: order.subtotal || 0,
-        tax: order.tax || 0,
-        total: order.total || 0,
-        buyer: order.buyer || { uid: buyerUid, name: 'Buyer' },
-        buyerId: order.buyerId || buyerUid,
-        sellerId: order.sellerId || order.intendedSellerId,
-        ...order
-      };
-    }).filter(order => order !== null);
-    
-    // Sort by date (newest first)
-    merged.sort((a, b) => {
-      const dateA = new Date(a.createdAt || a.date || 0);
-      const dateB = new Date(b.createdAt || b.date || 0);
-      return dateB - dateA;
-    });
-    
-    console.log(`✅ Merged ${merged.length} unique orders`);
-    return merged;
-    
-  } catch (error) {
-    console.error('❌ Error in mergeBuyerLocalWithGlobal:', error);
-    return readJsonKey(ORDERS_KEY(), []);
-  }
-}
 
 // --- DOM Elements ---
 const darkModeToggle = document.getElementById('darkModeToggle');
@@ -2501,14 +2334,15 @@ async function renderOrders() {
   // Clear container
   container.innerHTML = '';
   
-  // Load fresh orders
-  try {
-    orders = await mergeBuyerLocalWithGlobal();
-  } catch (error) {
-    console.error('❌ Failed to load orders:', error);
-    orders = [];
-  }
-  
+  // Load fresh orders from Firestore
+try {
+  console.log('🔄 Loading fresh orders from Firestore...');
+  orders = await loadOrdersFromAllSources(); // ← NEW LINE
+} catch (error) {
+  console.error('❌ Failed to load orders:', error);
+  orders = [];
+}
+
   // Double-check it's an array
   if (!Array.isArray(orders)) {
     console.error('ERROR: orders is not an array, resetting to empty');
@@ -2819,17 +2653,17 @@ if (container) {
     else if (action === 'directions') getDirections(idx);
     else if (action === 'pickedup') markAsPickedUp(idx);
     else if (action === 'clear') {
-      const merged = mergeBuyerLocalWithGlobal();
-      const order = merged[idx];
-      const orderId = order ? (order.id || order.orderId) : null;
-      if (orderId) {
-        if (window.clearSingleOrderById) window.clearSingleOrderById(orderId);
-        else clearSingleOrderById(orderId);
-      } else {
-        showToast('Unable to determine order id to clear', 'error');
-      }
-    }
-  });
+  const order = orders[idx]; // ← USE CURRENT orders ARRAY
+  const orderId = order ? (order.id || order.orderId) : null;
+  if (orderId) {
+    if (window.clearSingleOrderById) window.clearSingleOrderById(orderId);
+    else clearSingleOrderById(orderId);
+  } else {
+    showToast('Unable to determine order id to clear', 'error');
+  }
+}
+      
+});
 }
 
 // Small helpers for escaping
@@ -2848,7 +2682,7 @@ function escapeAttr(s){
 
 // --- Action functions ---
 window.buyAgain = async index => {
-  orders = await mergeBuyerLocalWithGlobal();
+  orders = await loadOrdersFromAllSources(); // ← FIXED
   const order = orders[index];
   if (!order) return alert('Order not found.');
   let cart = readJsonKey(CART_KEY(), []);
@@ -2863,49 +2697,41 @@ window.buyAgain = async index => {
 };
 
 window.orderHelp = async index => {
-  orders = await mergeBuyerLocalWithGlobal();
+  orders = await loadOrdersFromAllSources(); // ← FIXED
   alert(`Need help with Order #${orders[index]?.id || 'N/A'}? Contact support.`);
 };
 
-
 window.trackDelivery = async index => {
-  orders = await mergeBuyerLocalWithGlobal();
+  orders = await loadOrdersFromAllSources(); // ← FIXED
   alert(`Tracking info for Order #${orders[index]?.id || 'N/A'} will appear here.`);
 };
+
 window.startReturn = async index => {
-  orders = await mergeBuyerLocalWithGlobal();
+  orders = await loadOrdersFromAllSources(); // ← FIXED
   alert(`Return process started for Order #${orders[index]?.id || 'N/A'}.`);
 };
 
-window.startReturn = index => {
-    orders = mergeBuyerLocalWithGlobal();
-    alert(`Return process started for Order #${orders[index]?.id || 'N/A'}.`);
-};
+// Remove duplicate startReturn function
 
-// ===== NEW PICKUP ACTION HANDLERS =====
 window.getDirections = async index => {
-  orders = await mergeBuyerLocalWithGlobal();
+  orders = await loadOrdersFromAllSources(); // ← FIXED
   const order = orders[index];
     
-    if (!order || !order.id) {
-        alert('Order not found or missing ID');
-        return;
-    }
-    
-    // Store the order ID in session storage for the map page to pick up
-    sessionStorage.setItem('trackingOrderId', order.id || order.orderId);
-    
-    // Redirect to the map page
-    window.location.href = '../../map/map.html';
+  if (!order || !order.id) {
+    alert('Order not found or missing ID');
+    return;
+  }
+  
+  sessionStorage.setItem('trackingOrderId', order.id || order.orderId);
+  window.location.href = '../../map/map.html';
 };
 
 window.markAsPickedUp = async index => {
-  orders = await mergeBuyerLocalWithGlobal();
+  orders = await loadOrdersFromAllSources(); // ← FIXED
   const order = orders[index];
-    if (confirm(`Mark Order #${order?.id || 'N/A'} as picked up?`)) {
-        showToast('Order marked as picked up!', 'success');
-        // You can add logic to update order status here
-    }
+  if (confirm(`Mark Order #${order?.id || 'N/A'} as picked up?`)) {
+    showToast('Order marked as picked up!', 'success');
+  }
 };
 
 // --- A lightweight completed-order renderer (optional) ---
@@ -2942,44 +2768,42 @@ window.addEventListener('storage', async (e) => {
   if (e.key.startsWith('orders_ping__buyer__')) {
     const uidMatch = e.key.match(/^orders_ping__buyer__(.+)$/);
     if (uidMatch) {
-      const buyerUid = uidMatch[1];
-      const currentUid = getUid();
-      if (buyerUid === currentUid) {
-        // reload merged and re-render
-        orders = mergeBuyerLocalWithGlobal();
-        orders.forEach(o => { if (!('progressStep' in o)) o.progressStep = mapStatusToStep(o.status); });
-        await renderOrders();
-        showToast('Order status updated!', 'success');
-      }
-    }
+  const buyerUid = uidMatch[1];
+  const currentUid = getUid();
+  if (buyerUid === currentUid) {
+    // reload from Firestore
+    orders = await loadOrdersFromAllSources(); // ← FIXED
+    await renderOrders();
+    showToast('Order status updated!', 'success');
+  }
+}
     return;
   }
 
   // 1b) global canonical changed — re-render merged view
-  if (e.key === ORDERS_GLOBAL) {
-    try {
-      orders = mergeBuyerLocalWithGlobal();
-      orders.forEach(o => { if (!('progressStep' in o)) o.progressStep = mapStatusToStep(o.status); });
-      await renderOrders();
-      showToast('Order status synced with global updates', 'success');
-    } catch (err) {
-      console.warn('orders_global storage event handling failed', err);
-    }
-    return;
+  // 1b) global canonical changed — re-render merged view
+if (e.key === ORDERS_GLOBAL) {
+  try {
+    orders = await loadOrdersFromAllSources(); // ← FIXED
+    await renderOrders();
+    showToast('Order status synced', 'success');
+  } catch (err) {
+    console.warn('orders_global storage event handling failed', err);
   }
+  return;
+}
 
   // 2) If namespaced orders key changed (buyer local) -> re-render merged
   const ordersKey = ORDERS_KEY();
   const cartKey = CART_KEY();
   const productsKey = PRODUCTS_KEY();
 
-  if (e.key === ordersKey) {
+if (e.key === ordersKey) {
   try {
-    orders = await mergeBuyerLocalWithGlobal();
+    orders = await loadOrdersFromAllSources(); // ← NEW LINE
   } catch (err) {
     orders = readJsonKey(ordersKey, []);
   }
-  orders.forEach(o => { if (!('progressStep' in o)) o.progressStep = mapStatusToStep(o.status); });
   await renderOrders();
   return;
 }
@@ -2992,26 +2816,36 @@ window.addEventListener('storage', async (e) => {
 
   // 4) product catalog changed -> re-render orders (optional)
   if (e.key === productsKey) {
-    orders = mergeBuyerLocalWithGlobal();
-    await renderOrders();
-    return;
+  orders = await loadOrdersFromAllSources();
+  await renderOrders();
+  return;
   }
+
 });
 
 
 // --- Initial render ---
+// --- Initial render ---
 document.addEventListener('DOMContentLoaded', async () => {
-
-   // Load products from Firestore on startup
+  console.log('🚀 Orders page initialized');
+  
+  // Load products from Firestore on startup
   await loadProductsFromFirestore();
   
   // Setup sync listeners
   setupProductSync();
+  
+  // 🔥 ADD THIS: Setup real-time order listener
+  setupOrderUpdateListener();
 
+  // Load and render orders
   await loadOrders();
   await renderOrders();
   renderCompletedOrders();
+  
+  console.log('✅ Orders page ready');
 });
+
 </script>
 
 
