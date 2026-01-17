@@ -1188,6 +1188,7 @@ function setupProductSync() {
 }
 
 // 🔥 ADD THIS: Listen for real-time order updates
+// ✅ FIXED: Listen for real-time order updates from Firestore
 function setupOrderUpdateListener() {
   const uid = getUid();
   if (!uid || uid === 'anon') {
@@ -1198,23 +1199,39 @@ function setupOrderUpdateListener() {
   console.log('👂 Setting up real-time order listener for buyer:', uid);
   
   try {
-    // Listen to user's document for order updates
-    const userDocRef = doc(firestore, "users", uid);
+    // 🔥 CRITICAL: Listen to ORDERS collection filtered by buyerId
+    const ordersCollection = collection(firestore, "orders");
+    const q = query(ordersCollection, where("buyerId", "==", uid));
     
-    return onSnapshot(userDocRef, (doc) => {
-      if (doc.exists()) {
-        const userData = doc.data();
-        const firestoreOrders = userData.orders || [];
+    return onSnapshot(q, (snapshot) => {
+      console.log('📢 Orders page: Real-time order update received!');
+      
+      const firestoreOrders = [];
+      snapshot.forEach(doc => {
+        const orderData = doc.data();
+        firestoreOrders.push({
+          id: doc.id,
+          ...orderData
+        });
+      });
+      
+      if (firestoreOrders.length > 0) {
+        console.log(`🔄 Received ${firestoreOrders.length} orders from Firestore real-time`);
         
-        console.log('📢 Buyer: Real-time order update received!');
+        // Update localStorage with correct statuses
+        const ordersWithStatus = firestoreOrders.map(order => ({
+          ...order,
+          status: order.status || 'Pending',
+          progressStep: mapStatusToStep(order.status || 'Pending')
+        }));
         
-        // Update localStorage
-        writeJsonKey(ORDERS_KEY(), firestoreOrders);
+        // Save to localStorage cache
+        writeJsonKey(ORDERS_KEY(), ordersWithStatus);
         
-        // Update global orders too
-        localStorage.setItem(ORDERS_GLOBAL, JSON.stringify(firestoreOrders));
+        // Also update global orders
+        localStorage.setItem(ORDERS_GLOBAL, JSON.stringify(ordersWithStatus));
         
-        // Re-render after a short delay
+        // Re-render orders
         setTimeout(() => {
           renderOrders();
           showToast('Order status updated!', 'success');
@@ -1238,8 +1255,36 @@ async function loadOrdersFromAllSources() {
   
   let allOrders = [];
   
-  // 🎯 1. ALWAYS TRY FIRESTORE USER DOCUMENT FIRST
+  // 🎯 1. TRY FIRESTORE ORDERS COLLECTION (where sellers update orders)
   if (uid && uid !== 'anon') {
+    try {
+      console.log('🔄 Querying Firestore orders collection...');
+      
+      // Query orders where buyerId matches current user
+      const ordersCollection = collection(firestore, "orders");
+      const q = query(ordersCollection, where("buyerId", "==", uid));
+      const querySnapshot = await getDocs(q);
+      
+      querySnapshot.forEach(doc => {
+        const orderData = doc.data();
+        const status = orderData.status || 'Pending';
+        allOrders.push({
+          id: doc.id,
+          ...orderData,
+          status: status,
+          progressStep: mapStatusToStep(status)
+        });
+      });
+      
+      console.log(`📥 Found ${allOrders.length} orders in Firestore orders collection`);
+      
+    } catch (error) {
+      console.error('❌ Firestore orders collection error:', error);
+    }
+  }
+  
+  // 🎯 2. FALLBACK TO USER DOCUMENT ORDERS
+  if (allOrders.length === 0 && uid && uid !== 'anon') {
     try {
       const userDocRef = doc(firestore, "users", uid);
       const userDoc = await getDoc(userDocRef);
@@ -1252,7 +1297,6 @@ async function loadOrdersFromAllSources() {
         
         userOrders.forEach(order => {
           if (order && order.id) {
-            // 🔥 CRITICAL: Preserve ACTUAL status from Firestore
             const status = order.status || 'Pending';
             allOrders.push({
               ...order,
@@ -1267,41 +1311,60 @@ async function loadOrdersFromAllSources() {
     }
   }
   
-  // 🎯 2. FALLBACK TO LOCALSTORAGE
+  // 🎯 3. FALLBACK TO LOCALSTORAGE
   if (allOrders.length === 0) {
     console.log('📂 Falling back to localStorage...');
     allOrders = readJsonKey(ORDERS_KEY(), []);
   }
   
-  // 🎯 3. ENSURE NO STATUS RESETS
-  allOrders = allOrders.map(order => {
-    if (!order) return null;
+  // 🎯 4. ENSURE NO DUPLICATES & PRESERVE STATUS
+  const uniqueOrders = [];
+  const seenIds = new Set();
+  
+  allOrders.forEach(order => {
+    if (!order) return;
     
-    const currentStatus = order.status || 'Pending';
+    const orderId = order.id || order.orderId;
+    if (!orderId) return;
     
-    return {
-      // Default values only if missing
-      status: currentStatus,
-      progressStep: mapStatusToStep(currentStatus),
-      deliveryCode: order.deliveryCode || Math.floor(100000 + Math.random() * 900000).toString(),
-      date: order.date || new Date().toLocaleDateString('en-GB', { month: 'long', day: 'numeric', year: 'numeric' }),
-      createdAt: order.createdAt || new Date().toISOString(),
-      updatedAt: order.updatedAt || new Date().toISOString(),
-      // Keep ALL original data
-      ...order,
-      // 🔥 CRITICAL: NEVER override existing status with defaults
-      status: currentStatus,
-      progressStep: mapStatusToStep(currentStatus)
-    };
-  }).filter(order => order !== null);
+    if (!seenIds.has(orderId)) {
+      seenIds.add(orderId);
+      
+      // Preserve actual status from Firestore
+      const currentStatus = order.status || 'Pending';
+      
+      uniqueOrders.push({
+        // Default values only if missing
+        status: currentStatus,
+        progressStep: mapStatusToStep(currentStatus),
+        deliveryCode: order.deliveryCode || Math.floor(100000 + Math.random() * 900000).toString(),
+        date: order.date || new Date().toLocaleDateString('en-GB', { month: 'long', day: 'numeric', year: 'numeric' }),
+        createdAt: order.createdAt || new Date().toISOString(),
+        updatedAt: order.updatedAt || new Date().toISOString(),
+        // Keep ALL original data
+        ...order,
+        // 🔥 CRITICAL: NEVER override existing status with defaults
+        status: currentStatus,
+        progressStep: mapStatusToStep(currentStatus)
+      });
+    }
+  });
   
-  // 🎯 4. SAVE BACK TO LOCALSTORAGE (with correct status)
-  writeJsonKey(ORDERS_KEY(), allOrders);
+  // Sort by date (newest first)
+  uniqueOrders.sort((a, b) => {
+    const dateA = new Date(a.createdAt || a.date || 0);
+    const dateB = new Date(b.createdAt || b.date || 0);
+    return dateB - dateA;
+  });
   
-  console.log(`📊 FINAL: Loaded ${allOrders.length} orders with preserved statuses`);
+  // 🎯 5. SAVE BACK TO LOCALSTORAGE (with correct status)
+  writeJsonKey(ORDERS_KEY(), uniqueOrders);
   
-  return allOrders;
+  console.log(`📊 FINAL: Loaded ${uniqueOrders.length} orders with preserved statuses`);
+  
+  return uniqueOrders;
 }
+
 // ----------------- Update Firestore Order -----------------
 async function updateOrderInFirestore(orderId, updates) {
   const uid = getUid();
