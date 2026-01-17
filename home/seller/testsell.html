@@ -4762,109 +4762,219 @@ onAuthStateChanged(auth, (user) => {
 
     /* ---------- Change Order Status (MINIMAL FIX) ---------- */
     /* ---------- Change Order Status (MINIMAL FIX) ---------- */
-    async function changeOrderStatus(orderRef, newStatus) {
+    /* ---------- Change Order Status (UPDATED TO SYNC TO FIRESTORE) ---------- */
+/* ---------- Change Order Status (COMPLETE FIXED VERSION) ---------- */
+async function changeOrderStatus(orderRef, newStatus) {
   try {
     console.log('🎯 changeOrderStatus called:', { orderRef, newStatus });
 
     const orderId = typeof orderRef === 'object' ? (orderRef.id || orderRef.orderId) : String(orderRef);
+    const sellerUid = getUid();
+    
+    if (!sellerUid) {
+      showToast('❌ You are not logged in', 'error');
+      return;
+    }
+
     console.log('📋 Order ID:', orderId);
+    console.log('👤 Seller UID:', sellerUid);
 
-    // SIMPLE: Just update global orders
-    const globalOrders = getGlobalOrders();
-    console.log('📦 Global orders count:', globalOrders.length);
-
-    const orderIndex = globalOrders.findIndex(o =>
-      String(o.id) === String(orderId) || String(o.orderId) === String(orderId)
-    );
-
-    console.log('🔍 Order found at index:', orderIndex);
-
-    if (orderIndex !== -1) {
-      const oldOrder = globalOrders[orderIndex];
-      globalOrders[orderIndex].status = newStatus;
-      globalOrders[orderIndex].progressStep = getProgressStep(newStatus);
-      globalOrders[orderIndex].statusUpdatedAt = nowISO();
-
-      // 🆕 CRITICAL: Track the courier who's assigned
-      const assignedCourierId = oldOrder.assignedTo || oldOrder.assignedDeliveryId;
-      const buyerUid = globalOrders[orderIndex]?.buyer?.uid;
-
-      // Save global first
-      saveGlobalOrders(globalOrders);
-
-      console.log('✅ Updated global order status to:', newStatus);
-
-      // Create an array of sync operations to execute sequentially
-      const syncOperations = [];
-
-      // 🆕 SYNC TO DELIVERY GUY'S STORAGE
-      if (assignedCourierId) {
-        syncOperations.push(() => syncToDeliveryGuy(globalOrders[orderIndex], assignedCourierId));
+    // ============================================
+    // 🔥 STEP 1: GET CURRENT ORDER DATA
+    // ============================================
+    const timestamp = new Date().toISOString();
+    const progressStep = getProgressStep(newStatus);
+    
+    // Get the full order data first
+    let orderData = typeof orderRef === 'object' ? orderRef : null;
+    let buyerUid = null;
+    
+    if (!orderData) {
+      const orderDocRef = doc(firestore, "orders", orderId);
+      const orderDoc = await getDoc(orderDocRef);
+      if (orderDoc.exists()) {
+        orderData = orderDoc.data();
+        buyerUid = orderData.buyerId || orderData.buyer?.uid;
       }
+    } else {
+      buyerUid = orderData.buyerId || orderData.buyer?.uid;
+    }
 
-      // 🆕 SYNC TO BUYER'S STORAGE
-      if (buyerUid) {
-        syncOperations.push(() => syncToBuyer(globalOrders[orderIndex]));
-      }
+    if (!orderData) {
+      showToast('❌ Order not found', 'error');
+      return;
+    }
 
-      // Execute all sync operations sequentially
-      for (const syncOp of syncOperations) {
-        try {
-          // If syncToDeliveryGuy/syncToBuyer returns a Promise, await it
-          // If not, wrap it in a Promise to ensure sequential execution
-          const result = syncOp();
-          if (result && typeof result.then === 'function') {
-            await result;
-          } else {
-            // Give async operations time to complete even if they don't return promises
-            await new Promise(resolve => setTimeout(resolve, 50));
+    console.log('👤 Buyer UID:', buyerUid);
+
+    // ============================================
+    // 🔥 STEP 2: PREPARE UPDATE DATA
+    // ============================================
+    const updateData = {
+      status: newStatus,
+      progressStep: progressStep,
+      statusUpdatedAt: timestamp,
+      updatedAt: timestamp,
+      sellerId: sellerUid,
+      buyerId: buyerUid
+    };
+    
+    console.log('🔥 Updating Firestore with:', updateData);
+
+    // ============================================
+    // 🔥 STEP 3: UPDATE MAIN ORDERS COLLECTION
+    // ============================================
+    const orderDocRef = doc(firestore, "orders", orderId);
+    await updateDoc(orderDocRef, updateData);
+    console.log('✅ Updated main orders collection in Firestore');
+
+    // ============================================
+    // 🔥 STEP 4: UPDATE SELLER'S ORDER IN USER DOCUMENT
+    // ============================================
+    try {
+      const sellerDocRef = doc(firestore, "users", sellerUid);
+      const sellerDoc = await getDoc(sellerDocRef);
+      
+      if (sellerDoc.exists()) {
+        const sellerData = sellerDoc.data();
+        const sellerOrders = sellerData.orders || [];
+        
+        const updatedSellerOrders = sellerOrders.map(sellerOrder => {
+          if (sellerOrder.id === orderId || sellerOrder.orderId === orderId) {
+            return {
+              ...sellerOrder,
+              ...updateData
+            };
           }
-        } catch (syncErr) {
-          console.warn('⚠️ Sync operation warning:', syncErr);
-          // Continue with other operations even if one fails
+          return sellerOrder;
+        });
+        
+        await updateDoc(sellerDocRef, {
+          orders: updatedSellerOrders,
+          updatedAt: timestamp
+        });
+        console.log('✅ Updated seller user document');
+      }
+    } catch (sellerError) {
+      console.warn('⚠️ Could not update seller user document:', sellerError);
+    }
+
+    // ============================================
+    // 🔥 STEP 5: UPDATE BUYER'S ORDER IN USER DOCUMENT
+    // ============================================
+    if (buyerUid && buyerUid !== 'anon') {
+      console.log('🔄 Updating buyer document for:', buyerUid);
+      
+      try {
+        const buyerDocRef = doc(firestore, "users", buyerUid);
+        const buyerDoc = await getDoc(buyerDocRef);
+        
+        if (buyerDoc.exists()) {
+          const buyerData = buyerDoc.data();
+          const buyerOrders = buyerData.orders || [];
+          
+          // Find and update the order
+          let orderUpdated = false;
+          const updatedBuyerOrders = buyerOrders.map(buyerOrder => {
+            if (buyerOrder.id === orderId || buyerOrder.orderId === orderId) {
+              orderUpdated = true;
+              return {
+                ...buyerOrder,
+                ...updateData
+              };
+            }
+            return buyerOrder;
+          });
+          
+          // If order not found, add it
+          if (!orderUpdated) {
+            updatedBuyerOrders.push({
+              ...orderData,
+              ...updateData,
+              id: orderId,
+              orderId: orderId
+            });
+          }
+          
+          await updateDoc(buyerDocRef, {
+            orders: updatedBuyerOrders,
+            updatedAt: timestamp
+          });
+          
+          console.log('✅ Updated buyer document');
         }
-      }
-
-      // 🚨 AUTO-REDUCE PRODUCT STOCK WHEN ORDER GOES TO PROCESSING
-      if (newStatus.toLowerCase() === 'processing') {
-        console.log('🔄 Calling reduceProductStock for processing order...');
-        reduceProductStock(globalOrders[orderIndex]);
-      }
-
-      // Notify buyer
-      if (buyerUid) {
-        localStorage.setItem(`orders_ping__buyer__${buyerUid}`, Date.now().toString());
-        console.log('📢 Notified buyer:', buyerUid);
-      }
-
-      // 🆕 NOTIFY DELIVERY GUY
-      if (assignedCourierId) {
-        localStorage.setItem(`orders_ping__delivery__${assignedCourierId}`, Date.now().toString());
-        console.log('📢 Notified delivery guy:', assignedCourierId);
+      } catch (buyerError) {
+        console.error('❌ Failed to update buyer document:', buyerError);
       }
     }
 
-    // Update seller local (optional)
-    let sellerOrders = JSON.parse(localStorage.getItem(ordersKey()) || '[]');
-    const sellerIndex = sellerOrders.findIndex(o =>
-      String(o.id) === String(orderId) || String(o.orderId) === String(orderId)
-    );
-    if (sellerIndex !== -1) {
-      sellerOrders[sellerIndex].status = newStatus;
-      sellerOrders[sellerIndex].progressStep = getProgressStep(newStatus);
-      localStorage.setItem(ordersKey(), JSON.stringify(sellerOrders));
-      console.log('✅ Updated seller local order');
+    // ============================================
+    // 🔥 STEP 6: PING BUYER FOR REAL-TIME UPDATE
+    // ============================================
+    if (buyerUid) {
+      localStorage.setItem(`orders_ping__buyer__${buyerUid}`, String(Date.now()));
+      console.log('📢 Pinged buyer for real-time update');
     }
 
-    // Only render after all sync operations are complete
-    setTimeout(() => renderOrders(), 100);
-    showToast(`Order → ${newStatus}`, 'success');
+    // ============================================
+    // 🔥 STEP 7: UPDATE GLOBAL ORDERS (BACKUP)
+    // ============================================
+    try {
+      const globalOrders = getGlobalOrders();
+      const globalIndex = globalOrders.findIndex(o =>
+        String(o.id) === String(orderId) || String(o.orderId) === String(orderId)
+      );
+      
+      if (globalIndex !== -1) {
+        globalOrders[globalIndex] = {
+          ...globalOrders[globalIndex],
+          ...updateData
+        };
+        saveGlobalOrders(globalOrders);
+        console.log('✅ Updated global orders backup');
+      }
+    } catch (globalError) {
+      console.error('❌ Failed to update global orders:', globalError);
+    }
 
-    console.log('🎉 changeOrderStatus completed successfully');
+    // ============================================
+    // 🔥 STEP 8: AUTO-REDUCE STOCK ON PROCESSING
+    // ============================================
+    if (newStatus.toLowerCase() === 'processing') {
+      console.log('🔄 Reducing product stock for processing order...');
+      try {
+        reduceProductStock(orderData);
+      } catch (stockError) {
+        console.warn('⚠️ Could not reduce stock:', stockError);
+      }
+    }
+
+    // ============================================
+    // 🔥 STEP 9: REFRESH SELLER UI (FIXED)
+    // ============================================
+    // Use window object to avoid variable scope issues
+    if (window.orderRefreshTimeout) {
+      clearTimeout(window.orderRefreshTimeout);
+    }
+    
+    window.orderRefreshTimeout = setTimeout(() => {
+      renderOrders();
+      renderCompletedOrders();
+      renderAnalytics();
+      console.log('✅ Seller UI refreshed');
+    }, 300);
+
+    // ============================================
+    // 🔥 STEP 10: SHOW SUCCESS
+    // ============================================
+    showToast(`✅ Order #${orderId.substring(0, 8)} updated to: ${newStatus}`, 'success');
+    
+    console.log('🎉 changeOrderStatus COMPLETED SUCCESSFULLY');
 
   } catch (err) {
-    console.error('❌ changeOrderStatus error:', err);
-    showToast('Update failed', 'error');
+    console.error('❌ CRITICAL ERROR in changeOrderStatus:', err);
+    console.error('Error stack:', err.stack);
+    showToast(`❌ Failed to update order: ${err.message}`, 'error');
   }
 }
 
